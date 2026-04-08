@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Demos{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3a;
+      --text: #e2e4ed;
+      --muted: #8b8fa8;
+      --accent: #5b8af0;
+      --green: #34c47c;
+      --yellow: #f5a623;
+      --red: #e85d5d;
+    }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; font-size: 14px; line-height: 1.6; }
+    nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; gap: 24px; height: 52px; }
+    nav a { color: var(--muted); text-decoration: none; font-weight: 500; font-size: 13px; letter-spacing: 0.02em; }
+    nav a:hover, nav a.active { color: var(--text); }
+    nav .brand { color: var(--text); font-weight: 700; font-size: 15px; margin-right: 8px; }
+    main { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-green { background: rgba(52,196,124,0.15); color: var(--green); }
+    .badge-yellow { background: rgba(245,166,35,0.15); color: var(--yellow); }
+    .badge-red { background: rgba(232,93,93,0.15); color: var(--red); }
+    .score { font-weight: 700; font-size: 16px; }
+    .score-green { color: var(--green); }
+    .score-yellow { color: var(--yellow); }
+    .score-red { color: var(--red); }
+    .muted { color: var(--muted); }
+    form input, form textarea { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 8px 12px; font-size: 14px; width: 100%; outline: none; }
+    form input:focus, form textarea:focus { border-color: var(--accent); }
+    form label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    form .field { margin-bottom: 14px; }
+    button[type=submit] { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    button[type=submit]:hover { opacity: 0.9; }
+    .btn-sm { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 4px 12px; font-size: 12px; font-weight: 500; cursor: pointer; }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    details summary { cursor: pointer; user-select: none; padding: 10px 0; color: var(--muted); font-size: 13px; }
+    details summary:hover { color: var(--text); }
+    details[open] summary { color: var(--text); }
+    ul { padding-left: 18px; }
+    li { margin-bottom: 4px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .meta-row { display: flex; gap: 32px; margin-bottom: 20px; flex-wrap: wrap; }
+    .meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .meta-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .meta-value { font-size: 15px; font-weight: 600; }
+    p { margin-bottom: 10px; }
+    .narrative p:last-child { margin-bottom: 0; }
+    .section { margin-bottom: 32px; }
+    .tag { display: inline-block; background: var(--border); color: var(--muted); border-radius: 4px; padding: 2px 7px; font-size: 11px; margin: 2px 2px 2px 0; }
+    @media (max-width: 700px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .meta-row { gap: 16px; }
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <nav>
+    <span class="brand">Demos</span>
+    <a href="/" {% if request.url.path == "/" %}class="active"{% endif %}>Stories</a>
+    <a href="/corpus" {% if request.url.path == "/corpus" %}class="active"{% endif %}>Corpus</a>
+    <a href="/methodology" {% if request.url.path == "/methodology" %}class="active"{% endif %}>Methodology</a>
+    <a href="/auth" {% if request.url.path == "/auth" %}class="active"{% endif %}>Auth</a>
+  </nav>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

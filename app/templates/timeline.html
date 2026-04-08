@@ -1,0 +1,23 @@
+{% macro render(meta, samples, analyzed_samples, active_sample_id) %}
+<div class="timeline">
+  {% for s in samples %}
+    {% if not loop.first %}<div class="timeline-line"></div>{% endif %}
+    <div class="timeline-item">
+      <div class="timeline-dot {% if active_sample_id == s %}active{% endif %} {% if s in analyzed_samples %}has-analysis{% endif %}"
+           data-story="{{ meta.id }}" data-sample="{{ s }}"
+           title="{{ s[:4] }}-{{ s[4:6] }}-{{ s[6:8] }} {{ s[9:11] }}:{{ s[11:13] }}">
+      </div>
+      {% if loop.first or loop.last or active_sample_id == s %}
+      <div class="timeline-label">{{ s[4:6] }}/{{ s[6:8] }}</div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+<script>
+document.querySelectorAll('.timeline-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    window.location.href = '/story/' + dot.dataset.story + '/samples/' + dot.dataset.sample;
+  });
+});
+</script>
+{% endmacro %}

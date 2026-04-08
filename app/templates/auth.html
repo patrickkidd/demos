@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Auth — Demos{% endblock %}
+
+{% block content %}
+<div class="section">
+  <h1>Authentication</h1>
+
+  <div class="card" style="margin-top:20px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      {% if authenticated %}
+        <span class="badge badge-green" style="font-size:13px;padding:4px 12px;">Authenticated</span>
+      {% else %}
+        <span class="badge badge-red" style="font-size:13px;padding:4px 12px;">Not authenticated</span>
+      {% endif %}
+    </div>
+
+    {% if status %}
+    <pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:12px;color:var(--muted);white-space:pre-wrap;margin-bottom:16px;">{{ status }}</pre>
+    {% endif %}
+
+    {% if not authenticated %}
+    <p style="font-size:13px;margin-bottom:8px;">Run this on your host machine (macOS):</p>
+    <pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:12px;color:var(--text);margin-bottom:12px;">./scripts/export_auth.sh && docker compose restart</pre>
+    <p class="muted" style="font-size:12px;">This exports your Claude credentials from macOS Keychain into the container volume. If you haven't logged in on your host yet, run <code>claude auth login</code> first.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

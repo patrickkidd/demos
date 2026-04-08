@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Stories — Demos{% endblock %}
+
+{% block head %}
+<style>
+  .story-row { padding: 20px; border-bottom: 1px solid var(--border); }
+  .story-row:last-child { border-bottom: none; }
+  .story-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .story-title { font-size: 15px; font-weight: 600; }
+  .story-meta { display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+
+  .mini-timeline { display: flex; align-items: center; gap: 0; padding: 4px 0; }
+  .mini-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--border);
+    cursor: pointer; flex-shrink: 0; border: 2px solid transparent;
+    transition: background 0.15s;
+  }
+  .mini-dot:hover { background: var(--accent); }
+  .mini-dot.analyzed { background: var(--green); }
+  .mini-dot.extracted { background: var(--yellow); }
+  .mini-line { width: 12px; height: 2px; background: var(--border); flex-shrink: 0; }
+  .mini-label { font-size: 10px; color: var(--muted); margin-left: 8px; }
+
+  .no-samples { font-size: 12px; color: var(--muted); padding: 4px 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="section">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+    <h1>Stories</h1>
+    {% if stories %}
+    <form method="post" action="/sample-all">
+      <button type="submit" class="btn-sm">Sample all</button>
+    </form>
+    {% endif %}
+  </div>
+  <p class="muted" style="margin-bottom:20px;">Collective intelligence applied to political media analysis.</p>
+
+  <div class="card" style="margin-bottom:24px;">
+    <h3 style="margin-bottom:14px;">Track a new story</h3>
+    <form method="post" action="/stories">
+      <div class="grid-3">
+        <div class="field">
+          <label>Topic</label>
+          <input type="text" name="topic" required placeholder="e.g. Federal budget negotiations 2025">
+        </div>
+        <div class="field">
+          <label>Seed URL (optional)</label>
+          <input type="text" name="seed_url" placeholder="https://...">
+        </div>
+        <div class="field">
+          <label>Articles per sample</label>
+          <input type="number" name="article_count" value="6" min="3" max="30" style="width:80px;">
+        </div>
+      </div>
+      <button type="submit">Add story</button>
+    </form>
+  </div>
+
+  {% if stories %}
+  <div class="card" style="padding:0;">
+    {% for s in stories %}
+    <div class="story-row">
+      <div class="story-header">
+        <span class="story-title">
+          <a href="/story/{{ s.id }}">{{ s.topic }}</a>
+          {% if not s.get("active") %}<span class="badge" style="background:var(--border);color:var(--muted);margin-left:6px;">inactive</span>{% endif %}
+        </span>
+        <span style="display:flex;gap:8px;align-items:center;">
+          {% set status = running.get(s.id) %}
+          {% if status %}
+            <span class="badge badge-yellow" data-story-status="{{ s.id }}">{{ status }}…</span>
+          {% elif s.get("active") %}
+            <form method="post" action="/stories/{{ s.id }}/sample" style="display:inline;">
+              <button type="submit" class="btn-sm">Sample</button>
+            </form>
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="story-meta">
+        <span>{{ s.sample_count }} sample{{ "s" if s.sample_count != 1 }}</span>
+        <span>{{ s.article_count or 0 }} articles (latest)</span>
+        <span>Last: {{ s.last_run_at[:10] if s.last_run_at else "never" }}</span>
+      </div>
+
+      {% if s.samples %}
+      <div class="mini-timeline">
+        {% for sid in s.samples %}
+          {% if not loop.first %}<div class="mini-line"></div>{% endif %}
+          <div class="mini-dot {% if sid in s.analyzed_samples %}analyzed{% else %}extracted{% endif %}"
+               title="{{ sid[:4] }}-{{ sid[4:6] }}-{{ sid[6:8] }}"
+               onclick="window.location.href='/story/{{ s.id }}/samples/{{ sid }}'">
+          </div>
+        {% endfor %}
+        <span class="mini-label">
+          {{ s.samples[0][4:6] }}/{{ s.samples[0][6:8] }}
+          {% if s.samples|length > 1 %}
+          — {{ s.samples[-1][4:6] }}/{{ s.samples[-1][6:8] }}
+          {% endif %}
+        </span>
+      </div>
+      {% else %}
+      <div class="no-samples">No samples yet</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">No stories yet. Add one above.</p>
+  {% endif %}
+</div>
+
+<script>
+(function() {
+  const badges = document.querySelectorAll('[data-story-status]');
+  if (!badges.length) return;
+
+  const poll = setInterval(async () => {
+    try {
+      const resp = await fetch('/api/status');
+      const running = await resp.json();
+      let anyRunning = false;
+      badges.forEach(b => {
+        const id = b.dataset.storyStatus;
+        if (running[id]) {
+          b.textContent = running[id] + '…';
+          b.classList.remove('badge-green', 'badge-red');
+          b.classList.add(running[id] === 'failed' ? 'badge-red' : 'badge-yellow');
+          anyRunning = true;
+        } else {
+          b.textContent = 'done';
+          b.classList.remove('badge-yellow', 'badge-red');
+          b.classList.add('badge-green');
+        }
+      });
+      if (!anyRunning) {
+        clearInterval(poll);
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    } catch {}
+  }, 5000);
+})();
+</script>
+{% endblock %}

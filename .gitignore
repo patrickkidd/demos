@@ -1,0 +1,6 @@
+instance/.claude/
+instance/stories/
+instance/stories.json
+instance/corpus.json
+*.pyc
+__pycache__
