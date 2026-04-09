@@ -100,7 +100,15 @@ Outlet identities are reintroduced. All Phase 1 extractions are merged:
   ordering, which maps around 360 degrees for visualization. Related axes
   cluster together; unrelated axes are distant
 
-### Phase 3: Centroid Synthesis
+### Phase 3: Clustering
+
+Deduplicated facts and opinion axes are grouped into 3-5 **key developments**
+— distinct narrative threads within the day's coverage. Each development
+has a label, summary, and references to which facts and opinions belong to
+it, ordered by coverage breadth (most outlets = lead story). This gives
+readers a 1-minute overview before diving into detail.
+
+### Phase 4: Centroid Synthesis
 
 - **Per-axis centroid**: for each opinion axis, a natural language balanced
   conclusion weighted by evidence strength. Not false balance — if one pole has

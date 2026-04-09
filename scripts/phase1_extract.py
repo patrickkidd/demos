@@ -1,15 +1,16 @@
-import json, asyncio, logging
+import json, asyncio, logging, re
 from pathlib import Path
 from datetime import datetime, timezone
+from urllib.parse import urlparse
+import httpx
 from claude_agent_sdk import query, ClaudeAgentOptions
 
 DATA = Path("/instance")
 log = logging.getLogger(__name__)
 
-SEARCH_TOOLS = ["WebSearch", "WebFetch", "Read", "Write", "Bash"]
-ANALYSIS_TOOLS = ["Read", "Write"]
-
 APP_DIR = Path(__file__).resolve().parent.parent / "app"
+
+ANALYSIS_TOOLS = ["Read", "Write"]
 
 
 def all_outlets() -> list[str]:
@@ -17,41 +18,97 @@ def all_outlets() -> list[str]:
     return [o["outlet"] for o in data] + ["White House"]
 
 
-SEARCH_PROMPT = """You are a news collection agent.
+SEARCH_PROMPT = """You are a news URL finder.
 
 TOPIC: {topic}
-OUTPUT DIR: {article_dir}
 
-TARGET OUTLETS (one article per outlet, in order of priority):
+TARGET OUTLETS (find one article URL per outlet):
 {outlet_list}
 
-Search for one recent article on this topic from each target outlet.
-For "White House", search for official press releases, briefings, or
-statements from whitehouse.gov or state.gov.
-Fetch exactly one article per outlet. If you cannot find or fetch an
-article from a specific outlet, skip it and note the failure. Do not
-substitute a different outlet or double up on any outlet.
+For each target outlet, search the web for one recent article on this
+topic. For "White House", search whitehouse.gov or state.gov.
 
-3. For each article found:
-   a. Fetch the full text.
-   b. Save extracted text to {article_dir}/{{url_slug}}.txt
-   c. Skip articles under 200 words after extraction.
+If you cannot find an article for an outlet, skip it.
 
-4. Write a JSON manifest to {manifest_path}:
-   {{
-     "topic": "{topic}",
-     "collected_at": "ISO 8601",
-     "articles": [
-       {{
-         "url": "string",
-         "outlet": "string",
-         "file": "filename.txt",
-         "word_count": number
-       }}
-     ]
-   }}
+Do NOT fetch or read the articles. Only find URLs.
 
-Collect as many articles as possible. Do not analyze them."""
+Respond with ONLY valid JSON matching this schema (no markdown fences):
+{{
+  "urls": [
+    {{"outlet": "string", "url": "string"}}
+  ]
+}}"""
+
+
+def _slug(url: str) -> str:
+    parts = urlparse(url)
+    path = parts.netloc + parts.path
+    slug = re.sub(r'[^a-zA-Z0-9]', '-', path).strip('-')[:80]
+    return slug or "article"
+
+
+async def _fetch_articles(urls: list[dict], article_dir: Path,
+                          on_log=None) -> tuple[list[dict], list[dict]]:
+    """Returns (articles, failed_urls)."""
+    articles = []
+    failed = []
+    async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+        for entry in urls:
+            outlet = entry["outlet"]
+            url = entry["url"]
+            slug = _slug(url)
+            filename = f"{slug}.txt"
+            filepath = article_dir / filename
+
+            if filepath.exists():
+                text = filepath.read_text()
+                if on_log:
+                    on_log(f"[fetch] {outlet} (cached)")
+            else:
+                try:
+                    resp = await client.get(url, headers={
+                        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                    })
+                    resp.raise_for_status()
+                    text = re.sub(r'<script[^>]*>.*?</script>', '', resp.text, flags=re.DOTALL)
+                    text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.DOTALL)
+                    text = re.sub(r'<[^>]+>', ' ', text)
+                    text = re.sub(r'\s+', ' ', text).strip()
+                    filepath.write_text(text)
+                    if on_log:
+                        on_log(f"[fetch] {outlet} ({len(text.split())} words)")
+                except (httpx.HTTPError, httpx.TimeoutException) as e:
+                    if on_log:
+                        on_log(f"[fetch] {outlet} blocked, queuing for agent fallback")
+                    failed.append(entry)
+                    continue
+
+            word_count = len(text.split())
+            if word_count < 200:
+                if on_log:
+                    on_log(f"[fetch] {outlet} too short ({word_count} words), queuing for agent")
+                filepath.unlink(missing_ok=True)
+                failed.append(entry)
+                continue
+
+            articles.append({
+                "url": url, "outlet": outlet,
+                "file": filename, "word_count": word_count,
+            })
+    return articles, failed
+
+
+FALLBACK_PROMPT = """Fetch the following article URLs and save each as a text file.
+For each URL, fetch the full article text (not just the headline), strip ads
+and navigation, and save the clean text.
+
+{url_list}
+
+OUTPUT DIR: {article_dir}
+
+For each article, save to: {article_dir}/{{url_slug}}.txt
+Use the URL slug as the filename (replace non-alphanumeric chars with hyphens).
+Skip articles under 200 words after extraction."""
 
 
 async def run_story(story: dict, on_message=None, sample_id: str = None, on_progress=None):
@@ -65,32 +122,98 @@ async def run_story(story: dict, on_message=None, sample_id: str = None, on_prog
 
     manifest_path = sample_dir / "manifest.json"
 
-    # Skip search if manifest already exists (resume scenario)
     if not manifest_path.exists():
         outlets = all_outlets()
         outlet_list = "\n".join(f"  - {o}" for o in outlets)
         search_prompt = SEARCH_PROMPT.format(
             topic=story["topic"],
-            article_dir=str(article_dir),
-            manifest_path=str(manifest_path),
             outlet_list=outlet_list,
         )
         search_options = ClaudeAgentOptions(
-            allowed_tools=SEARCH_TOOLS,
+            allowed_tools=["WebSearch"],
             permission_mode="bypassPermissions",
             model="claude-sonnet-4-6",
             cwd="/instance",
         )
+
+        # Agent finds URLs only (no fetching)
+        response_text = ""
         async for msg in query(prompt=search_prompt, options=search_options):
             if on_message:
                 on_message(msg)
+            # Capture text response for URL list
+            from claude_agent_sdk import AssistantMessage
+            from claude_agent_sdk.types import TextBlock
+            if isinstance(msg, AssistantMessage):
+                for block in msg.content:
+                    if isinstance(block, TextBlock):
+                        response_text += block.text
+
+        # Parse URL list from agent response
+        urls = []
+        try:
+            # Find JSON in response (may have markdown fences)
+            json_match = re.search(r'\{[\s\S]*\}', response_text)
+            if json_match:
+                data = json.loads(json_match.group())
+                urls = data.get("urls", [])
+        except (json.JSONDecodeError, AttributeError):
+            log.warning("Failed to parse URL list from agent response")
+
+        if not urls:
+            raise RuntimeError("Agent did not return any article URLs")
+
+        log.info(f"Agent found {len(urls)} URLs, fetching with httpx")
+
+        # Fetch articles with Python (no LLM cost)
+        def on_fetch_log(line):
+            log.info(f"  {line}")
+
+        articles, failed = await _fetch_articles(urls, article_dir, on_log=on_fetch_log)
+
+        # Fallback: use agent WebFetch for URLs that httpx couldn't get
+        if failed:
+            log.info(f"  {len(failed)} outlets need agent fallback")
+            url_list = "\n".join(f"  - {e['outlet']}: {e['url']}" for e in failed)
+            fallback_prompt = FALLBACK_PROMPT.format(
+                url_list=url_list, article_dir=str(article_dir),
+            )
+            fallback_options = ClaudeAgentOptions(
+                allowed_tools=["WebFetch", "Write", "Bash"],
+                permission_mode="bypassPermissions",
+                model="claude-sonnet-4-6",
+                cwd="/instance",
+            )
+            async for msg in query(prompt=fallback_prompt, options=fallback_options):
+                if on_message:
+                    on_message(msg)
+
+            # Check which failed articles now have files
+            for entry in failed:
+                slug = _slug(entry["url"])
+                filepath = article_dir / f"{slug}.txt"
+                if filepath.exists():
+                    word_count = len(filepath.read_text().split())
+                    if word_count >= 200:
+                        articles.append({
+                            "url": entry["url"], "outlet": entry["outlet"],
+                            "file": f"{slug}.txt", "word_count": word_count,
+                        })
+                        log.info(f"  [fallback] {entry['outlet']} recovered ({word_count} words)")
+
+        manifest = {
+            "topic": story["topic"],
+            "collected_at": datetime.now(timezone.utc).isoformat(),
+            "articles": articles,
+        }
+        manifest_path.write_text(json.dumps(manifest, indent=2))
 
     if not manifest_path.exists():
         raise FileNotFoundError(f"Agent did not produce manifest at {manifest_path}")
 
     manifest = json.loads(manifest_path.read_text())
     articles = manifest.get("articles", [])
-    log.info(f"Collected {len(articles)} articles, analyzing each")
+    log.info(f"{len(articles)} articles ready, analyzing each")
     prompt_template = Path("/app/prompts/extract_article.md").read_text()
 
     for i, article in enumerate(articles):
@@ -124,10 +247,14 @@ async def run_story(story: dict, on_message=None, sample_id: str = None, on_prog
                 on_message(msg)
 
         if output_path.exists():
-            data = json.loads(output_path.read_text())
-            data["_outlet"] = article["outlet"]
-            data["_url"] = article["url"]
-            output_path.write_text(json.dumps(data, indent=2))
+            try:
+                data = json.loads(output_path.read_text())
+                data["_outlet"] = article["outlet"]
+                data["_url"] = article["url"]
+                output_path.write_text(json.dumps(data, indent=2))
+            except json.JSONDecodeError:
+                log.warning(f"  [{i+1}/{len(articles)}] {article.get('outlet', '?')} wrote invalid JSON, skipping")
+                output_path.unlink(missing_ok=True)
 
     if on_progress:
         on_progress(len(articles), len(articles))

@@ -34,9 +34,9 @@ async def test_api_sample_json(client):
     assert data["id"] == "20260407T120000"
     assert data["article_count"] == 6
     assert "phase2" in data
-    assert "phase3" in data
+    assert "synthesis" in data
     assert len(data["phase2"]["opinion_axes"]) == 3
-    assert "centroid_article" in data["phase3"]
+    assert "centroid_article" in data["synthesis"]
 
 
 @pytest.mark.asyncio
@@ -45,4 +45,4 @@ async def test_api_sample_partial(client):
     data = resp.json()
     assert data["article_count"] == 3
     assert "phase2" not in data
-    assert "phase3" not in data
+    assert "synthesis" not in data

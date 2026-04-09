@@ -17,7 +17,6 @@ async def test_add_story(client, populated_instance):
 
     story_dir = populated_instance / "stories" / new[0]["id"]
     assert (story_dir / "samples").is_dir()
-    assert (story_dir / "articles").is_dir()
     assert (story_dir / "meta.json").exists()
 
 

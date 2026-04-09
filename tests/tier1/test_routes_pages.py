@@ -35,8 +35,7 @@ async def test_story_detail_page(client):
     resp = await client.get("/story/s1")
     assert resp.status_code == 200
     assert "Settings" in resp.text
-    assert "Articles per sample" in resp.text
-    assert "Timeline" in resp.text
+    assert "Daily sample" in resp.text
     assert "Danger zone" in resp.text
 
 
@@ -44,7 +43,7 @@ async def test_story_detail_page(client):
 async def test_sample_view_with_analysis(client):
     resp = await client.get("/story/s1/samples/20260407T120000")
     assert resp.status_code == 200
-    assert "Neutral Summary" in resp.text
+    assert "Summary" in resp.text
     assert "Opinions" in resp.text
     assert "tab-facts" in resp.text
 
@@ -71,9 +70,9 @@ async def test_methodology_200(client):
 
 
 @pytest.mark.asyncio
-async def test_corpus_200(client):
+async def test_corpus_removed(client):
     resp = await client.get("/corpus")
-    assert resp.status_code == 200
+    assert resp.status_code == 404
 
 
 @pytest.mark.asyncio

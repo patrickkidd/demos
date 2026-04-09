@@ -5,7 +5,8 @@ from datetime import datetime, timezone, timedelta
 sys.path.insert(0, "/app")
 from scripts.phase1_extract import run_story, DATA
 from scripts.phase2_analyze import analyze_story
-from scripts.phase3_synthesize import synthesize_story
+from scripts.phase3_cluster import cluster_sample
+from scripts.phase4_synthesize import synthesize_story
 
 INTERVAL = 60  # check every minute
 SLEEP_THRESHOLD = INTERVAL * 3
@@ -40,10 +41,12 @@ async def run_full_sample(story: dict):
     log.info(f"  Phase 1: extracting")
     await run_story(story)
     sample_id = story.get("last_sample")
-    log.info(f"  Phase 2: analyzing sample {sample_id}")
+    log.info(f"  Phase 2: aggregating sample {sample_id}")
     result = await analyze_story(story, sample_id)
     if result:
-        log.info(f"  Phase 3: synthesizing")
+        log.info(f"  Phase 3: clustering")
+        await cluster_sample(story, sample_id)
+        log.info(f"  Phase 4: synthesizing")
         await synthesize_story(story, sample_id)
 
 

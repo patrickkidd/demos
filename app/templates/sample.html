@@ -56,6 +56,16 @@
   .spectrum-span-link { text-decoration: none; }
   .centroid-toggle { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; }
   .centroid-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .dev-expand { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+  .dev-expand:hover { opacity: 0.9; }
+  .dev-body { display: none; margin-top: 16px; }
+  .dev-body.open { display: block; }
+  .dev-tab-bar { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 2px solid var(--border); }
+  .dev-tab { background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 600; padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .dev-tab:hover { color: var(--text); }
+  .dev-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .dev-tab-content { display: none; }
+  .dev-tab-content.active { display: block; }
   .centroid-body { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
   .centroid-body.open { display: block; }
   .centroid-text { font-size: 13px; color: var(--text); margin-bottom: 6px; }
@@ -105,7 +115,7 @@
 {% elif not current %}
 <div class="card"><p class="muted">Sample not found.</p></div>
 
-{% elif not current.get("phase3") %}
+{% elif not current.get("synthesis") %}
 <div class="card" style="display:flex;align-items:center;justify-content:space-between;">
   <p class="muted" style="margin:0;">{{ current.article_count }} articles extracted. Analysis not yet complete.</p>
   {% if not task %}
@@ -123,50 +133,64 @@
 </div>
 
 {% else %}
+{% set syn = current.synthesis %}
 
 {# --- Article Header --- #}
-{% if current.phase3.get("headline") %}
+{% if syn.get("headline") %}
 <div class="section" style="margin-bottom:8px;">
-  <h1 class="article-headline">{{ current.phase3.headline }}</h1>
+  <h1 class="article-headline">{{ syn.headline }}</h1>
   <div class="article-meta">
     <span>{{ current.id[:4] }}-{{ current.id[4:6] }}-{{ current.id[6:8] }}</span>
     <span>{{ current.article_count }} sources analyzed</span>
   </div>
 </div>
 {% endif %}
-{% if current.phase3.get("bias_summary") %}
+{% if syn.get("bias_summary") %}
 <div class="section">
   <div class="card" style="border-left:3px solid var(--accent);padding:14px 18px;">
-    <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0;">{{ current.phase3.bias_summary }}</p>
+    <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0;">{{ syn.bias_summary }}</p>
   </div>
 </div>
 {% endif %}
 
-{# --- Tabs: Opinions / Facts / Summary --- #}
+{# --- Key Developments (from clusters, if available) --- #}
+{% if current.get("clusters") and current.clusters.get("developments") %}
+<div class="section">
+  <h2>Key Developments</h2>
+  <div id="developments"></div>
+</div>
+{% endif %}
+
+{# --- All Data (tabs, demoted) --- #}
 {% set n_opinions = current.phase2.opinion_axes|length if current.phase2 and current.phase2.get("opinion_axes") else 0 %}
 {% set n_facts = current.phase2.facts|length if current.phase2 and current.phase2.get("facts") else 0 %}
 <div class="section">
-  <div class="tab-bar">
-    <button class="tab active" data-tab="opinions">Opinions ({{ n_opinions }})</button>
-    <button class="tab" data-tab="facts">Facts ({{ n_facts }})</button>
-    <button class="tab" data-tab="summary">Summary</button>
-  </div>
+  <details id="all-data">
+    <summary style="font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;">Raw Data — Opinions ({{ n_opinions }}), Facts ({{ n_facts }}), Summary</summary>
+    <div style="margin-top:16px;">
+      <div class="tab-bar">
+        <button class="tab active" data-tab="opinions">Opinions ({{ n_opinions }})</button>
+        <button class="tab" data-tab="facts">Facts ({{ n_facts }})</button>
+        <button class="tab" data-tab="summary">Summary</button>
+      </div>
 
-  <div id="tab-opinions" class="tab-content active">
-    <div id="opinion-spectrum"></div>
-  </div>
+      <div id="tab-opinions" class="tab-content active">
+        <div id="opinion-spectrum"></div>
+      </div>
 
-  <div id="tab-facts" class="tab-content" style="display:none;">
-    <div id="fact-cards"></div>
-  </div>
+      <div id="tab-facts" class="tab-content" style="display:none;">
+        <div id="fact-cards"></div>
+      </div>
 
-  <div id="tab-summary" class="tab-content" style="display:none;">
-    <div class="card centroid-article">
-      {% for para in current.phase3.centroid_article.split("\n\n") %}
-        {% if para.strip() %}<p>{{ para.strip() }}</p>{% endif %}
-      {% endfor %}
+      <div id="tab-summary" class="tab-content" style="display:none;">
+        <div class="card centroid-article">
+          {% for para in syn.centroid_article.split("\n\n") %}
+            {% if para.strip() %}<p>{{ para.strip() }}</p>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
     </div>
-  </div>
+  </details>
 </div>
 
 {% endif %}{# end current with phase3 #}
@@ -186,16 +210,17 @@
 {% endif %}
 
 {# --- Scripts --- #}
-{% if current and current.get("phase2") and current.get("phase3") %}
+{% if current and current.get("phase2") and current.get("synthesis") %}
 <script>
 (function() {
   const phase2 = {{ current.phase2 | tojson }};
-  const phase3 = {{ current.phase3 | tojson }};
+  const synthesis = {{ current.synthesis | tojson }};
+  const clusters = {{ current.clusters | tojson if current.get("clusters") else "{}" }};
   const outletUrls = {{ current.outlet_urls | tojson }};
   const axes = phase2.opinion_axes || [];
   const facts = phase2.facts || [];
   const centroids = {};
-  (phase3.axis_centroids || []).forEach(c => { centroids[c.axis_id] = c; });
+  (synthesis.axis_centroids || []).forEach(c => { centroids[c.axis_id] = c; });
 
   function badge(name, cls) {
     const url = outletUrls[name];
@@ -320,7 +345,7 @@
         html += `<button class="centroid-toggle" onclick="this.nextElementSibling.classList.toggle('open')">Fact Check</button>`;
         html += '<div class="centroid-body">';
         html += `<div class="centroid-text">${c.centroid}</div>`;
-        html += `<span class="certainty certainty-${cert}">Centroid certainty: ${cert}</span>`;
+        html += `<span class="certainty certainty-${cert}">Certainty: ${cert}</span>`;
         if (certReason) html += `<span class="muted" style="font-size:11px;"> \u2014 ${certReason}</span>`;
         html += '</div>';
       }
@@ -328,6 +353,137 @@
       card.innerHTML = html;
       spectrumEl.appendChild(card);
     });
+  }
+
+  // --- Key Developments (scoped facts + opinions per sub-story) ---
+  const devEl = document.getElementById('developments');
+  if (devEl && clusters.developments) {
+    const factsById = {};
+    facts.forEach(f => { factsById[f.id] = f; });
+    const axesById = {};
+    axes.forEach(a => { axesById[a.id] = a; });
+
+    let devCount = 0;
+    clusters.developments.forEach(dev => {
+      const devId = 'dev-' + devCount++;
+      const card = document.createElement('div');
+      card.className = 'opinion-card';
+
+      const devFacts = (dev.fact_ids || []).map(id => factsById[id]).filter(Boolean);
+      const devAxes = (dev.axis_ids || []).map(id => axesById[id]).filter(Boolean);
+
+      let html = `<h4>${dev.label}<span class="muted" style="font-size:11px;margin-left:8px;">${dev.outlet_count} outlets</span></h4>`;
+      html += `<p class="muted" style="font-size:13px;margin-bottom:0;">${dev.summary}</p>`;
+
+      // Expand/collapse button
+      html += `<button class="dev-expand" data-target="${devId}" onclick="var b=document.getElementById('${devId}');b.classList.toggle('open');this.textContent=b.classList.contains('open')?'Collapse':'Expand'">Expand</button>`;
+
+      // Collapsible body with tabs
+      html += `<div class="dev-body" id="${devId}">`;
+
+      // Tab bar
+      html += `<div class="dev-tab-bar">`;
+      html += `<button class="dev-tab active" data-dev="${devId}" data-dtab="opinions">Opinions (${devAxes.length})</button>`;
+      html += `<button class="dev-tab" data-dev="${devId}" data-dtab="facts">Facts (${devFacts.length})</button>`;
+      html += `</div>`;
+
+      // Opinions tab
+      html += `<div class="dev-tab-content active" id="${devId}-opinions">`;
+      if (devAxes.length) {
+        devAxes.forEach(axis => {
+          const c = centroids[axis.id];
+          const poleA = (axis.opinions || []).filter(o => o.pole === 'A');
+          const poleB = (axis.opinions || []).filter(o => o.pole === 'B');
+          html += `<div class="opinion-card" style="margin-top:8px;padding:12px;">`;
+          html += `<h4 style="font-size:13px;">${axis.axis}</h4>`;
+          html += '<div class="pole-descriptions">';
+          html += '<div class="pole-desc pole-desc-a">' + (poleA.length ? poleA[0].stance : '<span class="pole-omitted">\u2715</span>') + '</div>';
+          html += '<div class="pole-desc pole-desc-b">' + (poleB.length ? poleB[0].stance : '<span class="pole-omitted">\u2715</span>') + '</div>';
+          html += '</div>';
+
+          // Spectrum bar
+          const aOutlets = {}, bOutlets = {};
+          poleA.forEach(op => { (op.outlets || []).forEach(o => { aOutlets[o.name] = 50 - ((o.intensity || 3) / 5) * 45; }); });
+          poleB.forEach(op => { (op.outlets || []).forEach(o => { bOutlets[o.name] = 50 + ((o.intensity || 3) / 5) * 45; }); });
+          const bothPoles = new Set();
+          for (const n in aOutlets) { if (n in bOutlets) bothPoles.add(n); }
+          html += '<div class="spectrum-bar"><div class="center-line"></div>';
+          bothPoles.forEach(name => {
+            html += '<div class="spectrum-row spectrum-row-span">';
+            html += `<div class="spectrum-span" style="left:${aOutlets[name]}%;right:${100-bOutlets[name]}%;">`;
+            html += `<span class="spectrum-outlet spectrum-outlet-a" style="left:0;position:relative;transform:none;">${name}</span>`;
+            html += '<span class="spectrum-span-line"></span>';
+            html += `<span class="spectrum-outlet spectrum-outlet-b" style="left:auto;right:0;position:relative;transform:none;">${name}</span>`;
+            html += '</div></div>';
+          });
+          Object.keys(aOutlets).filter(n => !bothPoles.has(n)).forEach(name => {
+            const url = outletUrls[name];
+            const tag = url ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</a>` : `<span class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</span>`;
+            html += `<div class="spectrum-row">${tag}</div>`;
+          });
+          Object.keys(bOutlets).filter(n => !bothPoles.has(n)).forEach(name => {
+            const url = outletUrls[name];
+            const tag = url ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</a>` : `<span class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</span>`;
+            html += `<div class="spectrum-row">${tag}</div>`;
+          });
+          html += '</div>';
+
+          if (c) {
+            html += `<button class="centroid-toggle" onclick="this.nextElementSibling.classList.toggle('open')">Fact Check</button>`;
+            html += '<div class="centroid-body">';
+            const cert = c.certainty || c.confidence || 'medium';
+            const certReason = c.certainty_reason || c.confidence_reason || '';
+            html += `<div class="centroid-text">${c.centroid}</div>`;
+            html += `<span class="certainty certainty-${cert}">Certainty: ${cert}</span>`;
+            if (certReason) html += `<span class="muted" style="font-size:11px;"> \u2014 ${certReason}</span>`;
+            html += '</div>';
+          }
+          html += '</div>';
+        });
+      } else {
+        html += '<p class="muted">No opinions for this development.</p>';
+      }
+      html += '</div>';
+
+      // Facts tab
+      html += `<div class="dev-tab-content" id="${devId}-facts">`;
+      if (devFacts.length) {
+        devFacts.forEach(f => {
+          html += `<div class="opinion-card" style="margin-top:8px;padding:12px;">`;
+          html += `<h4 style="font-size:13px;">${f.claim}</h4>`;
+          html += '<div style="margin-top:4px;">';
+          f.outlets.forEach(o => { html += badge(o.name, 'source-badge-fact'); });
+          html += '</div></div>';
+        });
+      } else {
+        html += '<p class="muted">No facts for this development.</p>';
+      }
+      html += '</div>';
+
+      html += '</div>'; // close dev-body
+      card.innerHTML = html;
+      devEl.appendChild(card);
+    });
+
+    // Dev tab switching
+    document.querySelectorAll('.dev-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const devId = tab.dataset.dev;
+        document.querySelectorAll(`.dev-tab[data-dev="${devId}"]`).forEach(t => t.classList.remove('active'));
+        document.querySelectorAll(`#${devId} .dev-tab-content`).forEach(c => { c.classList.remove('active'); });
+        tab.classList.add('active');
+        const target = document.getElementById(devId + '-' + tab.dataset.dtab);
+        if (target) target.classList.add('active');
+      });
+    });
+
+    if (!clusters.developments.length) {
+      const allData = document.getElementById('all-data');
+      if (allData) allData.open = true;
+    }
+  } else {
+    const allData = document.getElementById('all-data');
+    if (allData) allData.open = true;
   }
 
   // Tab switching

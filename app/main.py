@@ -11,12 +11,14 @@ from fastapi.responses import RedirectResponse, JSONResponse
 class Phase(Enum):
     Extracting = "extracting"
     Analyzing = "analyzing"
+    Clustering = "clustering"
     Synthesizing = "synthesizing"
     Failed = "failed"
 
 from scripts.phase1_extract import run_story
 from scripts.phase2_analyze import analyze_story
-from scripts.phase3_synthesize import synthesize_story
+from scripts.phase3_cluster import cluster_sample
+from scripts.phase4_synthesize import synthesize_story
 
 app = FastAPI()
 templates = Jinja2Templates(directory="/app/app/templates")
@@ -98,10 +100,19 @@ def _load_sample(story_id: str, sample_id: str) -> dict:
     result = {"id": sample_id}
     phase2 = sample_dir / "phase2.json"
     phase3 = sample_dir / "phase3.json"
+    phase4 = sample_dir / "phase4.json"
     if phase2.exists():
         result["phase2"] = json.loads(phase2.read_text())
-    if phase3.exists():
-        result["phase3"] = json.loads(phase3.read_text())
+    if phase4.exists():
+        # New format: phase3 = clusters, phase4 = synthesis
+        if phase3.exists():
+            result["clusters"] = json.loads(phase3.read_text())
+        result["synthesis"] = json.loads(phase4.read_text())
+    elif phase3.exists():
+        # Old format: phase3 = synthesis (no clusters)
+        data = json.loads(phase3.read_text())
+        if "centroid_article" in data:
+            result["synthesis"] = data
     phase1_dir = sample_dir / "phase1"
     outlet_urls = {}
     if phase1_dir.exists():
@@ -146,11 +157,15 @@ async def _sample_bg(story_id: str, sample_id: str):
         stories_path.write_text(json.dumps(stories, indent=2))
 
         _running[story_id] = {"phase": Phase.Analyzing, "sample": sample_id}
-        _log(story_id, "--- Phase 2: analyzing ---")
+        _log(story_id, "--- Phase 2: aggregating ---")
         result = await analyze_story(story, sample_id, on_message=on_msg)
         if result:
+            _running[story_id] = {"phase": Phase.Clustering, "sample": sample_id}
+            _log(story_id, "--- Phase 3: clustering ---")
+            await cluster_sample(story, sample_id, on_message=on_msg)
+
             _running[story_id] = {"phase": Phase.Synthesizing, "sample": sample_id}
-            _log(story_id, "--- Phase 3: synthesizing ---")
+            _log(story_id, "--- Phase 4: synthesizing ---")
             await synthesize_story(story, sample_id, on_message=on_msg)
         _log(story_id, "--- Done ---")
     except Exception as e:
@@ -170,13 +185,13 @@ async def index(request: Request):
         s["sample_count"] = len(samples)
         analyzed = set()
         for sid in samples:
-            if (DATA / "stories" / s["id"] / "samples" / sid / "phase3.json").exists():
+            if (DATA / "stories" / s["id"] / "samples" / sid / "phase4.json").exists() or (DATA / "stories" / s["id"] / "samples" / sid / "phase3.json").exists():
                 analyzed.add(sid)
         s["analyzed_samples"] = analyzed
         if samples:
             latest = _load_sample(s["id"], samples[-1])
             s["article_count"] = latest.get("article_count", 0)
-            s["has_analysis"] = "phase3" in latest
+            s["has_analysis"] = "synthesis" in latest
         else:
             s["article_count"] = 0
             s["has_analysis"] = False
@@ -205,7 +220,7 @@ async def story(request: Request, story_id: str):
     meta = json.loads((DATA / "stories" / story_id / "meta.json").read_text())
     samples = _story_samples(story_id)
     analyzed = {s for s in samples
-                if (DATA / "stories" / story_id / "samples" / s / "phase3.json").exists()}
+                if (DATA / "stories" / story_id / "samples" / s / "phase4.json").exists() or (DATA / "stories" / story_id / "samples" / s / "phase3.json").exists()}
     return templates.TemplateResponse(request, "story.html", {
         "meta": meta, "samples": samples, "analyzed_samples": analyzed,
         "running": _running,
@@ -217,7 +232,7 @@ async def sample_view(request: Request, story_id: str, sample_id: str):
     meta = json.loads((DATA / "stories" / story_id / "meta.json").read_text())
     samples = _story_samples(story_id)
     analyzed = {s for s in samples
-                if (DATA / "stories" / story_id / "samples" / s / "phase3.json").exists()}
+                if (DATA / "stories" / story_id / "samples" / s / "phase4.json").exists() or (DATA / "stories" / story_id / "samples" / s / "phase3.json").exists()}
     current = _load_sample(story_id, sample_id) if sample_id in samples else None
     return templates.TemplateResponse(request, "sample.html", {
         "meta": meta, "samples": samples, "analyzed_samples": analyzed,
@@ -323,11 +338,15 @@ async def _analyze_bg(story_id: str, sample_id: str):
     on_msg = lambda msg: _msg_to_log(story_id, msg)
     try:
         _running[story_id] = {"phase": Phase.Analyzing, "sample": sample_id}
-        _log(story_id, "--- Phase 2: analyzing ---")
+        _log(story_id, "--- Phase 2: aggregating ---")
         result = await analyze_story(story, sample_id, on_message=on_msg)
         if result:
+            _running[story_id] = {"phase": Phase.Clustering, "sample": sample_id}
+            _log(story_id, "--- Phase 3: clustering ---")
+            await cluster_sample(story, sample_id, on_message=on_msg)
+
             _running[story_id] = {"phase": Phase.Synthesizing, "sample": sample_id}
-            _log(story_id, "--- Phase 3: synthesizing ---")
+            _log(story_id, "--- Phase 4: synthesizing ---")
             await synthesize_story(story, sample_id, on_message=on_msg)
         _log(story_id, "--- Done ---")
     except Exception as e:

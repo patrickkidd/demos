@@ -117,7 +117,39 @@ def make_phase2(outlets=None, n_facts=5, n_axes=3):
     }
 
 
-def make_phase3(phase2=None):
+def make_clusters(phase2=None):
+    if phase2 is None:
+        phase2 = make_phase2()
+    fact_ids = [f["id"] for f in phase2["facts"]]
+    axis_ids = [a["id"] for a in phase2["opinion_axes"]]
+    return {
+        "topic": phase2["topic"],
+        "sample_id": phase2["sample_id"],
+        "clustered_at": "2026-04-07T12:45:00Z",
+        "developments": [
+            {
+                "id": "DEV-001",
+                "label": "Military Operations Update",
+                "summary": "Multiple outlets reported on the scale of strikes and casualties.",
+                "fact_ids": fact_ids[:3],
+                "axis_ids": axis_ids[:2],
+                "outlet_count": 4,
+            },
+            {
+                "id": "DEV-002",
+                "label": "Diplomatic Response",
+                "summary": "Ceasefire proposals and international reactions dominated diplomatic coverage.",
+                "fact_ids": fact_ids[3:],
+                "axis_ids": axis_ids[2:],
+                "outlet_count": 3,
+            },
+        ],
+        "unclustered_fact_ids": [],
+        "unclustered_axis_ids": [],
+    }
+
+
+def make_synthesis(phase2=None):
     if phase2 is None:
         phase2 = make_phase2()
     centroids = [
@@ -136,6 +168,8 @@ def make_phase3(phase2=None):
         "topic": phase2["topic"],
         "sample_id": phase2["sample_id"],
         "synthesized_at": "2026-04-07T13:00:00Z",
+        "headline": "Test Headline for Sample",
+        "bias_summary": "Test bias summary across outlets.",
         "axis_centroids": centroids,
         "centroid_article": (
             "First paragraph of the centroid article with established facts.\n\n"

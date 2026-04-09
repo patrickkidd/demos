@@ -6,7 +6,7 @@ import pytest
 # Ensure project root is on sys.path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from tests.fixtures.factories import make_story, make_phase1, make_phase2, make_phase3, make_manifest
+from tests.fixtures.factories import make_story, make_phase1, make_phase2, make_clusters, make_synthesis, make_manifest
 
 
 @pytest.fixture
@@ -45,7 +45,8 @@ def populated_instance(instance_dir):
         )
     phase2 = make_phase2(outlets=outlets)
     (sample1 / "phase2.json").write_text(json.dumps(phase2))
-    (sample1 / "phase3.json").write_text(json.dumps(make_phase3(phase2)))
+    (sample1 / "phase3.json").write_text(json.dumps(make_clusters(phase2)))
+    (sample1 / "phase4.json").write_text(json.dumps(make_synthesis(phase2)))
     (sample1 / "manifest.json").write_text(json.dumps(make_manifest(outlets=outlets)))
 
     # Partial sample (phase1 only)
@@ -73,7 +74,8 @@ def patched_app(populated_instance, monkeypatch):
     monkeypatch.setattr("app.main.DATA", populated_instance)
     monkeypatch.setattr("scripts.phase1_extract.DATA", populated_instance)
     monkeypatch.setattr("scripts.phase2_analyze.DATA", populated_instance)
-    monkeypatch.setattr("scripts.phase3_synthesize.DATA", populated_instance)
+    monkeypatch.setattr("scripts.phase3_cluster.DATA", populated_instance)
+    monkeypatch.setattr("scripts.phase4_synthesize.DATA", populated_instance)
 
     # Fix template directory for local (non-Docker) testing
     from starlette.templating import Jinja2Templates
