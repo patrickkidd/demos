@@ -14,8 +14,14 @@ Rules for centroid conclusions:
   between them. Say so honestly.
 - If one pole is overwhelmingly better supported, the centroid shifts
   strongly toward it. Do not false-balance.
-- Keep each conclusion to 1-3 sentences.
+- Keep each conclusion to 1-2 sentences. Be concise.
 - Write in neutral, precise language. No loaded terms from either pole.
+
+Rules for single-pole axes (only one side has coverage):
+- Set the missing pole's summary to exactly "OMITTED" (all caps, no
+  other text). This signals to the UI that no outlet covered this side.
+- The centroid conclusion should note the absence of opposing coverage
+  and assess the lone pole's evidence quality.
 
 2. META-CENTROID ARTICLE
 Synthesize a complete article combining:
@@ -37,6 +43,14 @@ Rules for the meta-centroid article:
 - Do not mention outlets, media coverage, or this analysis process.
   Write as if you are the reporter, not a media critic.
 
+3. BIAS SUMMARY
+Write a 2-3 sentence summary of the biases and framing patterns observed
+across outlets for this story. Name specific outlets and what they
+emphasized, omitted, or distorted. End with a note on where outlets did
+agree (consensus points) and the quality of sourcing behind that
+agreement. This is a media criticism statement, unlike the centroid
+article which is written as straight reporting.
+
 Respond with ONLY valid JSON matching the schema below.
 
 OUTPUT SCHEMA:
@@ -44,15 +58,17 @@ OUTPUT SCHEMA:
   "topic": "{topic}",
   "sample_id": "{sample_id}",
   "synthesized_at": "ISO 8601 timestamp",
+  "headline": "string — a short neutral headline for this day's coverage (under 15 words)",
+  "bias_summary": "string — 2-3 sentences on the biases and framing patterns across outlets",
   "axis_centroids": [
     {{
       "axis_id": "AX-001",
       "axis": "string — the debatable question",
-      "pole_a_summary": "string — brief summary of pole A stance",
-      "pole_b_summary": "string — brief summary of pole B stance",
-      "centroid": "string — the balanced conclusion (1-3 sentences)",
-      "confidence": "high | medium | low",
-      "confidence_reason": "string — why this confidence level"
+      "pole_a_summary": "string — brief stance summary, or OMITTED if no coverage",
+      "pole_b_summary": "string — brief stance summary, or OMITTED if no coverage",
+      "centroid": "string — the balanced conclusion (1-2 sentences max)",
+      "certainty": "high | medium | low",
+      "certainty_reason": "string — why this certainty level for the centroid position"
     }}
   ],
   "centroid_article": "string — the full meta-centroid article"

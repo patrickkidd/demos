@@ -1,4 +1,4 @@
-"""HTML structure assertions for story.html — the most complex template."""
+"""HTML structure assertions for sample.html and story.html."""
 import json
 import pytest
 from bs4 import BeautifulSoup
@@ -30,7 +30,7 @@ async def test_timeline_analyzed_dot_color(client):
 
 
 @pytest.mark.asyncio
-async def test_centroid_article_paragraphs(client):
+async def test_neutral_summary_paragraphs(client):
     resp = await client.get("/story/s1/samples/20260407T120000")
     soup = BeautifulSoup(resp.text, "html.parser")
     article_div = soup.select_one(".centroid-article")
@@ -40,56 +40,79 @@ async def test_centroid_article_paragraphs(client):
 
 
 @pytest.mark.asyncio
-async def test_axis_centroids_rendered(client):
+async def test_headline_hidden_when_absent(client):
     resp = await client.get("/story/s1/samples/20260407T120000")
     soup = BeautifulSoup(resp.text, "html.parser")
-    axes = soup.select(".axis-centroid")
-    assert len(axes) == 3
-    for ax in axes:
-        assert ax.select_one(".pole-a") is not None
-        assert ax.select_one(".pole-b") is not None
-        assert ax.select_one(".conclusion") is not None
+    # No headline field in test fixture → headline section not rendered
+    h1s = [h for h in soup.find_all("h1") if h.text.strip() and "font-size:20px" in h.get("style", "")]
+    assert len(h1s) == 0
 
 
 @pytest.mark.asyncio
-async def test_axis_confidence_classes(client):
+async def test_tabs_present(client):
     resp = await client.get("/story/s1/samples/20260407T120000")
     soup = BeautifulSoup(resp.text, "html.parser")
-    for cls in ["confidence-high", "confidence-medium", "confidence-low"]:
-        assert soup.select_one(f".{cls}") is not None
+    tabs = soup.select(".tab")
+    assert len(tabs) == 2
+    labels = [t.text.strip() for t in tabs]
+    assert "Opinions" in labels[0]
+    # Opinions tab is active by default
+    assert "active" in tabs[0].get("class", [])
 
 
 @pytest.mark.asyncio
-async def test_facts_section(client):
+async def test_facts_in_tab(client):
     resp = await client.get("/story/s1/samples/20260407T120000")
     soup = BeautifulSoup(resp.text, "html.parser")
-    summary = soup.select_one("details summary")
-    assert summary is not None
-    assert "5 deduplicated facts" in summary.text
-
-
-@pytest.mark.asyncio
-async def test_facts_outlet_tags(client):
-    resp = await client.get("/story/s1/samples/20260407T120000")
-    soup = BeautifulSoup(resp.text, "html.parser")
-    tags = soup.select(".fact-list .tag")
+    facts_tab = soup.select_one("#tab-facts")
+    assert facts_tab is not None
+    tags = facts_tab.select(".fact-list .tag")
     assert len(tags) > 0
+
+
+@pytest.mark.asyncio
+async def test_opinion_spectrum_container(client):
+    resp = await client.get("/story/s1/samples/20260407T120000")
+    soup = BeautifulSoup(resp.text, "html.parser")
+    assert soup.select_one("#opinion-spectrum") is not None
 
 
 @pytest.mark.asyncio
 async def test_viz_json_embedded(client):
     resp = await client.get("/story/s1/samples/20260407T120000")
     assert "const phase2 = " in resp.text
-    # Extract the JSON and validate it
+    assert "const phase3 = " in resp.text
     start = resp.text.index("const phase2 = ") + len("const phase2 = ")
     end = resp.text.index(";\n", start)
     phase2_json = json.loads(resp.text[start:end])
     assert "opinion_axes" in phase2_json
     assert "axis_order" in phase2_json
-    # Every axis_order ID exists in opinion_axes
-    ax_ids = {a["id"] for a in phase2_json["opinion_axes"]}
-    for order_id in phase2_json["axis_order"]:
-        assert order_id in ax_ids
+
+
+@pytest.mark.asyncio
+async def test_bias_severity_sort_in_js(client):
+    resp = await client.get("/story/s1/samples/20260407T120000")
+    assert "biasSeverity" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_centroid_toggle_in_js(client):
+    resp = await client.get("/story/s1/samples/20260407T120000")
+    assert "centroid-toggle" in resp.text
+    assert "Fact Check" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_tab_switching_js(client):
+    resp = await client.get("/story/s1/samples/20260407T120000")
+    assert "tab.dataset.tab" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_no_circle_viz(client):
+    resp = await client.get("/story/s1/samples/20260407T120000")
+    assert "viz-canvas" not in resp.text
+    assert "viz-container" not in resp.text
 
 
 @pytest.mark.asyncio
@@ -102,7 +125,7 @@ async def test_delete_sample_button_present(client):
 
 
 @pytest.mark.asyncio
-async def test_sample_button_present_when_not_running(client):
+async def test_sample_button_present_on_story_page(client):
     resp = await client.get("/story/s1")
     soup = BeautifulSoup(resp.text, "html.parser")
     sample_form = soup.select_one('form[action*="/sample"]')

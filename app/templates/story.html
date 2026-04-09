@@ -4,24 +4,20 @@
 
 {% block head %}
 <style>
-  .timeline { display: flex; align-items: center; gap: 0; padding: 16px 0; overflow-x: auto; }
+  .timeline-scroll { overflow-x: auto; padding: 16px 0; }
+  .timeline { position: relative; min-height: 50px; }
+  .timeline-item { display: flex; flex-direction: column; align-items: center; }
   .timeline-dot {
     width: 14px; height: 14px; border-radius: 50%; background: var(--border);
-    cursor: pointer; flex-shrink: 0; border: 2px solid transparent;
+    cursor: pointer; border: 2px solid transparent;
     transition: background 0.15s, border-color 0.15s;
   }
   .timeline-dot:hover { background: var(--accent); }
   .timeline-dot.active { background: var(--accent); border-color: var(--text); }
   .timeline-dot.has-analysis { background: var(--green); }
   .timeline-dot.has-analysis.active { background: var(--green); border-color: var(--text); }
-  .timeline-line { width: 24px; height: 2px; background: var(--border); flex-shrink: 0; }
-  .timeline-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-align: center; }
-  .timeline-item { display: flex; flex-direction: column; align-items: center; }
+  .timeline-label { font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap; }
 
-  #log-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.6; color: var(--muted); }
-  #log-panel .log-phase { color: var(--accent); font-weight: 600; }
-  #log-panel .log-tool { color: var(--yellow); }
-  #log-panel .log-error { color: var(--red); }
 </style>
 {% endblock %}
 
@@ -33,7 +29,7 @@
     <div style="display:flex;gap:8px;align-items:center;">
       {% set status = running.get(meta.id) %}
       {% if status %}
-        <span class="badge badge-yellow" id="status-badge">{{ status }}…</span>
+        <span class="badge badge-yellow" id="status-badge">{{ status.phase.value }}…</span>
       {% elif meta.get("active") %}
         <form method="post" action="/stories/{{ meta.id }}/sample">
           <button type="submit" class="btn-sm">Sample</button>
@@ -48,26 +44,22 @@
   <h2>Settings</h2>
   <div class="card">
     <form method="post" action="/stories/{{ meta.id }}/settings" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;">
+      <div class="field" style="margin-bottom:0;display:flex;align-items:center;gap:8px;">
+        <label style="margin-bottom:0;">Daily sample</label>
+        <input type="checkbox" name="schedule_enabled" id="sched-{{ meta.id }}" {% if meta.get('schedule_enabled') %}checked{% endif %}>
+        <label class="toggle" for="sched-{{ meta.id }}"></label>
+      </div>
       <div class="field" style="margin-bottom:0;">
-        <label>Articles per sample</label>
-        <input type="number" name="article_count" value="{{ meta.get('article_count', 6) }}" min="3" max="30" style="width:80px;">
+        <label>Time (UTC)</label>
+        <input type="time" name="schedule_time" value="{{ meta.get('schedule_time', '06:00') }}" style="width:100px;">
       </div>
       <button type="submit" class="btn-sm">Save</button>
     </form>
     <p class="muted" style="font-size:12px;margin-top:10px;">
-      Each article costs one Sonnet agent call. Phases 2-3 are fixed at one Opus call each.
-      Total per sample: {{ meta.get('article_count', 6) }} + 3 agent calls.
+      Each sample queries all 28 outlets (27 news + White House). ~30 agent calls per sample.
     </p>
   </div>
 </div>
-
-{# --- Log (visible during sampling) --- #}
-{% if running.get(meta.id) %}
-<div class="section">
-  <h2>Log</h2>
-  <div id="log-panel"></div>
-</div>
-{% endif %}
 
 {# --- Timeline --- #}
 {% if samples %}
@@ -107,48 +99,20 @@
 <script>
 (function() {
   const badge = document.getElementById('status-badge');
-  const logPanel = document.getElementById('log-panel');
-  if (!badge && !logPanel) return;
-
-  let logOffset = 0;
-
+  if (!badge) return;
   const poll = setInterval(async () => {
     try {
-      const [statusResp, logResp] = await Promise.all([
-        fetch('/api/status'),
-        logPanel ? fetch('/api/stories/{{ meta.id }}/log?after=' + logOffset) : null,
-      ].filter(Boolean));
-
-      const running = await statusResp.json();
-      const status = running['{{ meta.id }}'];
-
-      if (badge) {
-        if (status) {
-          badge.textContent = status + '…';
-        } else {
-          clearInterval(poll);
-          window.location.reload();
-          return;
-        }
-      }
-
-      if (logPanel && logResp) {
-        const data = await logResp.json();
-        if (data.lines.length) {
-          for (const line of data.lines) {
-            const div = document.createElement('div');
-            if (line.startsWith('---')) div.className = 'log-phase';
-            else if (line.startsWith('[tool]')) div.className = 'log-tool';
-            else if (line.startsWith('ERROR')) div.className = 'log-error';
-            div.textContent = line;
-            logPanel.appendChild(div);
-          }
-          logOffset = data.total;
-          logPanel.scrollTop = logPanel.scrollHeight;
-        }
+      const resp = await fetch('/api/status');
+      const running = await resp.json();
+      const info = running['{{ meta.id }}'];
+      if (info) {
+        badge.textContent = info.phase + '…';
+      } else {
+        clearInterval(poll);
+        window.location.reload();
       }
     } catch {}
-  }, 2000);
+  }, 3000);
 })();
 </script>
 

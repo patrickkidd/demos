@@ -44,9 +44,9 @@ async def test_story_detail_page(client):
 async def test_sample_view_with_analysis(client):
     resp = await client.get("/story/s1/samples/20260407T120000")
     assert resp.status_code == 200
-    assert "Centroid Article" in resp.text
-    assert "Opinion Landscape" in resp.text
-    assert "Axis Conclusions" in resp.text
+    assert "Neutral Summary" in resp.text
+    assert "Opinions" in resp.text
+    assert "tab-facts" in resp.text
 
 
 @pytest.mark.asyncio

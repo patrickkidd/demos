@@ -40,7 +40,7 @@
   <div class="card" style="margin-bottom:24px;">
     <h3 style="margin-bottom:14px;">Track a new story</h3>
     <form method="post" action="/stories">
-      <div class="grid-3">
+      <div class="grid-2">
         <div class="field">
           <label>Topic</label>
           <input type="text" name="topic" required placeholder="e.g. Federal budget negotiations 2025">
@@ -48,10 +48,6 @@
         <div class="field">
           <label>Seed URL (optional)</label>
           <input type="text" name="seed_url" placeholder="https://...">
-        </div>
-        <div class="field">
-          <label>Articles per sample</label>
-          <input type="number" name="article_count" value="6" min="3" max="30" style="width:80px;">
         </div>
       </div>
       <button type="submit">Add story</button>
@@ -70,7 +66,7 @@
         <span style="display:flex;gap:8px;align-items:center;">
           {% set status = running.get(s.id) %}
           {% if status %}
-            <span class="badge badge-yellow" data-story-status="{{ s.id }}">{{ status }}…</span>
+            <span class="badge badge-yellow" data-story-status="{{ s.id }}">{{ status.phase.value }}…</span>
           {% elif s.get("active") %}
             <form method="post" action="/stories/{{ s.id }}/sample" style="display:inline;">
               <button type="submit" class="btn-sm">Sample</button>
@@ -124,10 +120,11 @@
       let anyRunning = false;
       badges.forEach(b => {
         const id = b.dataset.storyStatus;
-        if (running[id]) {
-          b.textContent = running[id] + '…';
+        const info = running[id];
+        if (info) {
+          b.textContent = info.phase + '…';
           b.classList.remove('badge-green', 'badge-red');
-          b.classList.add(running[id] === 'failed' ? 'badge-red' : 'badge-yellow');
+          b.classList.add(info.phase === 'failed' ? 'badge-red' : 'badge-yellow');
           anyRunning = true;
         } else {
           b.textContent = 'done';

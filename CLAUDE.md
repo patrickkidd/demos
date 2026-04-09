@@ -16,6 +16,15 @@
   callback server, no stdin code entry. The CLI auto-detects completion.
   Auth credentials are stored in the bind-mounted `./instance/.claude/`.
 
+## Container Safety Rule
+- Before rebuilding or restarting the Docker container, always check whether
+  a background task is running (`curl -s http://localhost:8000/api/status`).
+- If a task is running, do NOT rebuild. Wait for it to finish or ask the user.
+- After any container restart, verify data integrity: check that
+  `instance/stories.json` is valid JSON, that story directories have the
+  expected structure, and that no partial sample directories were left by
+  a killed task.
+
 ## Methodology Maintenance Rule
 - Any change to prompts, output schemas, analytical approach, centroid
   weighting, or visualization logic MUST include a corresponding update to

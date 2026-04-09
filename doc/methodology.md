@@ -121,17 +121,46 @@ research question within this project.
 ## The Visualization
 
 Each sample is represented as a dot on a timeline for its topic. Clicking a
-dot reveals the circular visualization:
+dot reveals two complementary views of the same data:
 
-- **Center**: deduplicated facts, tagged by outlet
+### Circular Overview
+
+- **Center**: deduplicated facts
 - **Radiating outward**: opinion axes, arranged by topical relatedness around
   360 degrees
 - **Each axis**: two poles on opposite sides of center, with opinions placed at
   a distance proportional to their intensity
-- **Outlet tags**: visible on each fact and opinion, showing which sources
-  contributed each item
-- **Centroid marker**: the computed average position, visualizing how balanced
-  or skewed the overall opinion landscape is
+- **Colors**: orange (Pole A / "For") and teal (Pole B / "Against"). These
+  colors are deliberately non-political — Pole A and B have no stable mapping
+  to left/right across axes. Orange and teal were chosen to avoid evoking US
+  party colors.
+
+### Opinion Spectrum (Vertical List)
+
+Below the circle, each opinion axis is rendered as a card showing:
+- The debatable question as a title
+- "For" and "Against" sections with each pole's stance and a horizontal bar
+  positioning outlets by their opinion intensity
+- Single-pole axes (where no outlet covered the opposing view) show a ✕ on
+  the empty side — omissions are flagged visually, not buried in text
+- A collapsible "Show centroid" section with the balanced conclusion and a
+  certainty rating (high/medium/low) indicating confidence in the centroid
+  position
+
+Cards are sorted by **bias severity** — axes where outlets express high-
+intensity opinions with low sourcing quality appear first. This surfaces the
+most egregious instances of opinion presented as fact.
+
+Bias severity formula: `avg_intensity × (1 - avg_sourcing_quality)` across
+all opinions on the axis.
+
+### Government Sources
+
+Article collection explicitly includes official government sources (White
+House press releases, State Department briefings) alongside news outlets.
+These are analyzed blindly like any other article but ensure that
+administration framing — which often drives polarization — is represented
+in the sample.
 
 ## Known Limitations
 
@@ -151,6 +180,11 @@ dot reveals the circular visualization:
   high-dimensional relatedness space necessarily loses information.
 - This system cannot detect facts that *no* outlet reported. Its omission
   detection is relative to the sample, not to ground truth.
+
+## Source Code
+
+The complete source code for Demos is available at
+[github.com/patrickkidd/demos](https://github.com/patrickkidd/demos).
 
 ## Relationship to AllSides
 

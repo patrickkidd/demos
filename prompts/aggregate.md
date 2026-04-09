@@ -20,6 +20,11 @@ RULES:
 - Group semantically identical opinions across articles.
 - For each canonical opinion, record which outlets expressed it, with
   per-outlet intensity and sourcing_quality.
+- Preserve the speaker attribution for each outlet: "editorial" if the
+  outlet's own editorial voice expressed the opinion, "quoted_source" if
+  the outlet quoted someone else who holds the opinion, "author" if the
+  article's author expressed it directly. An outlet that quotes both
+  sides should appear on both poles with speaker "quoted_source".
 - Preserve the implied_worldview from the clearest articulation.
 
 3. OPINION AXIS IDENTIFICATION
@@ -69,7 +74,8 @@ OUTPUT SCHEMA:
             {{
               "name": "string",
               "intensity": 1-5,
-              "sourcing_quality": 0.0-1.0
+              "sourcing_quality": 0.0-1.0,
+              "speaker": "editorial | quoted_source | author"
             }}
           ],
           "implied_worldview": "string",
