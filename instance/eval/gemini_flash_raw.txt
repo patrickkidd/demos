@@ -1,0 +1,485 @@
+```json
+{
+  "article_title": "Trump warns strikes will resume if Iran doesn't agree to his terms",
+  "article_date": "2026-04-09",
+  "word_count": 1323,
+  "factual_claims": [
+    {
+      "id": "FC-001",
+      "claim": "President Trump said U.S. forces deployed in the Middle East will 'remain in place' until an agreement is reached with Iran.",
+      "sourcing": "named_primary",
+      "source_detail": "President Trump",
+      "verifiable": false,
+      "context_provided": false,
+      "quote_excerpt": "U.S. forces deployed in the Middle East"
+    },
+    {
+      "id": "FC-002",
+      "claim": "Israel continued its strikes in Lebanon, killing hundreds on Wednesday.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "Israel continued its strikes in Lebanon"
+    },
+    {
+      "id": "FC-003",
+      "claim": "Gulf Arab countries also reported some drone and missile attacks on oil refineries and power plants.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "drone and missile attacks on oil refineries"
+    },
+    {
+      "id": "FC-004",
+      "claim": "Ship traffic at the Strait of Hormuz stood at a near standstill.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "Strait of Hormuz stood at a near standstill"
+    },
+    {
+      "id": "FC-005",
+      "claim": "Brent crude was at $97 per barrel, up by 2.4%.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "Brent crude was at $97 per barrel"
+    },
+    {
+      "id": "FC-006",
+      "claim": "Trump said that if Iran did not comply with 'the REAL AGREEMENT reached,' strikes on Iran would resume.",
+      "sourcing": "named_primary",
+      "source_detail": "President Trump",
+      "verifiable": false,
+      "context_provided": false,
+      "quote_excerpt": "strikes on Iran would resume"
+    },
+    {
+      "id": "FC-007",
+      "claim": "The White House denied news reports that Iran closed the strait as false.",
+      "sourcing": "institutional",
+      "source_detail": "The White House",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "Iran closed the strait as false"
+    },
+    {
+      "id": "FC-008",
+      "claim": "High-level talks between the U.S. and Iran are slated to start on Saturday in Islamabad, with the mediation of Pakistani Prime Minister Shehbaz Sharif.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "talks between the U.S. and Iran"
+    },
+    {
+      "id": "FC-009",
+      "claim": "Pakistan's government acted as an intermediary between Washington and Tehran to secure the two-week ceasefire.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "intermediary between Washington and Tehran"
+    },
+    {
+      "id": "FC-010",
+      "claim": "The White House announced that Vice President Vance will lead the U.S. delegation.",
+      "sourcing": "institutional",
+      "source_detail": "The White House",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "Vice President Vance will lead the"
+    },
+    {
+      "id": "FC-011",
+      "claim": "Iran insists on a 10-point plan that includes its full control over the Strait of Hormuz, removal of sanctions and accepting Iran's right to enrichment.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "full control over the Strait of"
+    },
+    {
+      "id": "FC-012",
+      "claim": "White House press secretary Karoline Leavitt said that Iran's 10-point proposal was 'literally thrown in the garbage by President Trump'.",
+      "sourcing": "named_secondary",
+      "source_detail": "White House press secretary Karoline Leavitt",
+      "verifiable": false,
+      "context_provided": false,
+      "quote_excerpt": "thrown in the garbage by President Trump"
+    },
+    {
+      "id": "FC-013",
+      "claim": "Israeli Prime Minister Benjamin Netanyahu's office said his government supports Trump's decision to suspend strikes against Iran for two weeks, but the ceasefire doesn't include Lebanon.",
+      "sourcing": "named_secondary",
+      "source_detail": "Israeli Prime Minister Benjamin Netanyahu's office",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "ceasefire doesn't include Lebanon"
+    },
+    {
+      "id": "FC-014",
+      "claim": "Pakistani Prime Minister Sharif had announced the Iran-U.S. ceasefire, would also take effect in Lebanon.",
+      "sourcing": "named_secondary",
+      "source_detail": "Pakistani Prime Minister Sharif",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "ceasefire, would also take effect in"
+    },
+    {
+      "id": "FC-015",
+      "claim": "Hezbollah said that it insists the U.S.-Iran ceasefire includes Lebanon.",
+      "sourcing": "named_secondary",
+      "source_detail": "Hezbollah",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "ceasefire includes Lebanon"
+    },
+    {
+      "id": "FC-016",
+      "claim": "Iranian Foreign Minister Abbas Araghchi said, 'The ball is in the U.S. court, and the world is watching whether it will act on its commitments'.",
+      "sourcing": "named_primary",
+      "source_detail": "Iranian Foreign Minister Abbas Araghchi",
+      "verifiable": false,
+      "context_provided": false,
+      "quote_excerpt": "The ball is in the U.S. court"
+    },
+    {
+      "id": "FC-017",
+      "claim": "Gulf Arab countries are seeking to enhance defense cooperation with the U.S. military.",
+      "sourcing": "anonymous",
+      "source_detail": "an official from the region",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "enhance defense cooperation with the U.S."
+    },
+    {
+      "id": "FC-018",
+      "claim": "The Saudi and Iranian foreign ministers held their first official phone call since the war started.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "first official phone call since the"
+    },
+    {
+      "id": "FC-019",
+      "claim": "More than 250 people were killed Wednesday in Israeli attacks in Lebanon.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "250 people were killed Wednesday"
+    },
+    {
+      "id": "FC-020",
+      "claim": "The Israeli military said it conducted 100 strikes in 10 minutes in Beirut on Wednesday.",
+      "sourcing": "institutional",
+      "source_detail": "The Israeli military",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "conducted 100 strikes in 10 minutes"
+    },
+    {
+      "id": "FC-021",
+      "claim": "More than a million people have been displaced by the Israeli invasion in the country's south.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "displaced more than a million people"
+    },
+    {
+      "id": "FC-022",
+      "claim": "More than 1,160 were wounded in Wednesday's strikes, according to the country's civil defense department.",
+      "sourcing": "institutional",
+      "source_detail": "the country's civil defense department",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "1,160 were wounded in Wednesday's"
+    },
+    {
+      "id": "FC-023",
+      "claim": "Lebanon's army said four soldiers were among those killed.",
+      "sourcing": "institutional",
+      "source_detail": "Lebanon's army",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "four soldiers were among those killed"
+    },
+    {
+      "id": "FC-024",
+      "claim": "Hezbollah fired rockets into northern Israel on Thursday.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "Hezbollah fired rockets into northern"
+    },
+    {
+      "id": "FC-025",
+      "claim": "Israeli airstrikes killed three journalists in Lebanon, and Gaza.",
+      "sourcing": "institutional",
+      "source_detail": "The Committee to Protect Journalists",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "killed three journalists in Lebanon, and"
+    },
+    {
+      "id": "FC-026",
+      "claim": "Israel's military has killed more than 260 Palestinian journalists in Gaza in the past two and a half years.",
+      "sourcing": "institutional",
+      "source_detail": "The Committee to Protect Journalists (CPJ)",
+      "verifiable": true,
+      "context_provided": true,
+      "quote_excerpt": "killed more than 260 Palestinian journalists"
+    },
+    {
+      "id": "FC-027",
+      "claim": "The strait is a critical throughway that carries about a fifth of the world's oil.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": true,
+      "quote_excerpt": "carries about a fifth of the"
+    },
+    {
+      "id": "FC-028",
+      "claim": "Before the war broke out, Iran allowed an average of 120 to 150 ships per day to sail through unimpeded.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": true,
+      "quote_excerpt": "120 to 150 ships per day"
+    },
+    {
+      "id": "FC-029",
+      "claim": "More than a hundred ships remained effectively stalled.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "hundred ships remained effectively stalled"
+    },
+    {
+      "id": "FC-030",
+      "claim": "More than 20 ships have been attacked by Iran since the war began.",
+      "sourcing": "unsourced",
+      "source_detail": null,
+      "verifiable": true,
+      "context_provided": true,
+      "quote_excerpt": "20 ships have been attacked by"
+    },
+    {
+      "id": "FC-031",
+      "claim": "Several oil tanker operators said they have paid at least $1 million to transit the strait.",
+      "sourcing": "anonymous",
+      "source_detail": "analysts, several oil tanker operators",
+      "verifiable": true,
+      "context_provided": false,
+      "quote_excerpt": "$1 million to transit the strait"
+    }
+  ],
+  "opinion_statements": [
+    {
+      "id": "OP-001",
+      "statement": "His comments followed a shaky start to a two-week ceasefire.",
+      "intensity": 2,
+      "sourcing_quality": 0.5,
+      "implied_worldview": "ceasefires are expected to be stable and successful",
+      "speaker": "author",
+      "quote_excerpt": "a shaky start to a"
+    },
+    {
+      "id": "OP-002",
+      "statement": "\"If for any reason it is not, which is highly unlikely, then the \"Shootin' Starts,\" bigger, and better, and stronger than anyone has ever seen before,\"",
+      "intensity": 4,
+      "sourcing_quality": 0.0,
+      "implied_worldview": "strength and dominance are desirable qualities in international relations",
+      "speaker": "quoted_source_name",
+      "quote_excerpt": "bigger, and better, and stronger"
+    },
+    {
+      "id": "OP-003",
+      "statement": "Despite all of the fake rhetoric to the contrary - NO NUCLEAR WEAPONS and, the Strait of Hormuz WILL BE OPEN & SAFE",
+      "intensity": 3,
+      "sourcing_quality": 0.0,
+      "implied_worldview": "there are forces actively trying to deceive the public regarding the agreement",
+      "speaker": "quoted_source_name",
+      "quote_excerpt": "fake rhetoric to the contrary"
+    },
+    {
+      "id": "OP-004",
+      "statement": "confusion remains over the basis of the plan for those talks",
+      "intensity": 2,
+      "sourcing_quality": 0.5,
+      "implied_worldview": "clarity and transparency are expected in diplomatic negotiations",
+      "speaker": "author",
+      "quote_excerpt": "confusion remains over the basis"
+    },
+    {
+      "id": "OP-005",
+      "statement": "Iran condemned the continued assault on Lebanon and said it was the U.S. government's responsibility to put an end to it.",
+      "intensity": 3,
+      "sourcing_quality": 1.0,
+      "implied_worldview": "the US has a moral obligation to intervene in conflicts to protect civilians",
+      "speaker": "author",
+      "quote_excerpt": "U.S. government's responsibility"
+    },
+    {
+      "id": "OP-006",
+      "statement": "The International Committee of the Red Cross says it's outraged by such attacks in densely populated urban areas.",
+      "intensity": 3,
+      "sourcing_quality": 1.0,
+      "implied_worldview": "attacks on civilians are unacceptable and violate international humanitarian law",
+      "speaker": "quoted_source_name",
+      "quote_excerpt": "it's outraged by such attacks"
+    },
+    {
+      "id": "OP-007",
+      "statement": "CPJ says Israel's attacks on the press should be independently investigated as war crimes.",
+      "intensity": 3,
+      "sourcing_quality": 1.0,
+      "implied_worldview": "Attacks on journalists constitute a severe violation of press freedom and international law.",
+      "speaker": "quoted_source_name",
+      "quote_excerpt": "investigated as war crimes"
+    },
+    {
+      "id": "OP-008",
+      "statement": "Ship owners, insurance companies, and seafarers say they are seeking clarity as Iran threatens to attack any vessel transiting without permission.",
+      "intensity": 2,
+      "sourcing_quality": 0.8,
+      "implied_worldview": "Safe passage through international waterways is a fundamental right, and threats to this right create uncertainty and risk.",
+      "speaker": "author",
+      "quote_excerpt": "seeking clarity as Iran threatens"
+    }
+  ],
+  "framing": {
+    "headline_tone": -2,
+    "headline_text": "Trump warns strikes will resume if Iran doesn't agree to his terms",
+    "narrative_structure": "crisis and response",
+    "loaded_language": [
+      {
+        "term": "REAL AGREEMENT",
+        "neutral_alternative": "the agreed upon terms",
+        "context": "did not comply with \"the REAL"
+      },
+      {
+        "term": "Shootin' Starts",
+        "neutral_alternative": "bombing will start",
+        "context": "the \"Shootin' Starts\""
+      },
+      {
+        "term": "fake rhetoric",
+        "neutral_alternative": "contrary claims",
+        "context": "all of the fake rhetoric"
+      },
+      {
+        "term": "blitz",
+        "neutral_alternative": "series",
+        "context": "a blitz of Israeli airstrikes"
+      }
+    ],
+    "sources_quoted": [
+      {
+        "name_or_descriptor": "President Trump",
+        "role": "subject",
+        "perspective_type": "subject",
+        "approximate_word_count_given": 77
+      },
+      {
+        "name_or_descriptor": "White House press secretary Karoline Leavitt",
+        "role": "government_official",
+        "perspective_type": "government_official",
+        "approximate_word_count_given": 22
+      },
+      {
+        "name_or_descriptor": "Israeli Prime Minister Benjamin Netanyahu's office",
+        "role": "government_official",
+        "perspective_type": "government_official",
+        "approximate_word_count_given": 18
+      },
+      {
+        "name_or_descriptor": "Hezbollah",
+        "role": "subject",
+        "perspective_type": "subject",
+        "approximate_word_count_given": 28
+      },
+      {
+        "name_or_descriptor": "Iranian Foreign Minister Abbas Araghchi",
+        "role": "government_official",
+        "perspective_type": "government_official",
+        "approximate_word_count_given": 20
+      },
+      {
+        "name_or_descriptor": "official from the region",
+        "role": "other",
+        "perspective_type": "other",
+        "approximate_word_count_given": 40
+      },
+      {
+        "name_or_descriptor": "Lt. Col. Nadav Shoshani",
+        "role": "government_official",
+        "perspective_type": "government_official",
+        "approximate_word_count_given": 31
+      },
+      {
+        "name_or_descriptor": "Erik Broekhuizen",
+        "role": "neutral_expert",
+        "perspective_type": "neutral_expert",
+        "approximate_word_count_given": 58
+      },
+      {
+        "name_or_descriptor": "Committee to Protect Journalists",
+        "role": "institutional",
+        "perspective_type": "neutral_expert",
+        "approximate_word_count_given": 73
+      },
+      {
+        "name_or_descriptor": "The International Committee of the Red Cross",
+        "role": "institutional",
+        "perspective_type": "affected_party",
+        "approximate_word_count_given": 13
+      }
+    ],
+    "perspective_balance": "The article includes perspectives from multiple sides of the conflict, including the U.S., Iran, Israel, Hezbollah, and Gulf Arab countries, as well as expert analysis and reports from organizations like the Committee to Protect Journalists and the International Committee of the Red Cross."
+  },
+  "emotional_appeals": [
+    {
+      "emotion": "fear",
+      "excerpt": "Shootin' Starts,' bigger, and better, and stronger",
+      "technique": "threat"
+    },
+    {
+      "emotion": "outrage",
+      "excerpt": "it's outraged by such attacks",
+      "technique": "moral indignation"
+    },
+    {
+      "emotion": "sympathy",
+      "excerpt": "Lebanon mourns over 250 killed",
+      "technique": "evoking pity"
+    },
+    {
+      "emotion": "urgency",
+      "excerpt": "ships remain idle",
+      "technique": "time-sensitive language"
+    }
+  ],
+  "internal_gaps": [
+    "The article mentions conflicting messages over the terms of the ceasefire, but doesn't fully elaborate on what those terms are, leaving the reader to infer based on the various parties' statements.",
+    "The article mentions that an English language VHF broadcast was blasted to ships but does not give the source of the broadcast.",
+    "The article states that two years ago, Israel called Mohammed Wishah a terrorist but provides no information as to whether he was actually a terrorist."
+  ],
+  "summary_metrics": {
+    "fact_opinion_ratio": 0.84,
+    "sourcing_quality_score": 0.68,
+    "emotional_intensity_score": 0.35,
+    "perspective_diversity_score": 0.71
+  }
+}
+```
