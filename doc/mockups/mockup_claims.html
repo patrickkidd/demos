@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Claim-Level View Mockup</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --surface: #22223a; --border: #33335a;
+    --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0;
+    --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 780px; margin: 0 auto; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
+
+  /* Claim card */
+  .claim {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+    border-left: 3px solid var(--border);
+  }
+  .claim-high   { border-left-color: var(--red); }
+  .claim-medium { border-left-color: var(--yellow); }
+  .claim-low    { border-left-color: var(--green); }
+
+  .claim-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+
+  /* Type badge */
+  .type-badge {
+    font-size: 9px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.1em; padding: 3px 8px; border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .type-fact    { background: rgba(46,196,182,0.2); color: #2ec4b6; }
+  .type-opinion { background: rgba(245,166,35,0.2); color: #f5a623; }
+
+  /* Tier badge */
+  .tier {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; padding: 3px 7px; border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .tier-corroborated { background: rgba(46,196,182,0.12); color: #2ec4b6; }
+  .tier-attributed   { background: rgba(245,166,35,0.12); color: #f5a623; }
+  .tier-unverified   { background: rgba(231,76,60,0.12); color: #e74c3c; }
+  .tier-one-sided    { background: rgba(231,76,60,0.12); color: #e74c3c; }
+
+  .claim-text { font-size: 13px; line-height: 1.5; margin-bottom: 10px; }
+  .claim-quote { font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 10px; }
+
+  /* Mini spectrum */
+  .spectrum {
+    position: relative; height: 28px;
+    background: linear-gradient(to right,
+      rgba(91,138,240,0.06),
+      rgba(136,136,168,0.03) 50%,
+      rgba(245,166,35,0.06)
+    );
+    border-radius: 4px; margin-bottom: 6px;
+  }
+  .spectrum-center {
+    position: absolute; left: 50%; top: 0; bottom: 0;
+    width: 1px; background: rgba(136,136,168,0.15);
+  }
+  .spectrum-labels {
+    display: flex; justify-content: space-between;
+    font-size: 8px; color: rgba(136,136,168,0.4);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 2px;
+  }
+  .s-dot {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    font-size: 9px; font-weight: 700; padding: 2px 5px;
+    border-radius: 3px; white-space: nowrap;
+    cursor: default;
+  }
+  .s-dot-fact    { background: rgba(46,196,182,0.25); color: #2ec4b6; }
+  .s-dot-opinion { background: rgba(245,166,35,0.25); color: #f5a623; }
+
+  .claim-footer {
+    font-size: 10px; color: var(--muted); display: flex;
+    justify-content: space-between; align-items: center;
+  }
+
+  .section-divider {
+    border: none; border-top: 1px solid var(--border);
+    margin: 20px 0 16px;
+  }
+  .section-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--red); margin-bottom: 10px;
+  }
+  .section-label-med { color: var(--yellow); }
+  .section-label-low { color: var(--green); }
+
+  .dev-header {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;
+  }
+  .dev-header p { font-size: 13px; color: var(--muted); margin: 0; }
+</style>
+</head>
+<body>
+
+<h2>Military Operations &amp; Damage Assessment</h2>
+<h3>10 outlets · 12 facts · 4 opinion axes</h3>
+
+<div class="dev-header">
+  <p>Pentagon detailed the scope of Operations Midnight Hammer and Epic Fury, claiming destruction of 13,000+ targets and Iran's navy. A leaked DIA assessment contradicted administration claims. Iran launched over 5,000 drones and 2,100 missiles at US, Israeli, and Gulf targets.</p>
+</div>
+
+<!-- ============================================ -->
+<!-- HIGH DOGMA RISK — one-sided, poorly sourced -->
+<!-- ============================================ -->
+<div class="section-label">High dogma risk — one-sided, poorly sourced</div>
+
+<!-- Opinion: Force = peace, right only -->
+<div class="claim claim-high">
+  <div class="claim-header">
+    <span class="type-badge type-opinion">Opinion</span>
+    <span class="tier tier-one-sided">One-sided</span>
+  </div>
+  <div class="claim-text">"Overwhelming military force is the proven path to peace with Iran"</div>
+  <div class="claim-quote">"Peace Through Strength victorious"</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-opinion" style="left:93%;">White House</div>
+    <div class="s-dot s-dot-opinion" style="left:83%;" title="intensity: 4, sourcing: 0.2">Fox News</div>
+    <div class="s-dot s-dot-opinion" style="left:73%;">Daily Wire</div>
+  </div>
+  <div class="claim-footer">
+    <span>3 outlets · avg sourcing quality: 0.23 · intensity: 3.7/5</span>
+    <span>No outlet reported the opposing view with comparable sourcing</span>
+  </div>
+</div>
+
+<!-- Opinion: Strikes obliterated nuclear program, right only -->
+<div class="claim claim-high">
+  <div class="claim-header">
+    <span class="type-badge type-opinion">Opinion</span>
+    <span class="tier tier-one-sided">One-sided</span>
+  </div>
+  <div class="claim-text">"Strikes completely obliterated Iran's nuclear sites and program"</div>
+  <div class="claim-quote">"obliterated Iran's nuclear development sites"</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-opinion" style="left:93%;">White House</div>
+    <div class="s-dot s-dot-opinion" style="left:83%;">Fox News</div>
+    <div class="s-dot s-dot-opinion" style="left:77%;">Breitbart</div>
+    <div class="s-dot s-dot-opinion" style="left:70%;">Federalist</div>
+  </div>
+  <div class="claim-footer">
+    <span>4 outlets · avg sourcing quality: 0.28 · intensity: 3.5/5</span>
+    <span>Contradicted by DIA assessment (see below)</span>
+  </div>
+</div>
+
+<!-- Opinion: DIA 3-6 months, MSNBC only -->
+<div class="claim claim-high">
+  <div class="claim-header">
+    <span class="type-badge type-opinion">Opinion</span>
+    <span class="tier tier-one-sided">One-sided</span>
+  </div>
+  <div class="claim-text">"Strikes only set back Iran's nuclear program three to six months; administration claims are false"</div>
+  <div class="claim-quote">"back by only three to six months"</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-opinion" style="left:7%;">MSNBC</div>
+  </div>
+  <div class="claim-footer">
+    <span>1 outlet · sourcing quality: 0.60 · intensity: 4.0/5</span>
+    <span>Single source — leaked preliminary assessment</span>
+  </div>
+</div>
+
+<!-- Fact: 13,000 targets, Fox+WH only -->
+<div class="claim claim-high">
+  <div class="claim-header">
+    <span class="type-badge type-fact">Fact</span>
+    <span class="tier tier-unverified">Unverified</span>
+  </div>
+  <div class="claim-text">The US military struck more than 13,000 targets during Operation Epic Fury, including 4,000+ dynamic targets.</div>
+  <div class="claim-quote">"struck more than 13,000 targets"</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-fact" style="left:93%;">White House</div>
+    <div class="s-dot s-dot-fact" style="left:83%;">Fox News</div>
+  </div>
+  <div class="claim-footer">
+    <span>2 outlets · 1 named primary, 1 unsourced · not independently verifiable</span>
+  </div>
+</div>
+
+<!-- Fact: 80-85% destroyed, Fox+WH only -->
+<div class="claim claim-high">
+  <div class="claim-header">
+    <span class="type-badge type-fact">Fact</span>
+    <span class="tier tier-unverified">Unverified</span>
+  </div>
+  <div class="claim-text">Approximately 80-85% of Iran's defense industrial base and air defense systems were destroyed.</div>
+  <div class="claim-quote">"80% of Iran's air defense systems"</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-fact" style="left:93%;">White House</div>
+    <div class="s-dot s-dot-fact" style="left:83%;">Fox News</div>
+  </div>
+  <div class="claim-footer">
+    <span>2 outlets · 1 named primary, 1 unsourced · not independently verifiable</span>
+  </div>
+</div>
+
+<!-- Fact: 3,400 killed, NBC only -->
+<div class="claim claim-high">
+  <div class="claim-header">
+    <span class="type-badge type-fact">Fact</span>
+    <span class="tier tier-unverified">Single source</span>
+  </div>
+  <div class="claim-text">Approximately 3,400 people killed in Iran including 1,600+ civilians; 23 killed in Israel; 13 US service members dead.</div>
+  <div class="claim-quote">"total killed at almost 3,400"</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-fact" style="left:37%;">NBC News</div>
+  </div>
+  <div class="claim-footer">
+    <span>1 outlet · 1 institutional source (HRANA) · not independently verifiable</span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MEDIUM RISK — attributed, narrower sourcing -->
+<!-- ============================================ -->
+<hr class="section-divider">
+<div class="section-label section-label-med">Moderate — attributed but narrow sourcing</div>
+
+<!-- Fact: DIA assessment (as fact) -->
+<div class="claim claim-medium">
+  <div class="claim-header">
+    <span class="type-badge type-fact">Fact</span>
+    <span class="tier tier-attributed">Attributed</span>
+  </div>
+  <div class="claim-text">A preliminary DIA intelligence assessment concluded the June 2025 airstrikes set Iran's nuclear program back by only three to six months.</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-fact" style="left:7%;">MSNBC</div>
+  </div>
+  <div class="claim-footer">
+    <span>1 outlet · 1 institutional source (leaked DIA assessment) · verifiable in principle</span>
+  </div>
+</div>
+
+<!-- Fact: Khamenei killed -->
+<div class="claim claim-medium">
+  <div class="claim-header">
+    <span class="type-badge type-fact">Fact</span>
+    <span class="tier tier-attributed">Attributed</span>
+  </div>
+  <div class="claim-text">US and Israeli strikes killed Supreme Leader Ayatollah Ali Khamenei on the first day of the war; he was succeeded by his son Mojtaba.</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-fact" style="left:40%;">PBS</div>
+    <div class="s-dot s-dot-fact" style="left:30%;">Wash Post</div>
+    <div class="s-dot s-dot-fact" style="left:83%;">Fox News</div>
+  </div>
+  <div class="claim-footer">
+    <span>3 outlets · 1 named primary, 2 unsourced · verifiable</span>
+  </div>
+</div>
+
+<!-- Opinion: objectives achieved, more balanced -->
+<div class="claim claim-medium">
+  <div class="claim-header">
+    <span class="type-badge type-opinion">Opinion</span>
+    <span class="tier tier-attributed">Both sides</span>
+  </div>
+  <div class="claim-text">"US military objectives were achieved or exceeded ahead of schedule" vs. "The war was inconclusive; stated objectives like regime change were not met"</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <!-- Pole A (achieved) -->
+    <div class="s-dot s-dot-opinion" style="left:93%;background:rgba(245,166,35,0.25);">White House</div>
+    <div class="s-dot s-dot-opinion" style="left:83%;background:rgba(245,166,35,0.25);">Fox News</div>
+    <div class="s-dot s-dot-opinion" style="left:70%;background:rgba(245,166,35,0.25);">Federalist</div>
+    <!-- Pole B (inconclusive) — using teal -->
+    <div class="s-dot s-dot-fact" style="left:30%;">Wash Post</div>
+    <div class="s-dot s-dot-fact" style="left:37%;">NBC News</div>
+    <div class="s-dot s-dot-fact" style="left:40%;">PBS</div>
+    <div class="s-dot s-dot-opinion" style="left:63%;background:rgba(200,120,50,0.2);color:#c87832;">Federalist</div>
+    <div class="s-dot s-dot-opinion" style="left:80%;background:rgba(200,120,50,0.2);color:#c87832;">Fox News</div>
+  </div>
+  <div class="claim-footer">
+    <span>Pole A: 4 outlets, sourcing 0.35 · Pole B: 5 outlets, sourcing 0.44 · intensity similar</span>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- LOW RISK — cross-spectrum, well-sourced -->
+<!-- ============================================ -->
+<hr class="section-divider">
+<div class="section-label section-label-low">Lower risk — cross-spectrum, better sourced</div>
+
+<!-- Fact: Operation Midnight Hammer -->
+<div class="claim claim-low">
+  <div class="claim-header">
+    <span class="type-badge type-fact">Fact</span>
+    <span class="tier tier-corroborated">Corroborated</span>
+  </div>
+  <div class="claim-text">In June 2025, the US launched Operation Midnight Hammer, striking Iranian nuclear facilities at Natanz, Fordow, and Isfahan.</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-fact" style="left:27%;">ABC</div>
+    <div class="s-dot s-dot-fact" style="left:37%;">NBC</div>
+    <div class="s-dot s-dot-fact" style="left:30%;">WaPo</div>
+    <div class="s-dot s-dot-fact" style="left:40%;">PBS</div>
+    <div class="s-dot s-dot-fact" style="left:77%;">Breit</div>
+    <div class="s-dot s-dot-fact" style="left:83%;">Fox</div>
+    <div class="s-dot s-dot-fact" style="left:87%;">DW</div>
+    <div class="s-dot s-dot-fact" style="left:93%;">WH</div>
+  </div>
+  <div class="claim-footer">
+    <span>8 outlets · 2 named primary, 1 anonymous, 5 unsourced · verifiable</span>
+  </div>
+</div>
+
+<!-- Fact: Gulf states attacked -->
+<div class="claim claim-low">
+  <div class="claim-header">
+    <span class="type-badge type-fact">Fact</span>
+    <span class="tier tier-corroborated">Corroborated</span>
+  </div>
+  <div class="claim-text">Gulf Arab countries (Saudi Arabia, Kuwait, Bahrain, UAE) reported Iranian drone and missile attacks on oil facilities and airports.</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-fact" style="left:27%;">CBS</div>
+    <div class="s-dot s-dot-fact" style="left:30%;">WaPo</div>
+    <div class="s-dot s-dot-fact" style="left:40%;">PBS</div>
+    <div class="s-dot s-dot-fact" style="left:83%;">Fox</div>
+  </div>
+  <div class="claim-footer">
+    <span>4 outlets · 2 institutional, 2 unsourced · verifiable</span>
+  </div>
+</div>
+
+<!-- Fact: 150 warships -->
+<div class="claim claim-low">
+  <div class="claim-header">
+    <span class="type-badge type-fact">Fact</span>
+    <span class="tier tier-corroborated">Corroborated</span>
+  </div>
+  <div class="claim-text">CENTCOM destroyed approximately 150+ Iranian warships, effectively sinking the Iranian navy.</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-fact" style="left:30%;">WaPo</div>
+    <div class="s-dot s-dot-fact" style="left:40%;">PBS</div>
+    <div class="s-dot s-dot-fact" style="left:83%;">Fox</div>
+    <div class="s-dot s-dot-fact" style="left:93%;">WH</div>
+  </div>
+  <div class="claim-footer">
+    <span>4 outlets · 2 named primary, 1 institutional, 1 unsourced · not independently verifiable</span>
+  </div>
+</div>
+
+<!-- Fact: Epic Fury 38 days -->
+<div class="claim claim-low">
+  <div class="claim-header">
+    <span class="type-badge type-fact">Fact</span>
+    <span class="tier tier-corroborated">Corroborated</span>
+  </div>
+  <div class="claim-text">Operation Epic Fury launched on February 28, 2026, and the ceasefire came after 38 days of combat operations.</div>
+  <div class="spectrum-labels"><span>Left</span><span>Right</span></div>
+  <div class="spectrum">
+    <div class="spectrum-center"></div>
+    <div class="s-dot s-dot-fact" style="left:30%;">WaPo</div>
+    <div class="s-dot s-dot-fact" style="left:37%;">NBC</div>
+    <div class="s-dot s-dot-fact" style="left:40%;">PBS</div>
+    <div class="s-dot s-dot-fact" style="left:83%;">Fox</div>
+    <div class="s-dot s-dot-fact" style="left:93%;">WH</div>
+  </div>
+  <div class="claim-footer">
+    <span>5 outlets · 2 named primary, 3 unsourced · verifiable</span>
+  </div>
+</div>
+
+</body>
+</html>

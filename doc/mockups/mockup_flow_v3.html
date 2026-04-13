@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>US-Iran Ceasefire — Full Story Analysis</title>
+<style>
+  :root { --bg: #1a1a2e; --surface: #22223a; --border: #33335a; --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0; --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; }
+
+  /* ===== STICKY NAV ===== */
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(26,26,46,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 24px; }
+  .nav-inner { max-width: 780px; margin: 0 auto; display: flex; gap: 0; }
+  .nav-item { padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .nav-item:hover { color: var(--text); }
+  .nav-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .page { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+
+  /* ===== SECTION BREAKS ===== */
+  .story-section { padding: 64px 0 56px; border-bottom: 1px solid var(--border); min-height: 70vh; }
+  .story-section:last-child { border-bottom: none; min-height: auto; }
+
+  /* ===== LAYER 1: THE HOOK (minimalist) ===== */
+  .hook-section { text-align: center; padding: 56px 0 48px; }
+  .hook-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 14px; }
+  .hook-headline { font-size: 24px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .hook-meta { font-size: 12px; color: var(--muted); margin-bottom: 36px; }
+  .aha { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px 28px; margin-bottom: 20px; }
+  .aha-label { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+  .aha-versus { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 24px; }
+  .aha-pole { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 12px; }
+  .aha-num { font-size: 48px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; }
+  .aha-desc { font-size: 12px; color: var(--muted); line-height: 1.4; text-align: center; max-width: 150px; }
+  .aha-src { font-size: 10px; color: var(--muted); margin-top: 6px; opacity: 0.6; }
+  .aha-divider { width: 1px; height: 70px; background: var(--border); flex-shrink: 0; position: relative; }
+  .aha-divider::after { content: 'vs'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 10px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 4px 0; letter-spacing: 0.08em; text-transform: uppercase; }
+  .aha-verdict { font-size: 14px; line-height: 1.6; max-width: 420px; margin: 0 auto; }
+  .aha-verdict strong { color: var(--yellow); }
+  .hook-stats { display: flex; justify-content: center; gap: 24px; font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  .hook-stat-num { font-weight: 800; font-size: 16px; display: block; }
+  .scroll-cue { font-size: 12px; color: var(--accent); margin-top: 24px; cursor: pointer; }
+  .scroll-cue:hover { text-decoration: underline; }
+
+  /* ===== LAYER 2: PERSONALIZE (emotional) ===== */
+  h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .section-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+  .outlet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 8px; margin-bottom: 16px; }
+  .outlet-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 8px; text-align: center; cursor: pointer; transition: all 0.15s; font-size: 13px; font-weight: 600; color: var(--text); }
+  .outlet-btn:hover { border-color: var(--accent); }
+  .outlet-btn.selected { border-color: var(--accent); background: rgba(91,138,240,0.12); box-shadow: 0 0 0 1px var(--accent); }
+  .outlet-btn .bias-tag { display: block; font-size: 9px; font-weight: 500; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .reveal { display: none; }
+  .reveal.visible { display: block; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .your-score { text-align: center; padding: 24px 0; }
+  .your-score-num { font-size: 64px; font-weight: 900; line-height: 1; letter-spacing: -0.03em; }
+  .your-score-of { font-size: 14px; color: var(--muted); }
+  .your-score-caption { font-size: 13px; color: var(--muted); margin-top: 8px; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .your-score-caption strong { color: var(--text); }
+  .topic-bars { margin-top: 20px; }
+  .topic-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .topic-label { font-size: 11px; font-weight: 600; width: 180px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topic-track { flex: 1; height: 20px; background: rgba(136,136,168,0.08); border-radius: 4px; overflow: hidden; }
+  .topic-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 9px; font-weight: 700; transition: width 0.5s ease; }
+  .topic-fill.full { background: rgba(46,196,182,0.4); color: var(--green); }
+  .topic-fill.partial { background: rgba(245,166,35,0.3); color: var(--yellow); }
+  .topic-fill.empty { background: rgba(231,76,60,0.25); color: var(--red); }
+
+  /* ===== LAYER 3: FULL PICTURE (persuasion) ===== */
+  .phase { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; margin-top: 48px; }
+  .phase:first-child { margin-top: 0; }
+  .phase-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+  .phase-title { font-size: 15px; font-weight: 700; }
+  .phase-sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .consensus-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; border-left: 3px solid var(--green); padding: 10px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+  .consensus-text { font-size: 13px; flex: 1; }
+  .consensus-count { font-size: 11px; color: var(--green); font-weight: 700; white-space: nowrap; }
+  .source-pills { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px; }
+  .source-pill { font-size: 8px; font-weight: 600; padding: 1px 5px; border-radius: 3px; background: rgba(46,196,182,0.12); color: var(--green); }
+  .divergence-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+  .axis-q { font-size: 13px; font-weight: 700; margin-bottom: 0; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+  .axis-q::after { content: '+'; font-size: 16px; color: var(--muted); font-weight: 400; flex-shrink: 0; margin-left: 12px; transition: transform 0.2s; }
+  .axis-q.open::after { content: '−'; }
+  .axis-detail { display: none; margin-top: 12px; }
+  .axis-detail.open { display: block; }
+  .axis-poles { display: flex; gap: 10px; margin-bottom: 10px; }
+  .axis-pole { flex: 1; padding: 8px 10px; border-radius: 6px; font-size: 11px; line-height: 1.4; }
+  .pole-a { background: rgba(232,160,111,0.06); border: 1px solid rgba(232,160,111,0.12); }
+  .pole-b { background: rgba(111,160,232,0.06); border: 1px solid rgba(111,160,232,0.12); }
+  .pole-hdr { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .pole-a .pole-hdr { color: #e8a06f; }
+  .pole-b .pole-hdr { color: #6fa0e8; }
+  .pole-src { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .finding { background: rgba(91,138,240,0.05); border: 1px solid rgba(91,138,240,0.1); border-radius: 6px; padding: 8px 10px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+  .finding strong { color: var(--text); }
+  .cert-badge { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; margin-top: 6px; background: rgba(245,166,35,0.15); color: var(--yellow); }
+  .blindspot-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; border-left: 3px solid var(--yellow); }
+  .bs-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--yellow); margin-bottom: 4px; }
+  .bs-claim { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .bs-detail { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .who-pills { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 6px; }
+  .who-pill { font-size: 9px; font-weight: 600; padding: 2px 5px; border-radius: 3px; }
+  .who-yes { background: rgba(46,196,182,0.12); color: var(--green); }
+  .who-no { background: rgba(231,76,60,0.1); color: var(--red); }
+
+  /* ===== LAYER 4: METHODOLOGY (integrity) ===== */
+  .method-box { background: rgba(91,138,240,0.05); border: 1px solid rgba(91,138,240,0.15); border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .method-box h3 { font-size: 14px; color: var(--accent); margin-bottom: 8px; }
+  .method-box p, .method-box li { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .method-box ul { padding-left: 18px; margin: 8px 0; }
+  .method-box li { margin-bottom: 3px; }
+  .method-box .warn { color: var(--yellow); font-weight: 600; }
+  .provenance-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .provenance-table th { text-align: left; padding: 6px 8px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+  .provenance-table td { padding: 6px 8px; border-bottom: 1px solid rgba(51,51,90,0.3); vertical-align: top; }
+  .src-tag { font-size: 8px; font-weight: 700; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; display: inline-block; }
+  .src-named { background: rgba(46,196,182,0.15); color: var(--green); }
+  .src-inst { background: rgba(91,138,240,0.15); color: var(--accent); }
+  .src-unsourced { background: rgba(231,76,60,0.12); color: var(--red); }
+  .caveat-box { background: rgba(231,76,60,0.05); border: 1px solid rgba(231,76,60,0.12); border-radius: 8px; padding: 14px 16px; margin-top: 16px; }
+  .caveat-box h3 { font-size: 12px; color: var(--red); margin-bottom: 6px; }
+  .caveat-box p { font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 4px; }
+  .caveat-box p:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-inner">
+    <div class="nav-item active" data-section="hook">The Gap</div>
+    <div class="nav-item" data-section="personal">Your Blind Spots</div>
+    <div class="nav-item" data-section="full">Full Picture</div>
+    <div class="nav-item" data-section="method">How We Know</div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- ===== LAYER 1: THE HOOK ===== -->
+<div class="story-section hook-section" id="hook">
+  <div class="hook-eyebrow">US-Iran Ceasefire &middot; April 9, 2026 &middot; 13 sources</div>
+  <h1 class="hook-headline">US-Iran Ceasefire Holds Amid Violations and Unresolved Nuclear Dispute</h1>
+  <div class="hook-meta">40 factual claims extracted &middot; 18 opinion axes identified</div>
+
+  <div class="aha">
+    <div class="aha-label">The biggest gap between what you're being told and what the evidence says</div>
+    <div class="aha-versus">
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--red);">100%</div>
+        <div class="aha-desc">White House claim: nuclear program "completely obliterated"</div>
+        <div class="aha-src">4 outlets, 0 independent verification</div>
+      </div>
+      <div class="aha-divider"></div>
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--green);">3-6 mo</div>
+        <div class="aha-desc">DIA assessment: program set back months, not destroyed</div>
+        <div class="aha-src">1 outlet, leaked preliminary finding</div>
+      </div>
+    </div>
+    <div class="aha-verdict"><strong>No outlet presented both claims side-by-side.</strong> The only independent assessment contradicts the official narrative. Neither has been verified.</div>
+  </div>
+
+  <div class="hook-stats">
+    <div><span class="hook-stat-num" style="color:var(--green);">17</span> verified claims</div>
+    <div><span class="hook-stat-num" style="color:var(--yellow);">14</span> one-sided</div>
+    <div><span class="hook-stat-num" style="color:var(--red);">8</span> opinion as fact</div>
+  </div>
+
+  <div class="scroll-cue" onclick="document.getElementById('personal').scrollIntoView({behavior:'smooth'})">See what your source is missing ↓</div>
+</div>
+
+<!-- ===== LAYER 2: YOUR BLIND SPOTS ===== -->
+<div class="story-section" id="personal">
+  <h2>What's your source not telling you?</h2>
+  <div class="section-sub">Pick where you get your news. We'll show what you saw and what you missed.</div>
+
+  <div class="outlet-grid" id="outletGrid">
+    <div class="outlet-btn" data-outlet="Fox News">Fox News<span class="bias-tag">Right</span></div>
+    <div class="outlet-btn" data-outlet="CNN">CNN<span class="bias-tag">Lean Left</span></div>
+    <div class="outlet-btn" data-outlet="MSNBC">MSNBC<span class="bias-tag">Left</span></div>
+    <div class="outlet-btn" data-outlet="CBS News">CBS News<span class="bias-tag">Lean Left</span></div>
+    <div class="outlet-btn" data-outlet="NBC News">NBC News<span class="bias-tag">Center</span></div>
+    <div class="outlet-btn" data-outlet="ABC News">ABC News<span class="bias-tag">Lean Left</span></div>
+    <div class="outlet-btn" data-outlet="NPR">NPR<span class="bias-tag">Lean Left</span></div>
+    <div class="outlet-btn" data-outlet="PBS">PBS<span class="bias-tag">Center</span></div>
+    <div class="outlet-btn" data-outlet="Washington Post">Wash Post<span class="bias-tag">Left</span></div>
+    <div class="outlet-btn" data-outlet="Breitbart">Breitbart<span class="bias-tag">Right</span></div>
+    <div class="outlet-btn" data-outlet="Daily Wire">Daily Wire<span class="bias-tag">Right</span></div>
+    <div class="outlet-btn" data-outlet="The Federalist">Federalist<span class="bias-tag">Right</span></div>
+  </div>
+
+  <div class="reveal" id="outletReveal">
+    <div class="your-score">
+      <div class="your-score-num" id="scoreNum" style="color:var(--red);">--</div>
+      <div class="your-score-of">of 40 claims missed</div>
+      <div class="your-score-caption" id="scoreCaption"></div>
+    </div>
+    <div class="topic-bars" id="topicBars"></div>
+    <div style="text-align:center;margin-top:20px;">
+      <div class="scroll-cue" onclick="document.getElementById('full').scrollIntoView({behavior:'smooth'})">See the full picture ↓</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LAYER 3: FULL PICTURE ===== -->
+<div class="story-section" id="full">
+  <h2>The full picture</h2>
+  <div class="section-sub">What all sources agree on, where they diverge, and what each side leaves out.</div>
+
+  <!-- Phase 1: Consensus -->
+  <div class="phase"><div class="phase-num" style="background:rgba(46,196,182,0.2);color:var(--green);">1</div><div class="phase-title">What everyone agrees on</div></div>
+  <div class="phase-sub">Facts reported by 5+ outlets across the spectrum.</div>
+
+  <div class="consensus-item"><div class="consensus-text">Two-week ceasefire agreed, mediated by Pakistan</div><div class="consensus-count">9 of 13</div></div>
+  <div class="consensus-item"><div class="consensus-text">Iran submitted 10-point peace proposal</div><div class="consensus-count">8 of 13</div></div>
+  <div class="consensus-item"><div class="consensus-text">Strait of Hormuz blockade drove gas to $4.14/gal</div><div class="consensus-count">7 of 13</div></div>
+  <div id="moreConsensus" style="display:none;">
+    <div class="consensus-item"><div class="consensus-text">Operation Midnight Hammer struck Natanz, Fordow, Isfahan</div><div class="consensus-count">8 of 13</div></div>
+    <div class="consensus-item"><div class="consensus-text">Netanyahu says ceasefire does not cover Lebanon</div><div class="consensus-count">5 of 13</div></div>
+  </div>
+  <div style="font-size:12px;color:var(--accent);cursor:pointer;margin-top:6px;" onclick="var el=document.getElementById('moreConsensus');if(el.style.display==='none'){el.style.display='block';this.textContent='Show fewer'}else{el.style.display='none';this.textContent='+ 2 more consensus points'}">+ 2 more consensus points</div>
+
+  <!-- Phase 2: Divergence -->
+  <div class="phase"><div class="phase-num" style="background:rgba(245,166,35,0.2);color:var(--yellow);">2</div><div class="phase-title">Where sources diverge</div></div>
+  <div class="phase-sub">Same events, opposite conclusions. Sourcing quality shown for each side.</div>
+
+  <div class="divergence-card">
+    <div class="axis-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Were US strikes effective at destroying Iran's nuclear program? <span class="cert-badge" style="margin-left:auto;">Medium certainty</span></div>
+    <div class="axis-detail">
+      <div class="axis-poles">
+        <div class="axis-pole pole-a"><div class="pole-hdr">Right-leaning</div>"Completely obliterated"<div class="pole-src">4 outlets · sourcing: 0.28 · admin claims only</div></div>
+        <div class="axis-pole pole-b"><div class="pole-hdr">Left-leaning</div>"Set back 3-6 months"<div class="pole-src">1 outlet (MSNBC) · sourcing: 0.60 · leaked DIA</div></div>
+      </div>
+      <div class="finding"><strong>Evidence:</strong> The only independent assessment (DIA) found a 3-6 month setback. The "obliterated" claim has zero independent verification. Iran's enriched uranium remains in-country.</div>
+    </div>
+  </div>
+
+  <div class="divergence-card">
+    <div class="axis-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Was the ceasefire a US or Iranian victory? <span class="cert-badge" style="margin-left:auto;">Medium certainty</span></div>
+    <div class="axis-detail">
+      <div class="axis-poles">
+        <div class="axis-pole pole-a"><div class="pole-hdr">Right-leaning</div>"Total and complete victory"<div class="pole-src">4 outlets · sourcing: 0.25 · Trump's own statements</div></div>
+        <div class="axis-pole pole-b"><div class="pole-hdr">Left-leaning</div>"Enduring defeat for Washington"<div class="pole-src">3 outlets · sourcing: 0.23 · Iran's SNSC statements</div></div>
+      </div>
+      <div class="finding"><strong>Evidence:</strong> Both claims rely on self-serving official statements. US inflicted massive damage, but Iran's government survived, nuclear material remains, and Iran's 10-point proposal shaped the negotiating framework.</div>
+    </div>
+  </div>
+
+  <div class="divergence-card">
+    <div class="axis-q" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Is the ceasefire durable or fragile? <span class="cert-badge" style="margin-left:auto;">Medium certainty</span></div>
+    <div class="axis-detail">
+      <div class="axis-poles">
+        <div class="axis-pole pole-a"><div class="pole-hdr">Admin-aligned</div>"Will hold through deterrence"<div class="pole-src">Low sourcing quality · administration rhetoric</div></div>
+        <div class="axis-pole pole-b"><div class="pole-hdr">Broader coverage</div>"Extremely fragile"<div class="pole-src">Multiple outlets across spectrum · higher sourcing</div></div>
+      </div>
+      <div class="finding"><strong>Evidence:</strong> Violations reported within 24 hours. No published formal text. Lebanon dispute unresolved. Core enrichment disagreement persists.</div>
+    </div>
+  </div>
+
+  <!-- Phase 3: Blind spots — grouped by side -->
+  <div class="phase"><div class="phase-num" style="background:rgba(231,76,60,0.2);color:var(--red);">3</div><div class="phase-title">What each side leaves out</div></div>
+  <div class="phase-sub">If you only read one side, you never encountered these.</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;border-top:3px solid #e8a06f;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#e8a06f;margin-bottom:10px;">Right-leaning readers missed</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">~3,400 killed in Iran including 1,600+ civilians</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">Only NBC reported (citing HRANA). No right-leaning outlet mentioned civilian deaths.</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">DIA: strikes set nuclear program back only 3-6 months</div>
+      <div style="font-size:11px;color:var(--muted);">Only MSNBC reported. Directly contradicts "total obliteration" from 4 right-leaning outlets.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;border-top:3px solid #6fa0e8;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#6fa0e8;margin-bottom:10px;">Left-leaning readers missed</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">13,000+ targets destroyed, 150+ warships sunk, 80-85% of air defenses degraded</div>
+      <div style="font-size:11px;color:var(--muted);">Only Fox and White House reported full scope of military operations. Absent from all left-leaning coverage.</div>
+    </div>
+  </div>
+  <div class="blindspot-card" style="border-left-color:var(--muted);"><div class="bs-label" style="color:var(--muted);">Most readers missed</div><div class="bs-claim">250+ killed in Lebanon in one day after ceasefire; 1,500+ total</div><div class="bs-detail">NPR and CBS provided the most coverage. Most outlets gave this secondary treatment.</div></div>
+
+  <div style="font-size:13px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.6;">No single source covered more than 65% of the claims in this story. The full picture requires all three layers.</div>
+</div>
+
+<!-- ===== LAYER 4: METHODOLOGY ===== -->
+<div class="story-section" id="method">
+  <h2>How we know this</h2>
+  <div class="section-sub">Every number on this page was generated by an AI pipeline. Here's how, and where it could be wrong.</div>
+
+  <div class="method-box">
+    <h3>Pipeline</h3>
+    <p>13 articles scraped → AI extracted claims blindly (outlet hidden) → claims cross-referenced across outlets → opinion axes identified → sourcing quality estimated</p>
+    <ul>
+      <li><span class="warn">Claim extraction</span> — the AI decides what counts as a "claim." A different model might extract differently.</li>
+      <li><span class="warn">Sourcing quality</span> (0.0–1.0) — LLM-estimated, not computed from a validated rubric. Treat as rough tiers, not precise measurements.</li>
+      <li><span class="warn">Axis selection</span> — which disagreements are surfaced is itself an editorial choice.</li>
+      <li><span class="warn">Bias labels</span> — from AllSides, used for display ordering only, not as analytical input.</li>
+    </ul>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;overflow-x:auto;margin-bottom:16px;">
+    <div style="font-size:12px;font-weight:600;margin-bottom:8px;">Sample sourcing provenance</div>
+    <table class="provenance-table">
+      <thead><tr><th>Claim</th><th>Outlets</th><th>Sources</th><th>Verifiable?</th></tr></thead>
+      <tbody>
+        <tr><td>Ceasefire agreed via Truth Social</td><td>9</td><td><span class="src-tag src-named">Named x5</span> <span class="src-tag src-unsourced">Unsourced x4</span></td><td style="color:var(--green);">Yes</td></tr>
+        <tr><td>DIA: 3-6 month setback</td><td>1</td><td><span class="src-tag src-inst">Institutional x1</span></td><td style="color:var(--yellow);">In principle</td></tr>
+        <tr><td>3,400 killed incl. 1,600 civilians</td><td>1</td><td><span class="src-tag src-inst">Institutional x1</span></td><td style="color:var(--red);">No</td></tr>
+        <tr><td>13,000+ targets struck</td><td>2</td><td><span class="src-tag src-named">Named x1</span> <span class="src-tag src-unsourced">Unsourced x1</span></td><td style="color:var(--red);">No</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="caveat-box">
+    <h3>What this tool cannot tell you</h3>
+    <p>This covers 13 English-language US sources from one day. It cannot detect stories no outlet covered, verify classified intelligence, or account for non-English coverage.</p>
+    <p>Organizing information into "left vs. right" is itself a political framework that structurally rewards centrist positions. This tool has a bias toward the center — not because centrism is correct, but because its methodology rewards cross-spectrum agreement.</p>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+// ===== NAV highlighting =====
+const sections = ['hook','personal','full','method'];
+const navItems = document.querySelectorAll('.nav-item');
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    document.getElementById(item.dataset.section).scrollIntoView({behavior:'smooth'});
+  });
+});
+window.addEventListener('scroll', () => {
+  let current = 'hook';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top <= 100) current = id;
+  });
+  navItems.forEach(item => {
+    item.classList.toggle('active', item.dataset.section === current);
+  });
+});
+
+// ===== OUTLET PICKER DATA =====
+const CLAIMS=[
+{id:"F-001",text:"Two-week ceasefire agreed",outlets:["CBS News","CNN","Breitbart","Fox News","NBC News","NPR","PBS","Washington Post","White House"],topic:"Ceasefire"},
+{id:"F-002",text:"Mediated by Pakistan's PM Sharif",outlets:["CBS News","CNN","Fox News","NBC News","NPR"],topic:"Ceasefire"},
+{id:"F-003",text:"Iran submitted 10-point peace proposal",outlets:["Breitbart","CBS News","CNN","Fox News","NBC News","NPR","PBS","Washington Post"],topic:"Ceasefire"},
+{id:"F-004",text:"Plan includes Strait control, US withdrawal, enrichment rights",outlets:["CBS News","CNN","Fox News","NBC News","NPR","PBS","Washington Post"],topic:"Ceasefire"},
+{id:"F-005",text:"White House rejected plan ('thrown in the garbage')",outlets:["NPR","Fox News"],topic:"Ceasefire"},
+{id:"F-006",text:"Netanyahu: ceasefire doesn't cover Lebanon",outlets:["CBS News","CNN","Fox News","NBC News","NPR"],topic:"Lebanon"},
+{id:"F-007",text:"Pakistan/Iran: ceasefire covers Lebanon",outlets:["CBS News","CNN","Fox News","NPR"],topic:"Lebanon"},
+{id:"F-008",text:"Epic Fury launched Feb 28; 38 days of combat",outlets:["Fox News","White House","NBC News","PBS","Washington Post"],topic:"Military"},
+{id:"F-009",text:"Midnight Hammer struck Natanz, Fordow, Isfahan",outlets:["ABC News","Breitbart","Daily Wire","Fox News","NBC News","PBS","Washington Post","White House"],topic:"Military"},
+{id:"F-010",text:"Strikes killed Supreme Leader Khamenei",outlets:["PBS","Washington Post","Fox News"],topic:"Military"},
+{id:"F-011",text:"13,000+ targets struck",outlets:["Fox News","White House"],topic:"Military"},
+{id:"F-012",text:"150+ warships destroyed",outlets:["Fox News","PBS","Washington Post","White House"],topic:"Military"},
+{id:"F-013",text:"80-85% of defense industrial base destroyed",outlets:["Fox News","White House"],topic:"Military"},
+{id:"F-014",text:"Strait of Hormuz blockade",outlets:["CBS News","CNN","NBC News","NPR","PBS","Washington Post","The Federalist"],topic:"Economic"},
+{id:"F-015",text:"$2M per vessel transit fees",outlets:["CBS News","NPR","PBS","Washington Post"],topic:"Economic"},
+{id:"F-016",text:"Gas hit $4.14/gal",outlets:["CBS News","CNN","Fox News","NBC News","NPR","PBS","Washington Post"],topic:"Economic"},
+{id:"F-017",text:"Brent crude dropped 13%",outlets:["CBS News","CNN","Fox News","NBC News"],topic:"Economic"},
+{id:"F-018",text:"Dow surged 1,300+ points",outlets:["CBS News","CNN","Fox News"],topic:"Economic"},
+{id:"F-019",text:"Russia/China vetoed UN resolution",outlets:["CBS News","NPR","PBS","Washington Post"],topic:"Economic"},
+{id:"F-020",text:"Iran launched 5,000+ drones, 2,100+ missiles",outlets:["Fox News","White House","NBC News","PBS"],topic:"Military"},
+{id:"F-021",text:"3,400 killed in Iran, 1,600+ civilians",outlets:["NBC News"],topic:"Humanitarian"},
+{id:"F-022",text:"23 killed in Israel; 13 US dead",outlets:["NBC News","Fox News","White House"],topic:"Humanitarian"},
+{id:"F-023",text:"50,000 US troops deployed",outlets:["Fox News","White House","PBS"],topic:"Military"},
+{id:"F-024",text:"Iranian hackers targeting US infrastructure",outlets:["NBC News","CNN"],topic:"Security"},
+{id:"F-025",text:"100 strikes in 10min in Beirut, 250+ killed",outlets:["CBS News","CNN","NPR","NBC News","PBS"],topic:"Lebanon"},
+{id:"F-026",text:"1,500+ killed in Lebanon total",outlets:["CBS News","NPR","NBC News"],topic:"Lebanon"},
+{id:"F-027",text:"3 journalists killed in Lebanon strikes",outlets:["NPR"],topic:"Lebanon"},
+{id:"F-028",text:"1M+ displaced in Lebanon",outlets:["CBS News","CNN","NPR","NBC News"],topic:"Lebanon"},
+{id:"F-029",text:"DIA: strikes set program back 3-6 months",outlets:["MSNBC"],topic:"Military"},
+{id:"F-030",text:"Iran's HEU remains in-country",outlets:["MSNBC","NBC News","PBS"],topic:"Military"},
+{id:"F-031",text:"Peace talks in Islamabad; Vance leads",outlets:["CBS News","CNN","Fox News","NPR","PBS","Washington Post"],topic:"Ceasefire"},
+{id:"F-032",text:"Ceasefire violations within 24 hours",outlets:["CBS News","CNN","NPR"],topic:"Ceasefire"},
+{id:"F-033",text:"Trump: 'a whole civilization will die tonight'",outlets:["MSNBC","ABC News","CBS News","CNN","NBC News"],topic:"Domestic"},
+{id:"F-034",text:"Pelosi called for 25th Amendment",outlets:["MSNBC","ABC News","CBS News"],topic:"Domestic"},
+{id:"F-035",text:"Pope Leo XIV: threats 'truly unacceptable'",outlets:["NPR","CBS News"],topic:"Domestic"},
+{id:"F-036",text:"Schumer: 'military moron'; $44B cost",outlets:["CBS News","CNN"],topic:"Domestic"},
+{id:"F-037",text:"Congress rejected war powers resolutions",outlets:["MSNBC","ABC News"],topic:"Domestic"},
+{id:"F-038",text:"Trump approval declined",outlets:["CBS News","CNN"],topic:"Domestic"},
+{id:"F-039",text:"Suspicious Polymarket ceasefire bets",outlets:["CNN","NBC News"],topic:"Economic"},
+{id:"F-040",text:"Gulf states hit by Iranian attacks",outlets:["CBS News","Fox News","PBS","Washington Post"],topic:"Military"},
+];
+const TOPICS = {
+  "Ceasefire":"Ceasefire & Talks","Military":"Military Ops","Lebanon":"Israel-Lebanon",
+  "Economic":"Economic Impact","Domestic":"Domestic Politics","Humanitarian":"Humanitarian","Security":"Cyber/Security"
+};
+
+document.getElementById('outletGrid').addEventListener('click', function(e) {
+  const btn = e.target.closest('.outlet-btn');
+  if (!btn) return;
+  document.querySelectorAll('.outlet-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const outlet = btn.dataset.outlet;
+  const got = CLAIMS.filter(c => c.outlets.includes(outlet));
+  const missed = CLAIMS.filter(c => !c.outlets.includes(outlet));
+  const pct = Math.round(missed.length / CLAIMS.length * 100);
+
+  document.getElementById('scoreNum').textContent = missed.length;
+  document.getElementById('scoreNum').style.color = pct > 60 ? 'var(--red)' : pct > 40 ? 'var(--yellow)' : 'var(--green)';
+  document.getElementById('scoreCaption').innerHTML = '<strong>' + outlet + '</strong> covered ' + got.length + ' of 40 claims (' + (100-pct) + '%). You missed ' + pct + '% of the story.';
+
+  const bb = document.getElementById('topicBars');
+  bb.innerHTML = '';
+  Object.entries(TOPICS).forEach(([key, label]) => {
+    const tc = CLAIMS.filter(c => c.topic === key);
+    const tg = tc.filter(c => c.outlets.includes(outlet));
+    const p = tc.length > 0 ? Math.round(tg.length / tc.length * 100) : 0;
+    let cls = p >= 70 ? 'full' : p >= 30 ? 'partial' : 'empty';
+    bb.innerHTML += '<div class="topic-bar"><div class="topic-label">' + label + '</div><div class="topic-track"><div class="topic-fill ' + cls + '" style="width:' + p + '%;">' + tg.length + '/' + tc.length + '</div></div></div>';
+  });
+
+  document.getElementById('outletReveal').classList.add('visible');
+  document.getElementById('outletReveal').scrollIntoView({behavior:'smooth', block:'start'});
+});
+</script>
+</body>
+</html>

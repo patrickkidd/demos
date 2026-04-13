@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Integrity v2 — Data Transparency &amp; Methodology Disclosure</title>
+<style>
+  :root { --bg: #1a1a2e; --surface: #22223a; --border: #33335a; --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0; --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c; --warn: #c4882e; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+  .article-meta { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+  .section { margin-bottom: 32px; }
+  .method-box { background: rgba(91,138,240,0.06); border: 1px solid rgba(91,138,240,0.2); border-radius: 10px; padding: 18px 20px; margin-bottom: 28px; }
+  .method-box h2 { font-size: 14px; color: var(--accent); margin-bottom: 10px; }
+  .method-box p { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 8px; }
+  .method-box p:last-child { margin-bottom: 0; }
+  .method-box ul { font-size: 12px; color: var(--muted); line-height: 1.6; padding-left: 18px; margin-bottom: 8px; }
+  .method-box li { margin-bottom: 4px; }
+  .method-box .warn { color: var(--warn); font-weight: 600; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .stat-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .stat-range { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .stat-range .lo { color: var(--muted); }
+  .stat-range .hi { color: var(--text); }
+  .stat-range .sep { color: var(--border); margin: 0 4px; }
+  .stat-explain { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .range-bar { position: relative; height: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; margin: 10px 0 6px; }
+  .range-fill { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+  .range-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); }
+  .provenance-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px; }
+  .provenance-table th { text-align: left; padding: 8px 10px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); font-size: 11px; }
+  .provenance-table td { padding: 8px 10px; border-bottom: 1px solid rgba(51,51,90,0.3); vertical-align: top; }
+  .provenance-table tr:hover { background: rgba(91,138,240,0.04); }
+  .src-type { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 3px; display: inline-block; }
+  .src-named { background: rgba(46,196,182,0.15); color: var(--green); }
+  .src-institutional { background: rgba(91,138,240,0.15); color: var(--accent); }
+  .src-anonymous { background: rgba(245,166,35,0.15); color: var(--yellow); }
+  .src-unsourced { background: rgba(231,76,60,0.15); color: var(--red); }
+  .axis-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 14px; }
+  .axis-question { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .axis-poles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .pole-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 12px; line-height: 1.5; }
+  .pole-card .pole-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .pole-a .pole-label { color: #6fa0e8; }
+  .pole-b .pole-label { color: #e8a06f; }
+  .pole-card .pole-text { color: var(--text); margin-bottom: 8px; }
+  .pole-card .pole-sources { font-size: 11px; color: var(--muted); }
+  .certainty-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid rgba(51,51,90,0.4); margin-top: 4px; }
+  .certainty-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 3px; flex-shrink: 0; }
+  .cert-medium { background: rgba(245,166,35,0.15); color: var(--yellow); }
+  .cert-low { background: rgba(231,76,60,0.15); color: var(--red); }
+  .certainty-reason { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .editorial-box { background: rgba(245,166,35,0.05); border: 1px solid rgba(245,166,35,0.2); border-radius: 10px; padding: 16px 20px; margin-bottom: 28px; }
+  .editorial-box h3 { color: var(--yellow); font-size: 13px; margin-bottom: 10px; }
+  .editorial-box p, .editorial-box li { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .editorial-box ul { padding-left: 18px; margin-bottom: 8px; }
+  .editorial-box li { margin-bottom: 4px; }
+  .consensus-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; display: flex; gap: 12px; align-items: flex-start; }
+  .consensus-count { font-size: 11px; font-weight: 700; color: var(--green); background: rgba(46,196,182,0.1); border-radius: 4px; padding: 4px 8px; flex-shrink: 0; text-align: center; min-width: 56px; }
+  .consensus-body { flex: 1; }
+  .consensus-claim { font-size: 13px; margin-bottom: 4px; }
+  .consensus-caveat { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .audit-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px; }
+  .audit-table th { text-align: left; padding: 6px 8px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+  .audit-table td { padding: 6px 8px; border-bottom: 1px solid rgba(51,51,90,0.3); }
+  .audit-table .outlet-name { font-weight: 600; }
+  .footnote { font-size: 11px; color: var(--muted); font-style: italic; margin-top: 8px; }
+</style>
+</head>
+<body>
+<h1>US-Iran Ceasefire Holds Amid Violations, Lebanon Escalation, and Unresolved Nuclear Dispute</h1>
+<div class="article-meta">April 9, 2026 -- 13 sources analyzed -- Automated pipeline, not editorial judgment</div>
+
+<div class="method-box">
+  <h2>How this analysis was made</h2>
+  <p>This page was generated by a four-phase automated pipeline. Every number below was produced by an LLM (Claude), not by human analysts or verified algorithms. This matters because:</p>
+  <ul>
+    <li><span class="warn">Bias classifications</span> (left/right/center) are assigned by the LLM based on AllSides ratings and its own training data. These assignments are themselves editorial acts.</li>
+    <li><span class="warn">Sourcing quality scores</span> (0.0-1.0) are LLM-estimated, not computed from a validated rubric. Different runs may produce different scores.</li>
+    <li><span class="warn">Claim extraction</span> decides what counts as a "fact" vs. "opinion" -- a judgment call the LLM makes, not an objective distinction.</li>
+    <li><span class="warn">Axis selection</span> determines which disagreements are surfaced. Different axis choices would tell a different story about the same coverage.</li>
+  </ul>
+  <p>The pipeline is deterministic given the same inputs, but the inputs themselves (which articles were scraped, how text was chunked) introduce variability. Treat all numbers as approximate indicators, not measurements.</p>
+</div>
+
+<div class="section">
+  <h2>What we found (with uncertainty)</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Cross-verified claims</div>
+      <div class="stat-range"><span class="hi">~17</span> <span class="lo">of ~40 extracted</span></div>
+      <div class="range-bar"><div class="range-fill" style="left:35%;right:18%;background:rgba(46,196,182,0.35);"></div></div>
+      <div class="range-labels"><span>0</span><span>40</span></div>
+      <div class="stat-explain">Claims reported by 3+ outlets. "Claim" boundaries are LLM-determined -- a different extraction pass might split or merge claims differently.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Single-source claims</div>
+      <div class="stat-range"><span class="hi">~14</span> <span class="lo">of ~40 extracted</span></div>
+      <div class="range-bar"><div class="range-fill" style="left:0%;right:65%;background:rgba(245,166,35,0.35);"></div></div>
+      <div class="range-labels"><span>0</span><span>40</span></div>
+      <div class="stat-explain">Reported by only one outlet. Includes the DIA leak (MSNBC) and casualty figures (NBC/HRANA). Not necessarily wrong -- just unverifiable from this source set.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Disputed axes</div>
+      <div class="stat-range"><span class="hi">18</span> <span class="lo">identified by LLM</span></div>
+      <div class="stat-explain">The LLM chose these 18 axes of disagreement. A human analyst might identify different axes, combine some, or weight them differently.</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">LLM confidence distribution</div>
+      <div class="stat-range"><span style="color:var(--red);">7 low</span><span class="sep">/</span><span style="color:var(--yellow);">9 medium</span><span class="sep">/</span><span style="color:var(--green);">2 high</span></div>
+      <div class="stat-explain">The LLM's own assessment of confidence. Only 2 of 18 axes rated "high" -- the LLM itself flags most of its analysis as uncertain.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>How claims are sourced (raw data)</h2>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Every factual claim traces back to specific outlets and source types. This table shows the sourcing breakdown so you can judge the evidence yourself.</p>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto;">
+    <table class="provenance-table">
+      <thead><tr><th>Claim</th><th>Outlets</th><th>Source types</th><th>Verifiable?</th></tr></thead>
+      <tbody>
+        <tr><td>Two-week ceasefire agreed, announced on Truth Social</td><td>9</td><td><span class="src-type src-named">Named x5</span> <span class="src-type src-unsourced">Unsourced x4</span></td><td style="color:var(--green);">Yes</td></tr>
+        <tr><td>DIA assessment: strikes set program back 3-6 months</td><td>1</td><td><span class="src-type src-institutional">Institutional x1</span></td><td style="color:var(--yellow);">In principle</td></tr>
+        <tr><td>3,400 killed in Iran including 1,600+ civilians</td><td>1</td><td><span class="src-type src-institutional">Institutional x1</span></td><td style="color:var(--red);">No</td></tr>
+        <tr><td>13,000+ targets struck during Operation Epic Fury</td><td>2</td><td><span class="src-type src-named">Named x1</span> <span class="src-type src-unsourced">Unsourced x1</span></td><td style="color:var(--red);">No</td></tr>
+        <tr><td>Iran submitted 10-point peace proposal</td><td>8</td><td><span class="src-type src-named">Named x4</span> <span class="src-type src-institutional">Instit. x3</span> <span class="src-type src-unsourced">Unsourced x1</span></td><td style="color:var(--green);">Yes</td></tr>
+        <tr><td>250+ killed in Lebanon in one day of Israeli strikes</td><td>3</td><td><span class="src-type src-institutional">Institutional x3</span></td><td style="color:var(--yellow);">Partially</td></tr>
+      </tbody>
+    </table>
+    <p class="footnote">Source type is LLM-classified from article text. "Named primary" = specific person quoted. "Institutional" = attributed to an organization. "Unsourced" = stated without attribution.</p>
+  </div>
+</div>
+
+<div class="editorial-box">
+  <h3>Editorial choices this app made (that a neutral tool shouldn't hide)</h3>
+  <ul>
+    <li>We selected 3 of 18 axes to display below. We chose axes with the widest sourcing disparity between poles. A different selection criterion would surface different disagreements.</li>
+    <li>Outlet positions on the left-right spectrum use AllSides ratings as a starting point, but the LLM adjusts positions per-claim.</li>
+    <li>The "consensus" section shows claims where many outlets agree. Agreement does not equal truth -- all outlets relied on the same primary sources for most "consensus" facts.</li>
+    <li>This tool does not cover what was NOT reported. Omissions are invisible in this data.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h2>Key disagreements (with confidence levels)</h2>
+  <div class="axis-card"><div class="axis-question">Were US strikes effective at destroying Iran's nuclear program?</div><div class="axis-poles"><div class="pole-card pole-a"><div class="pole-label">Pole A</div><div class="pole-text">Strikes completely obliterated Iran's nuclear sites and program.</div><div class="pole-sources">4 outlets (Fox News, Breitbart, Federalist, White House)<br>Sourcing: 0.28 avg -- administration claims, no independent verification</div></div><div class="pole-card pole-b"><div class="pole-label">Pole B</div><div class="pole-text">Strikes set Iran's nuclear program back only 3-6 months.</div><div class="pole-sources">1 outlet (MSNBC)<br>Sourcing: 0.60 -- single leaked preliminary DIA assessment</div></div></div><div class="certainty-row"><span class="certainty-badge cert-medium">Medium confidence</span><span class="certainty-reason">The DIA assessment carries institutional weight but is a single preliminary leak. Administration claims come from named officials but are self-interested. Neither pole has independent corroboration.</span></div></div>
+
+  <div class="axis-card"><div class="axis-question">Was the ceasefire a US or Iranian victory?</div><div class="axis-poles"><div class="pole-card pole-a"><div class="pole-label">Pole A</div><div class="pole-text">Total US military victory through overwhelming force.</div><div class="pole-sources">4 outlets (Fox, Breitbart, White House, CNN)<br>Sourcing: 0.25 avg -- primarily Trump's own statements</div></div><div class="pole-card pole-b"><div class="pole-label">Pole B</div><div class="pole-text">Iranian victory or forced US retreat driven by political desperation.</div><div class="pole-sources">3 outlets (CBS, CNN, MSNBC)<br>Sourcing: 0.23 avg -- primarily Iran's SNSC statements</div></div></div><div class="certainty-row"><span class="certainty-badge cert-medium">Medium confidence</span><span class="certainty-reason">Both sides rely on self-serving official statements. No capitulation by either side suggests neither claim is well-supported.</span></div></div>
+
+  <div class="axis-card"><div class="axis-question">Does military force or diplomacy resolve the Iran threat?</div><div class="axis-poles"><div class="pole-card pole-a"><div class="pole-label">Pole A</div><div class="pole-text">Overwhelming military force is the proven path to peace.</div><div class="pole-sources">3 outlets (Fox, Daily Wire, White House)<br>Sourcing: 0.23 avg -- no evidence cited</div></div><div class="pole-card pole-b"><div class="pole-label">Pole B</div><div class="pole-text">Military action alone cannot resolve the nuclear threat; diplomacy is essential.</div><div class="pole-sources">3 outlets (MSNBC, ABC, CBS)<br>Sourcing: 0.37 avg -- no evidence cited</div></div></div><div class="certainty-row"><span class="certainty-badge cert-medium">Medium confidence</span><span class="certainty-reason">Neither side cites specific policy analysis. Both are assertions. The ceasefire's existence arguably supports elements of both views.</span></div></div>
+</div>
+
+<div class="section">
+  <h2>What most sources agree on</h2>
+  <p style="font-size:12px;color:var(--warn);margin-bottom:14px;">Agreement across outlets does not equal truth. Most "consensus" facts trace to the same primary sources (government announcements, press briefings). Cross-outlet agreement on a government claim means it was widely repeated, not independently verified.</p>
+  <div class="consensus-card"><div class="consensus-count">9 outlets<br><span style="font-size:9px;color:var(--muted);">5 named</span></div><div class="consensus-body"><div class="consensus-claim">Two-week ceasefire agreed, mediated by Pakistan</div><div class="consensus-caveat">Primary source: Trump's Truth Social post. Pakistan's role corroborated by Sharif's own statement.</div></div></div>
+  <div class="consensus-card"><div class="consensus-count">8 outlets<br><span style="font-size:9px;color:var(--muted);">4 named</span></div><div class="consensus-body"><div class="consensus-claim">Iran submitted 10-point peace proposal</div><div class="consensus-caveat">Corroborated through Iran's SNSC statement and Trump's response. Multiple original sources.</div></div></div>
+  <div class="consensus-card"><div class="consensus-count">7 outlets<br><span style="font-size:9px;color:var(--muted);">0 named</span></div><div class="consensus-body"><div class="consensus-claim">Strait of Hormuz blockade drove gas to $4.14/gal</div><div class="consensus-caveat">Widely reported but only 1 outlet cited a data source (AAA). The $4.14 figure is a single data point, not independently verified by 7 outlets -- they all cite the same number.</div></div></div>
+</div>
+
+<div class="section">
+  <h2>How outlets were classified</h2>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">If you disagree with a classification, the analysis built on it may not reflect your understanding of the media landscape.</p>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto;">
+    <table class="audit-table">
+      <thead><tr><th>Outlet</th><th>AllSides</th><th>Our position</th><th>Issue</th></tr></thead>
+      <tbody>
+        <tr><td class="outlet-name">MSNBC</td><td>Left</td><td>Far left</td><td>--</td></tr>
+        <tr><td class="outlet-name">ABC News</td><td>Lean Left</td><td>Left-center</td><td>--</td></tr>
+        <tr><td class="outlet-name">CBS News</td><td>Lean Left</td><td>Left-center</td><td>--</td></tr>
+        <tr><td class="outlet-name">CNN</td><td>Lean Left</td><td>Left-center</td><td>--</td></tr>
+        <tr><td class="outlet-name">Washington Post</td><td>Lean Left</td><td>Left-center</td><td>--</td></tr>
+        <tr><td class="outlet-name">NPR</td><td>Center</td><td>Left-center</td><td style="color:var(--yellow);">Shifted left of AllSides</td></tr>
+        <tr><td class="outlet-name">NBC News</td><td>Lean Left</td><td>Center</td><td style="color:var(--yellow);">Shifted right of AllSides</td></tr>
+        <tr><td class="outlet-name">PBS</td><td>Center</td><td>Center</td><td>--</td></tr>
+        <tr><td class="outlet-name">The Federalist</td><td>Right</td><td>Right</td><td>--</td></tr>
+        <tr><td class="outlet-name">Breitbart</td><td>Right</td><td>Right</td><td>--</td></tr>
+        <tr><td class="outlet-name">Fox News</td><td>Right</td><td>Right</td><td>--</td></tr>
+        <tr><td class="outlet-name">Daily Wire</td><td>Right</td><td>Right</td><td>--</td></tr>
+        <tr><td class="outlet-name">White House</td><td>N/A</td><td>Primary source</td><td style="color:var(--warn);">Not a media outlet</td></tr>
+      </tbody>
+    </table>
+    <p class="footnote">AllSides ratings are themselves contested. This classification shapes every visualization on this page.</p>
+  </div>
+</div>
+
+<div style="background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.15);border-radius:10px;padding:16px 20px;margin-top:12px;">
+  <h3 style="color:var(--red);font-size:13px;margin-bottom:8px;">What this tool cannot tell you</h3>
+  <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:6px;">This analysis covers 13 English-language US sources scraped on one day. It cannot detect stories no outlet covered. It cannot verify classified intelligence. It cannot account for non-English coverage.</p>
+  <p style="font-size:12px;color:var(--muted);line-height:1.6;">The act of organizing information into "left vs. right" is itself a political framework that advantages centrist positions. This tool has a bias toward the center -- not because centrism is correct, but because its methodology structurally rewards cross-spectrum agreement.</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>What Your News Source Isn't Telling You</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --surface: #22223a; --border: #33335a;
+    --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0;
+    --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 780px; margin: 0 auto; }
+  .hook { text-align: center; padding: 32px 0 8px; }
+  .hook-kicker { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--yellow); margin-bottom: 12px; }
+  .hook h1 { font-size: 28px; font-weight: 800; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 8px; }
+  .hook-sub { font-size: 14px; color: var(--muted); max-width: 520px; margin: 0 auto 28px; line-height: 1.5; }
+  .picker { margin-bottom: 32px; }
+  .picker-label { font-size: 13px; font-weight: 600; text-align: center; margin-bottom: 14px; color: var(--muted); }
+  .picker-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .picker-btn { background: var(--surface); border: 1.5px solid var(--border); color: var(--text); font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .picker-btn:hover { border-color: var(--accent); }
+  .picker-btn.selected { border-color: var(--accent); background: rgba(91,138,240,0.12); color: #fff; box-shadow: 0 0 12px rgba(91,138,240,0.15); }
+  .reveal { display: none; }
+  .reveal.active { display: block; }
+  .scorecard { text-align: center; padding: 28px 0 24px; }
+  .scorecard-number { font-size: 72px; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
+  .scorecard-of { font-size: 16px; color: var(--muted); margin-bottom: 4px; }
+  .scorecard-caption { font-size: 14px; color: var(--muted); max-width: 420px; margin: 8px auto 0; line-height: 1.5; }
+  .scorecard-caption strong { color: var(--text); }
+  .comparison { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px; text-align: center; }
+  .comparison-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+  .comparison-bar { height: 40px; border-radius: 6px; overflow: hidden; display: flex; margin-bottom: 10px; }
+  .comparison-seg { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+  .comparison-legend { display: flex; gap: 20px; justify-content: center; font-size: 12px; color: var(--muted); }
+  .comparison-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+  .gut-punch { background: linear-gradient(135deg, rgba(231,76,60,0.08), rgba(245,166,35,0.06)); border: 1px solid rgba(231,76,60,0.2); border-radius: 12px; padding: 24px; margin-bottom: 28px; text-align: center; }
+  .gut-punch-text { font-size: 16px; font-weight: 700; line-height: 1.4; margin-bottom: 8px; }
+  .gut-punch-sub { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .missing-section { margin-bottom: 28px; }
+  .missing-header { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .missing-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+  .missing-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 10px; border-left: 3px solid var(--red); opacity: 0; transform: translateY(8px); animation: fadeUp 0.4s forwards; }
+  .missing-card:nth-child(2) { animation-delay: 0.1s; }
+  .missing-card:nth-child(3) { animation-delay: 0.2s; }
+  .missing-card:nth-child(4) { animation-delay: 0.3s; }
+  .missing-card:nth-child(5) { animation-delay: 0.4s; }
+  .missing-card:nth-child(6) { animation-delay: 0.5s; }
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  .missing-claim { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+  .missing-meta { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .missing-meta .outlet-tag { display: inline-block; background: rgba(91,138,240,0.1); border: 1px solid rgba(91,138,240,0.2); border-radius: 4px; padding: 1px 6px; margin: 1px 2px; font-size: 10px; font-weight: 600; color: var(--accent); }
+  .covered-section { margin-bottom: 28px; }
+  .covered-header { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .covered-sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .covered-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 8px; border-left: 3px solid var(--green); }
+  .covered-claim { font-size: 13px; font-weight: 500; line-height: 1.4; }
+  .cta { text-align: center; padding: 8px 0 32px; }
+  .cta-btn { background: var(--accent); border: none; color: #fff; font-size: 14px; font-weight: 700; padding: 14px 32px; border-radius: 10px; cursor: pointer; }
+  .cta-btn:hover { background: #4a7ae0; }
+  .cta-small { font-size: 11px; color: var(--muted); margin-top: 10px; }
+  .quiz { margin-bottom: 32px; display: none; }
+  .quiz.active { display: block; }
+  .quiz-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; }
+  .quiz-kicker { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--yellow); margin-bottom: 12px; }
+  .quiz-claim { font-size: 17px; font-weight: 700; line-height: 1.35; margin-bottom: 20px; max-width: 560px; margin-left: auto; margin-right: auto; }
+  .quiz-options { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
+  .quiz-opt { background: transparent; border: 1.5px solid var(--border); color: var(--text); font-size: 14px; font-weight: 600; padding: 10px 28px; border-radius: 8px; cursor: pointer; min-width: 140px; }
+  .quiz-opt:hover { border-color: var(--accent); }
+  .quiz-opt.correct { border-color: var(--green); background: rgba(46,196,182,0.1); color: var(--green); }
+  .quiz-opt.wrong { border-color: var(--red); background: rgba(231,76,60,0.1); color: var(--red); }
+  .quiz-result { display: none; font-size: 13px; line-height: 1.5; color: var(--muted); max-width: 520px; margin: 0 auto; padding-top: 4px; }
+  .quiz-result.visible { display: block; }
+  .quiz-result strong { color: var(--text); }
+  .quiz-progress { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="hook">
+  <div class="hook-kicker">US-Iran Ceasefire &middot; April 9, 2026</div>
+  <h1>What's your news source<br>not telling you?</h1>
+  <p class="hook-sub">We analyzed 40 factual claims across 13 outlets covering the US-Iran ceasefire. Pick where you get your news and see what you're missing.</p>
+</div>
+<div class="quiz active" id="quiz-section">
+  <div class="quiz-card">
+    <div class="quiz-kicker">Quick check</div>
+    <div class="quiz-progress" id="quiz-progress">1 of 3</div>
+    <div class="quiz-claim" id="quiz-claim">"US strikes completely destroyed Iran's nuclear program."</div>
+    <div class="quiz-options" id="quiz-options">
+      <button class="quiz-opt" data-answer="verified">Verified fact</button>
+      <button class="quiz-opt" data-answer="disputed">Disputed claim</button>
+    </div>
+    <div class="quiz-result" id="quiz-result"></div>
+  </div>
+</div>
+<div class="picker" id="picker-section">
+  <div class="picker-label">Now pick your primary news source</div>
+  <div class="picker-grid" id="picker-grid">
+    <button class="picker-btn" data-outlet="fox">Fox News</button>
+    <button class="picker-btn" data-outlet="cnn">CNN</button>
+    <button class="picker-btn" data-outlet="msnbc">MSNBC</button>
+    <button class="picker-btn" data-outlet="cbs">CBS News</button>
+    <button class="picker-btn" data-outlet="nbc">NBC News</button>
+    <button class="picker-btn" data-outlet="abc">ABC News</button>
+    <button class="picker-btn" data-outlet="npr">NPR</button>
+    <button class="picker-btn" data-outlet="wapo">Washington Post</button>
+    <button class="picker-btn" data-outlet="breitbart">Breitbart</button>
+    <button class="picker-btn" data-outlet="dailywire">Daily Wire</button>
+  </div>
+</div>
+<div class="reveal" id="reveal-section">
+  <div class="scorecard">
+    <div class="scorecard-number" id="score-number" style="color: var(--red);">--</div>
+    <div class="scorecard-of">of 40 claims</div>
+    <div class="scorecard-caption" id="score-caption">Loading...</div>
+  </div>
+  <div class="comparison">
+    <div class="comparison-label">Your view of this story</div>
+    <div class="comparison-bar" id="comparison-bar"></div>
+    <div class="comparison-legend">
+      <span><span class="dot" style="background:var(--green);"></span>You saw this</span>
+      <span><span class="dot" style="background:rgba(231,76,60,0.5);"></span>You missed this</span>
+    </div>
+  </div>
+  <div class="gut-punch" id="gut-punch">
+    <div class="gut-punch-text" id="gut-punch-text">--</div>
+    <div class="gut-punch-sub" id="gut-punch-sub">--</div>
+  </div>
+  <div class="missing-section">
+    <div class="missing-header">Here's what you didn't see</div>
+    <div class="missing-sub" id="missing-sub">These verified claims were reported by other outlets but not yours.</div>
+    <div id="missing-list"></div>
+  </div>
+  <div class="covered-section" id="covered-section">
+    <div class="covered-header">What your source did cover</div>
+    <div class="covered-sub" id="covered-sub"></div>
+    <div id="covered-list"></div>
+  </div>
+  <div class="cta">
+    <button class="cta-btn" onclick="document.getElementById('reveal-section').classList.remove('active');window.scrollTo({top:0,behavior:'smooth'});">Pick another source</button>
+    <div class="cta-small">See how the story looks from every angle.</div>
+  </div>
+</div>
+<script>
+const quizData=[{claim:'"US strikes completely destroyed Iran\'s nuclear program."',answer:'disputed',explanation:'<strong>Disputed.</strong> The administration claims total destruction, but a leaked DIA assessment found the strikes only set Iran\'s program back 3-6 months. The DIA finding was reported by only one outlet (MSNBC).'},{claim:'"Approximately 3,400 people were killed in Iran, including 1,600 civilians."',answer:'disputed',explanation:'<strong>Single-source claim.</strong> This figure comes from one human rights organization (HRANA) cited by one outlet (NBC News). No other outlet reported casualty numbers.'},{claim:'"A two-week ceasefire was agreed between the US and Iran, mediated by Pakistan."',answer:'verified',explanation:'<strong>Verified.</strong> Reported by 9 out of 13 outlets with named primary sources. One of the few claims with strong cross-spectrum sourcing.'}];
+let quizIndex=0,quizAnswered=false;
+function initQuiz(){document.querySelectorAll('.quiz-opt').forEach(btn=>{btn.addEventListener('click',function(){if(quizAnswered)return;quizAnswered=true;const ua=this.dataset.answer,correct=quizData[quizIndex].answer,r=document.getElementById('quiz-result');if(ua===correct)this.classList.add('correct');else{this.classList.add('wrong');document.querySelectorAll('.quiz-opt').forEach(b=>{if(b.dataset.answer===correct)b.classList.add('correct');})}r.innerHTML=quizData[quizIndex].explanation;r.classList.add('visible');setTimeout(()=>{quizIndex++;if(quizIndex<quizData.length)loadQ();else{document.getElementById('quiz-section').style.display='none';document.getElementById('picker-section').scrollIntoView({behavior:'smooth'})}},2800)})});loadQ()}
+function loadQ(){quizAnswered=false;const q=quizData[quizIndex];document.getElementById('quiz-claim').textContent=q.claim;document.getElementById('quiz-progress').textContent=(quizIndex+1)+' of '+quizData.length;const r=document.getElementById('quiz-result');r.classList.remove('visible');r.innerHTML='';document.querySelectorAll('.quiz-opt').forEach(b=>b.classList.remove('correct','wrong'))}
+const outletClaims={fox:{name:'Fox News',facts:['F-001','F-002','F-003','F-004','F-005','F-006','F-007','F-008','F-009','F-010','F-011','F-012','F-013','F-016','F-017','F-018','F-020','F-022','F-023','F-028','F-033','F-034','F-035','F-038','F-039']},cnn:{name:'CNN',facts:['F-001','F-002','F-003','F-004','F-006','F-007','F-014','F-015','F-020','F-021','F-022','F-023','F-025','F-026']},msnbc:{name:'MSNBC',facts:['F-030']},cbs:{name:'CBS News',facts:['F-001','F-002','F-003','F-004','F-006','F-007','F-016','F-018','F-019','F-020','F-021','F-022','F-023','F-028','F-031','F-032','F-035','F-037']},nbc:{name:'NBC News',facts:['F-001','F-002','F-003','F-004','F-006','F-008','F-009','F-014','F-015','F-018','F-019','F-022','F-023','F-025','F-029','F-033']},abc:{name:'ABC News',facts:['F-009','F-025','F-026']},npr:{name:'NPR',facts:['F-001','F-002','F-003','F-004','F-005','F-006','F-007','F-014','F-015','F-018','F-019','F-023','F-040']},wapo:{name:'Washington Post',facts:['F-001','F-003','F-004','F-008','F-009','F-012','F-014','F-015','F-024','F-025','F-027','F-028']},breitbart:{name:'Breitbart',facts:['F-001','F-003','F-009','F-024']},dailywire:{name:'Daily Wire',facts:['F-009']}};
+const allFacts={'F-001':{claim:'US and Iran agreed to a two-week ceasefire, announced by Trump on Truth Social',outlets:['CBS News','CNN','Breitbart','Fox News','NBC News','NPR','PBS','Washington Post','White House'],high:false},'F-002':{claim:"Ceasefire was mediated by Pakistan's PM Sharif and Field Marshal Munir",outlets:['CBS News','CNN','Fox News','NBC News','NPR'],high:false},'F-003':{claim:'Iran submitted a 10-point peace proposal; Trump initially called it "a workable basis"',outlets:['Breitbart','CBS News','CNN','Fox News','NBC News','NPR','PBS','Washington Post'],high:false},'F-004':{claim:"Iran's 10-point plan includes Strait control, US withdrawal, sanctions relief, enrichment rights",outlets:['CBS News','CNN','Fox News','NBC News','NPR','PBS','Washington Post'],high:false},'F-005':{claim:'White House rejected Iran\'s plan; Leavitt said it was "thrown in the garbage"',outlets:['NPR','Fox News'],high:true},'F-006':{claim:'Netanyahu said ceasefire does not cover Lebanon',outlets:['CBS News','CNN','Fox News','NBC News','NPR'],high:false},'F-007':{claim:'Pakistan and Iran both said the ceasefire covers Lebanon',outlets:['CBS News','CNN','Fox News','NPR'],high:true},'F-008':{claim:'Operation Epic Fury launched Feb 28; ceasefire after 38 days',outlets:['Fox News','White House','NBC News','PBS','Washington Post'],high:false},'F-009':{claim:'June 2025: US launched Operation Midnight Hammer, striking Natanz, Fordow, Isfahan',outlets:['ABC News','Breitbart','Daily Wire','Fox News','NBC News','PBS','Washington Post','White House'],high:false},'F-010':{claim:'US/Israeli strikes killed Supreme Leader Khamenei; succeeded by his son Mojtaba',outlets:['PBS','Washington Post','Fox News'],high:true},'F-011':{claim:'US military struck 13,000+ targets during Epic Fury',outlets:['Fox News','White House'],high:false},'F-012':{claim:"CENTCOM destroyed 150+ Iranian warships, sinking Iran's navy",outlets:['Fox News','PBS','Washington Post','White House'],high:false},'F-013':{claim:"80-85% of Iran's defense industrial base destroyed",outlets:['Fox News','White House'],high:false},'F-014':{claim:'Strait of Hormuz carries 1/5 of world oil; Iran maintained blockade',outlets:['CBS News','CNN','NBC News','NPR','PBS','Washington Post','The Federalist'],high:false},'F-015':{claim:'Iran charged $1-2M per vessel for Strait transit',outlets:['CNN','NPR','PBS','Washington Post','NBC News'],high:true},'F-016':{claim:'Oil fell 13% after ceasefire; US gas hit $4.14/gal',outlets:['CBS News','Fox News','NPR'],high:true},'F-017':{claim:'Dow surged 1,325 points after ceasefire',outlets:['Fox News'],high:false},'F-018':{claim:'Israel launched largest wave of Lebanon strikes after ceasefire: 100 in 10 min in Beirut',outlets:['CBS News','NBC News','NPR','Fox News'],high:true},'F-019':{claim:'1,500+ killed in Israeli strikes on Lebanon; 250+ in one day; 1M+ displaced',outlets:['CBS News','NBC News','NPR'],high:true},'F-020':{claim:'Trump posted "a whole civilization will die tonight" before deadline',outlets:['CBS News','CNN','Fox News'],high:true},'F-021':{claim:'Iran\'s SNSC called ceasefire an "enduring defeat" for Washington',outlets:['CNN','CBS News'],high:true},'F-022':{claim:'Trump called it a "total and complete victory"',outlets:['CNN','CBS News','Fox News','NBC News'],high:false},'F-023':{claim:'Peace talks set for Islamabad; VP Vance leading US delegation',outlets:['CBS News','CNN','Fox News','NPR','NBC News'],high:false},'F-024':{claim:"All of Iran's enriched uranium remains in-country",outlets:['PBS','Washington Post','Breitbart'],high:true},'F-025':{claim:'Iran claims right to enrich uranium under NPT',outlets:['ABC News','CNN','PBS','Washington Post','NBC News'],high:false},'F-026':{claim:'US demands Iran fully abandon all enrichment',outlets:['ABC News','NBC News','CNN'],high:false},'F-027':{claim:'Iran launched 5,000+ drones, 2,100+ ballistic missiles',outlets:['PBS','Washington Post'],high:true},'F-028':{claim:'Gulf states hit by Iranian drone/missile attacks',outlets:['CBS News','Fox News','PBS','Washington Post'],high:true},'F-029':{claim:'3,400 killed in Iran including 1,600+ civilians (HRANA)',outlets:['NBC News'],high:true},'F-030':{claim:"Leaked DIA assessment: strikes set Iran's nuclear program back only 3-6 months",outlets:['MSNBC'],high:true},'F-031':{claim:'Russia and China vetoed UN resolution to reopen Strait (11-2-2)',outlets:['CBS News'],high:true},'F-032':{claim:'Pope Leo XIV called Trump\'s threats "truly unacceptable"',outlets:['CBS News'],high:true},'F-033':{claim:'Ceasefire violations reported within 24 hours',outlets:['Fox News','NBC News'],high:true},'F-034':{claim:'50,000 US troops remain deployed, including 2 carrier groups',outlets:['Fox News'],high:false},'F-035':{claim:'Pelosi called for 25th Amendment; Schumer called Trump "a military moron"',outlets:['CBS News','Fox News'],high:true},'F-036':{claim:'Administration gave mixed messages: "regime change," "unconditional surrender"',outlets:['The Federalist'],high:true},'F-037':{claim:"Trump's approval declined; Congress rejected war powers resolutions",outlets:['The Federalist','CBS News'],high:true},'F-038':{claim:'FBI/NSA/DOE/EPA: Iranian hackers targeting US infrastructure',outlets:['Fox News'],high:true},'F-039':{claim:'50+ Polymarket accounts made suspicious ceasefire bets',outlets:['Fox News'],high:true},'F-040':{claim:'3 journalists killed in Israeli Lebanon strikes; 260+ Palestinian journalists killed per CPJ',outlets:['NPR'],high:true}};
+const totalClaims=Object.keys(allFacts).length;
+const gutPunches={fox:{t:"Fox never mentioned the DIA assessment that strikes only set Iran's program back 3-6 months.",s:"The only independent evaluation contradicts the 'total destruction' narrative. Reported by just one outlet."},cnn:{t:"CNN never reported casualty numbers: 3,400 killed in Iran, including 1,600 civilians.",s:"Only NBC News published any casualty figures. CNN covered the war without telling you how many people died."},msnbc:{t:"MSNBC reported on exactly 1 of 40 claims in this story.",s:"They broke the DIA leak — an important scoop. But their coverage was essentially a single data point."},cbs:{t:"CBS never told you that ceasefire violations were reported within 24 hours.",s:"They reported the ceasefire as news. But the cracks — flagged by Pakistan's own PM — didn't make their coverage."},nbc:{t:"NBC was the only outlet to report civilian casualties, but never mentioned the DIA assessment.",s:"They gave you one scoop (3,400 killed) but missed the other (strikes only delayed Iran's program by months)."},abc:{t:"ABC reported on 3 of 40 claims. Three.",s:"Their coverage was so sparse that watching ABC alone would leave you with almost no understanding of what happened."},npr:{t:"NPR covered Lebanon and humanitarian impact better than most, but missed the DIA leak and all Pentagon damage metrics.",s:"Strong on diplomacy and human cost. Blind spots on military operations and intelligence assessments."},wapo:{t:'The Washington Post never reported Trump\'s "a whole civilization will die tonight" threat.',s:"A verified quote from the president — reported by Fox, CNN, and CBS, but not the Post."},breitbart:{t:"Breitbart covered 4 of 40 claims. You saw 10% of the story.",s:"No casualties, no Lebanon, no ceasefire violations, no economic data, no DIA assessment."},dailywire:{t:"Daily Wire covered 1 claim. One.",s:"They mentioned Operation Midnight Hammer. Everything else was absent."}};
+document.getElementById('picker-grid').addEventListener('click',function(e){const btn=e.target.closest('.picker-btn');if(!btn)return;document.querySelectorAll('.picker-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');showReveal(btn.dataset.outlet)});
+function showReveal(key){const outlet=outletClaims[key],covered=new Set(outlet.facts),missed=[],coveredList=[];Object.entries(allFacts).forEach(([id,f])=>{if(covered.has(id))coveredList.push({id,...f});else missed.push({id,...f})});missed.sort((a,b)=>(b.high?1:0)-(a.high?1:0));const mc=missed.length,cc=coveredList.length;document.getElementById('score-number').textContent=mc;document.getElementById('score-caption').innerHTML='If <strong>'+outlet.name+'</strong> is your only source, you missed <strong>'+mc+' out of '+totalClaims+'</strong> claims. That\'s '+Math.round(mc/totalClaims*100)+'% of the picture.';document.getElementById('comparison-bar').innerHTML='<div class="comparison-seg" style="flex:'+cc+';background:var(--green);color:#1a1a2e;">'+cc+' covered</div><div class="comparison-seg" style="flex:'+mc+';background:rgba(231,76,60,0.5);color:#fff;">'+mc+' missing</div>';const gp=gutPunches[key];document.getElementById('gut-punch-text').textContent=gp.t;document.getElementById('gut-punch-sub').textContent=gp.s;const ml=document.getElementById('missing-list'),top6=missed.slice(0,6);ml.innerHTML=top6.map(f=>{const oo=f.outlets.filter(o=>o!==outlet.name).slice(0,4);return'<div class="missing-card"><div class="missing-claim">'+f.claim+'</div><div class="missing-meta">Reported by: '+oo.map(o=>'<span class="outlet-tag">'+o+'</span>').join('')+(f.outlets.length>4?' <span class="outlet-tag">+'+(f.outlets.length-4)+' more</span>':'')+'</div></div>'}).join('');document.getElementById('missing-sub').textContent='Showing '+top6.length+' of '+mc+' claims '+outlet.name+" didn't cover.";const cl=document.getElementById('covered-list'),top4=coveredList.slice(0,4);cl.innerHTML=top4.map(f=>'<div class="covered-card"><div class="covered-claim">'+f.claim+'</div></div>').join('');document.getElementById('covered-sub').textContent=outlet.name+' covered '+cc+' of '+totalClaims+' claims. Here are some:';document.getElementById('reveal-section').classList.add('active');ml.querySelectorAll('.missing-card').forEach(c=>{c.style.animation='none';c.offsetHeight;c.style.animation=''});document.getElementById('reveal-section').scrollIntoView({behavior:'smooth',block:'start'})}
+initQuiz();
+</script>
+</body>
+</html>

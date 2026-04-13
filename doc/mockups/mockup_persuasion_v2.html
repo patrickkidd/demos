@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Persuasion v2 — Three-Phase Consensus Sequence</title>
+<style>
+  :root { --bg: #1a1a2e; --surface: #22223a; --border: #33335a; --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0; --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 8px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .article-meta { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+  .phase { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; margin-top: 32px; }
+  .phase:first-of-type { margin-top: 0; }
+  .phase-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+  .phase-title { font-size: 16px; font-weight: 700; }
+  .phase-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .consensus-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; border-left: 3px solid var(--green); }
+  .consensus-claim { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .consensus-meta { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .source-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+  .source-pill { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 3px; background: rgba(46,196,182,0.15); color: var(--green); }
+  .conf-bar { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .conf-track { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
+  .conf-fill { height: 100%; border-radius: 2px; background: var(--green); }
+  .conf-label { font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .divergence-axis { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .axis-question { font-size: 14px; font-weight: 700; margin-bottom: 12px; line-height: 1.4; }
+  .axis-range { display: flex; gap: 12px; margin-bottom: 12px; }
+  .axis-pole { flex: 1; padding: 10px 12px; border-radius: 6px; font-size: 12px; line-height: 1.4; }
+  .pole-a { background: rgba(111,160,232,0.08); border: 1px solid rgba(111,160,232,0.15); }
+  .pole-b { background: rgba(232,160,111,0.08); border: 1px solid rgba(232,160,111,0.15); }
+  .pole-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .pole-a .pole-label { color: #6fa0e8; }
+  .pole-b .pole-label { color: #e8a06f; }
+  .pole-sourcing { font-size: 10px; color: var(--muted); margin-top: 6px; }
+  .centroid { background: rgba(91,138,240,0.06); border: 1px solid rgba(91,138,240,0.12); border-radius: 6px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
+  .centroid-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 4px; }
+  .certainty { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; margin-top: 8px; }
+  .cert-medium { background: rgba(245,166,35,0.15); color: var(--yellow); }
+  .blindspot-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; border-left: 3px solid var(--yellow); }
+  .blindspot-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--yellow); margin-bottom: 6px; }
+  .blindspot-claim { font-size: 13px; font-weight: 600; margin-bottom: 6px; line-height: 1.4; }
+  .blindspot-detail { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .blindspot-who { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+  .who-pill { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 3px; }
+  .who-covered { background: rgba(46,196,182,0.15); color: var(--green); }
+  .who-missed { background: rgba(231,76,60,0.12); color: var(--red); }
+  .summary-callout { background: rgba(91,138,240,0.06); border: 1px solid rgba(91,138,240,0.15); border-radius: 10px; padding: 18px 20px; margin-top: 28px; }
+  .summary-callout h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
+  .summary-stat { display: flex; align-items: baseline; gap: 8px; font-size: 13px; margin-bottom: 4px; }
+  .stat-num { font-size: 22px; font-weight: 800; min-width: 36px; text-align: right; }
+  .phase-connector { width: 2px; height: 16px; background: var(--border); margin: 0 0 0 13px; }
+  .section-gap { margin-bottom: 32px; }
+</style>
+</head>
+<body>
+<h1>US-Iran Ceasefire Holds Amid Violations, Lebanon Escalation, and Unresolved Nuclear Dispute</h1>
+<div class="article-meta">April 9, 2026 &middot; 13 sources analyzed &middot; 40 factual claims &middot; 18 opinion axes</div>
+
+<div class="phase"><div class="phase-num" style="background:rgba(46,196,182,0.2);color:var(--green);">1</div><div class="phase-title">What everyone agrees on</div></div>
+<div class="phase-subtitle">These facts were reported by 5+ outlets across the political spectrum. This is the bedrock.</div>
+
+<div class="consensus-item"><div class="consensus-claim">Two-week ceasefire agreed, mediated by Pakistan</div><div class="consensus-meta"><div class="source-pills"><span class="source-pill">CBS</span><span class="source-pill">CNN</span><span class="source-pill">Breitbart</span><span class="source-pill">Fox</span><span class="source-pill">NBC</span><span class="source-pill">NPR</span><span class="source-pill">PBS</span><span class="source-pill">WaPo</span><span class="source-pill">WH</span></div><span style="font-size:11px;color:var(--green);font-weight:700;">9 sources</span></div><div class="conf-bar"><div class="conf-track"><div class="conf-fill" style="width:90%;"></div></div><div class="conf-label">High confidence</div></div></div>
+
+<div class="consensus-item"><div class="consensus-claim">Iran submitted 10-point peace proposal</div><div class="consensus-meta"><div class="source-pills"><span class="source-pill">Breitbart</span><span class="source-pill">CBS</span><span class="source-pill">CNN</span><span class="source-pill">Fox</span><span class="source-pill">NBC</span><span class="source-pill">NPR</span><span class="source-pill">PBS</span><span class="source-pill">WaPo</span></div><span style="font-size:11px;color:var(--green);font-weight:700;">8 sources</span></div><div class="conf-bar"><div class="conf-track"><div class="conf-fill" style="width:85%;"></div></div><div class="conf-label">High confidence</div></div></div>
+
+<div class="consensus-item"><div class="consensus-claim">Strait of Hormuz blockade drove gas to $4.14/gal</div><div class="consensus-meta"><div class="source-pills"><span class="source-pill">CBS</span><span class="source-pill">CNN</span><span class="source-pill">NBC</span><span class="source-pill">NPR</span><span class="source-pill">PBS</span><span class="source-pill">WaPo</span><span class="source-pill">Federalist</span></div><span style="font-size:11px;color:var(--green);font-weight:700;">7 sources</span></div><div class="conf-bar"><div class="conf-track"><div class="conf-fill" style="width:80%;"></div></div><div class="conf-label">High confidence</div></div></div>
+
+<div class="consensus-item"><div class="consensus-claim">Operation Midnight Hammer struck nuclear sites at Natanz, Fordow, Isfahan</div><div class="consensus-meta"><div class="source-pills"><span class="source-pill">ABC</span><span class="source-pill">Breitbart</span><span class="source-pill">DW</span><span class="source-pill">Fox</span><span class="source-pill">NBC</span><span class="source-pill">PBS</span><span class="source-pill">WaPo</span><span class="source-pill">WH</span></div><span style="font-size:11px;color:var(--green);font-weight:700;">8 sources</span></div><div class="conf-bar"><div class="conf-track"><div class="conf-fill" style="width:85%;"></div></div><div class="conf-label">High confidence</div></div></div>
+
+<div class="consensus-item"><div class="consensus-claim">Netanyahu says ceasefire does not cover Lebanon</div><div class="consensus-meta"><div class="source-pills"><span class="source-pill">CBS</span><span class="source-pill">CNN</span><span class="source-pill">Fox</span><span class="source-pill">NBC</span><span class="source-pill">NPR</span></div><span style="font-size:11px;color:var(--green);font-weight:700;">5 sources</span></div><div class="conf-bar"><div class="conf-track"><div class="conf-fill" style="width:70%;"></div></div><div class="conf-label">Moderate confidence</div></div></div>
+
+<div class="phase-connector"></div>
+
+<div class="phase"><div class="phase-num" style="background:rgba(245,166,35,0.2);color:var(--yellow);">2</div><div class="phase-title">Where sources diverge</div></div>
+<div class="phase-subtitle">On these questions, outlets reach opposite conclusions from the same events. The "weighted finding" synthesizes sourcing quality, not just opinion counts.</div>
+
+<div class="divergence-axis"><div class="axis-question">Were US strikes effective at destroying Iran's nuclear program?</div><div class="axis-range"><div class="axis-pole pole-b"><div class="pole-label">Left-leaning sources</div>Strikes set Iran's nuclear program back only 3-6 months.<div class="pole-sourcing">1 outlet (MSNBC) &middot; 1 leaked DIA assessment &middot; institutional sourcing</div></div><div class="axis-pole pole-a"><div class="pole-label">Right-leaning sources</div>Strikes completely obliterated Iran's nuclear sites and program.<div class="pole-sourcing">4 outlets &middot; 0 independent verification &middot; administration claims</div></div></div><div class="centroid"><div class="centroid-label">Weighted finding</div>The administration claims total destruction, but a preliminary DIA assessment concluded strikes set the program back only 3-6 months. The DIA finding, while from a single outlet, represents a higher-quality evidentiary basis than presidential assertions alone.</div><div class="certainty cert-medium">Medium certainty</div></div>
+
+<div class="divergence-axis"><div class="axis-question">Does military force or diplomacy resolve the Iran threat?</div><div class="axis-range"><div class="axis-pole pole-b"><div class="pole-label">Left-leaning sources</div>Military action alone cannot resolve the nuclear threat; diplomacy is essential.<div class="pole-sourcing">3 outlets (MSNBC, ABC, CBS) &middot; sourcing quality: 0.37</div></div><div class="axis-pole pole-a"><div class="pole-label">Right-leaning sources</div>Overwhelming military force is the proven path to peace with Iran.<div class="pole-sourcing">3 outlets (Fox, DW, WH) &middot; sourcing quality: 0.23</div></div></div><div class="centroid"><div class="centroid-label">Weighted finding</div>The ceasefire demonstrates military force created conditions for negotiations, but unresolved nuclear questions suggest force alone was insufficient. Evidence points toward both force and diplomacy playing roles.</div><div class="certainty cert-medium">Medium certainty</div></div>
+
+<div class="divergence-axis"><div class="axis-question">Is the ceasefire deal durable or fragile?</div><div class="axis-range"><div class="axis-pole pole-a"><div class="pole-label">Administration-aligned</div>The deal will hold because Iran has no choice but to comply.<div class="pole-sourcing">Low-quality sourcing from administration-aligned outlets</div></div><div class="axis-pole pole-b"><div class="pole-label">Broader coverage</div>The ceasefire is fragile, ambiguous, and unlikely to last without diplomatic progress.<div class="pole-sourcing">Multiple outlets across spectrum &middot; higher sourcing quality</div></div></div><div class="centroid"><div class="centroid-label">Weighted finding</div>Violations reported within 24 hours, Lebanon dispute unresolved, no published formal text, core enrichment disagreement persists. The fragility assessment has broader, better-sourced support.</div><div class="certainty cert-medium">Medium certainty</div></div>
+
+<div class="divergence-axis"><div class="axis-question">Was the ceasefire a US or Iranian victory?</div><div class="axis-range"><div class="axis-pole pole-a"><div class="pole-label">Right-leaning sources</div>Total US military victory achieved through overwhelming force.<div class="pole-sourcing">Self-serving official statements &middot; no independent analysis</div></div><div class="axis-pole pole-b"><div class="pole-label">Left-leaning sources</div>Iranian victory or forced US retreat driven by political desperation.<div class="pole-sourcing">Self-serving official statements &middot; no independent analysis</div></div></div><div class="centroid"><div class="centroid-label">Weighted finding</div>Neither side achieved an unambiguous victory. The US inflicted massive damage, but Iran's government survived, its nuclear material remains in-country, and its 10-point proposal shaped the negotiating framework.</div><div class="certainty cert-medium">Medium certainty</div></div>
+
+<div class="phase-connector"></div>
+
+<div class="phase"><div class="phase-num" style="background:rgba(231,76,60,0.2);color:var(--red);">3</div><div class="phase-title">What your sources left out</div></div>
+<div class="phase-subtitle">These significant facts were reported by only 1-2 outlets. If you read only one side, you missed them entirely.</div>
+
+<div class="blindspot-card"><div class="blindspot-label">Right-leaning readers missed</div><div class="blindspot-claim">~3,400 killed in Iran including 1,600+ civilians</div><div class="blindspot-detail">Only NBC News reported casualty figures, citing HRANA. No right-leaning outlet mentioned civilian deaths.</div><div class="blindspot-who"><span class="who-pill who-covered">NBC reported</span><span class="who-pill who-missed">Fox missed</span><span class="who-pill who-missed">Breitbart missed</span><span class="who-pill who-missed">Daily Wire missed</span></div></div>
+
+<div class="blindspot-card"><div class="blindspot-label">Right-leaning readers missed</div><div class="blindspot-claim">DIA assessment: strikes set nuclear program back only 3-6 months</div><div class="blindspot-detail">Only MSNBC reported this leaked preliminary finding. It directly contradicts the "total obliteration" claim from 4 right-leaning outlets.</div><div class="blindspot-who"><span class="who-pill who-covered">MSNBC reported</span><span class="who-pill who-missed">Fox missed</span><span class="who-pill who-missed">Federalist missed</span></div></div>
+
+<div class="blindspot-card"><div class="blindspot-label">Left-leaning readers missed</div><div class="blindspot-claim">Pentagon destroyed 13,000+ targets, sank 150+ warships, degraded 80-85% of air defenses</div><div class="blindspot-detail">Only Fox News and White House reported the full scope of military operations. These details are absent from left-leaning coverage.</div><div class="blindspot-who"><span class="who-pill who-covered">Fox reported</span><span class="who-pill who-covered">WH reported</span><span class="who-pill who-missed">MSNBC missed</span><span class="who-pill who-missed">NPR missed</span></div></div>
+
+<div class="blindspot-card"><div class="blindspot-label">Most readers missed</div><div class="blindspot-claim">250+ killed in Lebanon in one day after ceasefire; 1,500+ total in Israeli strikes</div><div class="blindspot-detail">NPR and PBS provided the most source-diverse coverage of Lebanon's humanitarian toll. Most outlets gave this secondary coverage at best.</div><div class="blindspot-who"><span class="who-pill who-covered">NPR reported</span><span class="who-pill who-covered">PBS reported</span><span class="who-pill who-missed">MSNBC missed</span><span class="who-pill who-missed">WaPo missed</span></div></div>
+
+<div class="blindspot-card"><div class="blindspot-label">Most readers missed</div><div class="blindspot-claim">Iranian hackers targeting US water and energy infrastructure</div><div class="blindspot-detail">A joint FBI/NSA/DOE/EPA report on active cyber threats received minimal attention from outlets focused on military and political narratives.</div><div class="blindspot-who"><span class="who-pill who-missed">Minimal coverage across outlets</span></div></div>
+
+<div class="summary-callout"><h3>The full picture requires all three layers</h3><div class="summary-stat"><span class="stat-num" style="color:var(--green);">17</span><span>facts confirmed across 3+ sources — the shared ground</span></div><div class="summary-stat"><span class="stat-num" style="color:var(--yellow);">18</span><span>opinion axes where sources diverge — where to read critically</span></div><div class="summary-stat"><span class="stat-num" style="color:var(--red);">14</span><span>claims reported by only one side — what you missed</span></div><div style="font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5;">No single source covered more than 65% of the verified facts in this story. The most complete picture comes from reading across the spectrum — not from finding the "right" source.</div></div>
+
+</body>
+</html>

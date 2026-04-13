@@ -1,7 +1,7 @@
 import json, uuid, asyncio, subprocess, logging
 from enum import Enum
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 import markdown
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
@@ -133,41 +133,50 @@ def _load_sample(story_id: str, sample_id: str) -> dict:
     return result
 
 
-async def _sample_bg(story_id: str, sample_id: str):
+async def _run_sample_phases(story_id: str, sample_id: str,
+                             target_date: str = None):
+    """Run all pipeline phases for one sample. Caller manages _running lifecycle."""
     stories_path = DATA / "stories.json"
     stories = json.loads(stories_path.read_text())
     story = next((s for s in stories if s["id"] == story_id), None)
     if not story:
         return
-    _logs[story_id] = []
-    try:
-        _log_path(story_id).unlink(missing_ok=True)
-    except OSError:
-        pass
     on_msg = lambda msg: _msg_to_log(story_id, msg)
     def on_progress(done, total):
         r = _running.get(story_id)
         if r:
             r["done"] = done
             r["total"] = total
+
+    _running[story_id]["phase"] = Phase.Extracting
+    _log(story_id, "--- Phase 1: extracting articles ---")
+    await run_story(story, on_message=on_msg, sample_id=sample_id,
+                    on_progress=on_progress, target_date=target_date)
+    stories_path.write_text(json.dumps(stories, indent=2))
+
+    _running[story_id]["phase"] = Phase.Analyzing
+    _log(story_id, "--- Phase 2: aggregating ---")
+    result = await analyze_story(story, sample_id, on_message=on_msg)
+    if result:
+        _running[story_id]["phase"] = Phase.Clustering
+        _log(story_id, "--- Phase 3: clustering ---")
+        await cluster_sample(story, sample_id, on_message=on_msg)
+
+        _running[story_id]["phase"] = Phase.Synthesizing
+        _log(story_id, "--- Phase 4: synthesizing ---")
+        await synthesize_story(story, sample_id, on_message=on_msg)
+    _log(story_id, "--- Done ---")
+
+
+async def _sample_bg(story_id: str, sample_id: str, target_date: str = None):
+    _logs[story_id] = []
+    try:
+        _log_path(story_id).unlink(missing_ok=True)
+    except OSError:
+        pass
     try:
         _running[story_id] = {"phase": Phase.Extracting, "sample": sample_id, "done": 0, "total": 0}
-        _log(story_id, "--- Phase 1: extracting articles ---")
-        await run_story(story, on_message=on_msg, sample_id=sample_id, on_progress=on_progress)
-        stories_path.write_text(json.dumps(stories, indent=2))
-
-        _running[story_id] = {"phase": Phase.Analyzing, "sample": sample_id}
-        _log(story_id, "--- Phase 2: aggregating ---")
-        result = await analyze_story(story, sample_id, on_message=on_msg)
-        if result:
-            _running[story_id] = {"phase": Phase.Clustering, "sample": sample_id}
-            _log(story_id, "--- Phase 3: clustering ---")
-            await cluster_sample(story, sample_id, on_message=on_msg)
-
-            _running[story_id] = {"phase": Phase.Synthesizing, "sample": sample_id}
-            _log(story_id, "--- Phase 4: synthesizing ---")
-            await synthesize_story(story, sample_id, on_message=on_msg)
-        _log(story_id, "--- Done ---")
+        await _run_sample_phases(story_id, sample_id, target_date)
     except Exception as e:
         _log(story_id, f"ERROR: {e}")
         _running[story_id] = {"phase": Phase.Failed, "sample": sample_id}
@@ -202,11 +211,16 @@ async def index(request: Request):
 
 @app.get("/api/status")
 async def api_status():
-    return JSONResponse({
-        k: {"phase": v["phase"].value, "sample": v["sample"],
-            "done": v.get("done", 0), "total": v.get("total", 0)}
-        for k, v in _running.items()
-    })
+    result = {}
+    for k, v in _running.items():
+        entry = {"phase": v["phase"].value, "sample": v["sample"],
+                 "done": v.get("done", 0), "total": v.get("total", 0)}
+        if v.get("backfill"):
+            entry["backfill"] = True
+            entry["bf_current"] = v["bf_current"]
+            entry["bf_total"] = v["bf_total"]
+        result[k] = entry
+    return JSONResponse(result)
 
 
 @app.get("/api/stories/{story_id}/log")
@@ -234,9 +248,11 @@ async def sample_view(request: Request, story_id: str, sample_id: str):
     analyzed = {s for s in samples
                 if (DATA / "stories" / story_id / "samples" / s / "phase4.json").exists() or (DATA / "stories" / story_id / "samples" / s / "phase3.json").exists()}
     current = _load_sample(story_id, sample_id) if sample_id in samples else None
+    outlets = json.loads((Path("/app/app/outlets.json")).read_text())
+    bias_scores = {o["outlet"]: o["bias_score"] for o in outlets}
     return templates.TemplateResponse(request, "sample.html", {
         "meta": meta, "samples": samples, "analyzed_samples": analyzed,
-        "current": current, "running": _running,
+        "current": current, "running": _running, "bias_scores": bias_scores,
     })
 
 
@@ -395,3 +411,85 @@ async def sample_all():
             sid = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
             asyncio.create_task(_sample_bg(s["id"], sid))
     return RedirectResponse("/", status_code=303)
+
+
+def _sample_complete(story_id: str, sample_id: str) -> bool:
+    sample_dir = DATA / "stories" / story_id / "samples" / sample_id
+    return (sample_dir / "phase4.json").exists() or (sample_dir / "phase3.json").exists()
+
+
+async def _backfill_bg(story_id: str):
+    bf_path = DATA / "stories" / story_id / "backfill.json"
+    bf = json.loads(bf_path.read_text())
+    total = len(bf["samples"])
+    _logs[story_id] = []
+    try:
+        _log_path(story_id).unlink(missing_ok=True)
+    except OSError:
+        pass
+    try:
+        for i, entry in enumerate(bf["samples"]):
+            sid = entry["sample_id"]
+            td = entry["target_date"]
+            if _sample_complete(story_id, sid):
+                _log(story_id, f"[backfill {i+1}/{total}] {td} — complete, skipping")
+                continue
+            _log(story_id, f"[backfill {i+1}/{total}] {td} — starting")
+            _running[story_id] = {
+                "phase": Phase.Extracting, "sample": sid,
+                "done": 0, "total": 0,
+                "backfill": True, "bf_current": i + 1, "bf_total": total,
+            }
+            await _run_sample_phases(story_id, sid, target_date=td)
+        _log(story_id, "Backfill complete")
+        bf_path.unlink(missing_ok=True)
+    except Exception as e:
+        _log(story_id, f"Backfill stopped: {e}")
+        _running[story_id] = {"phase": Phase.Failed, "sample": sid,
+                              "backfill": True, "bf_current": i + 1, "bf_total": total}
+        await asyncio.sleep(10)
+    finally:
+        _running.pop(story_id, None)
+
+
+@app.post("/stories/{story_id}/backfill")
+async def backfill_story(story_id: str,
+                         start_date: str = Form(...),
+                         end_date: str = Form(...),
+                         step_days: int = Form(3)):
+    if story_id in _running:
+        return RedirectResponse(f"/story/{story_id}", status_code=303)
+    start = date.fromisoformat(start_date)
+    end = date.fromisoformat(end_date)
+    samples = []
+    d = start
+    while d <= end:
+        sample_id = d.strftime("%Y%m%dT000000")
+        samples.append({"sample_id": sample_id, "target_date": d.isoformat()})
+        (DATA / "stories" / story_id / "samples" / sample_id).mkdir(parents=True, exist_ok=True)
+        d += timedelta(days=step_days)
+    bf = {
+        "start_date": start_date,
+        "end_date": end_date,
+        "step_days": step_days,
+        "samples": samples,
+    }
+    bf_path = DATA / "stories" / story_id / "backfill.json"
+    bf_path.write_text(json.dumps(bf, indent=2))
+    asyncio.create_task(_backfill_bg(story_id))
+    return RedirectResponse(f"/story/{story_id}", status_code=303)
+
+
+@app.on_event("startup")
+async def resume_backfills():
+    stories_dir = DATA / "stories"
+    if not stories_dir.exists():
+        return
+    for story_dir in stories_dir.iterdir():
+        if not story_dir.is_dir():
+            continue
+        bf_path = story_dir / "backfill.json"
+        if bf_path.exists():
+            story_id = story_dir.name
+            _log(story_id, "Resuming backfill from previous run")
+            asyncio.create_task(_backfill_bg(story_id))

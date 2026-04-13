@@ -1,11 +1,11 @@
-{% macro render(meta, samples, analyzed_samples, active_sample_id) %}
+{% macro render(meta, samples, analyzed_samples, active_sample_id, running_sample_id=None) %}
 <div class="timeline-scroll">
   <div class="timeline" id="timeline-{{ meta.id }}">
     <div class="timeline-scale"></div>
     <div class="timeline-track"></div>
     {% for s in samples %}
     <div class="timeline-item" data-ts="{{ s }}" style="position:absolute;">
-      <div class="timeline-dot {% if active_sample_id == s %}active{% endif %} {% if s in analyzed_samples %}has-analysis{% endif %}"
+      <div class="timeline-dot {% if active_sample_id == s %}active{% endif %} {% if s in analyzed_samples %}has-analysis{% elif running_sample_id == s %}in-progress{% endif %}"
            data-story="{{ meta.id }}" data-sample="{{ s }}"
            title="{{ s[:4] }}-{{ s[4:6] }}-{{ s[6:8] }} {{ s[9:11] }}:{{ s[11:13] }} UTC">
       </div>

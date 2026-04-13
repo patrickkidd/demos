@@ -1,0 +1,567 @@
+{% extends "base.html" %}
+{% import "timeline.html" as tl %}
+{% block title %}Sample {{ current.id if current else "" }} — {{ meta.topic }} — Demos{% endblock %}
+
+{% block head %}
+<style>
+  .timeline-scroll { overflow-x: auto; padding: 16px 0; }
+  .timeline { position: relative; min-height: 50px; }
+  .timeline-item { display: flex; flex-direction: column; align-items: center; }
+  .timeline-dot {
+    width: 14px; height: 14px; border-radius: 50%; background: var(--border);
+    cursor: pointer; border: 2px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .timeline-dot:hover { background: var(--accent); }
+  .timeline-dot.active { background: var(--accent); border-color: var(--text); }
+  .timeline-dot.has-analysis { background: var(--green); }
+  .timeline-dot.has-analysis.active { background: var(--green); border-color: var(--text); }
+  .timeline-dot.in-progress { background: var(--yellow); }
+  .timeline-dot.in-progress.active { background: var(--yellow); border-color: var(--text); }
+  .timeline-label { font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap; }
+
+  .tab-bar { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
+  .tab { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .article-headline { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 10px; }
+  .article-meta { display: flex; gap: 16px; font-size: 12px; color: var(--muted); padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+
+  .centroid-article p { margin-bottom: 12px; line-height: 1.7; }
+  .centroid-article p:last-child { margin-bottom: 0; }
+
+  .source-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; margin: 2px 2px 2px 0; text-decoration: none; cursor: pointer; transition: opacity 0.15s; }
+  .source-badge:hover { opacity: 0.8; text-decoration: none; }
+  .source-badge-a, .source-badge-for { background: rgba(46,196,182,0.2); color: #2ec4b6; }
+  .source-badge-b, .source-badge-against { background: rgba(245,166,35,0.2); color: #f5a623; }
+  .source-badge-fact { background: rgba(46,196,182,0.2); color: #2ec4b6; }
+
+  /* Opinion spectrum cards */
+  .opinion-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+  .opinion-card h4 { font-size: 14px; margin-bottom: 12px; }
+  .opinion-card .bias-score { font-size: 11px; color: var(--red); margin-left: 8px; font-weight: 600; }
+  .pole-descriptions { display: flex; gap: 16px; margin-bottom: 6px; }
+  .pole-desc { flex: 1; font-size: 12px; line-height: 1.4; }
+  .pole-desc-a { color: #2ec4b6; text-align: left; }
+  .pole-desc-b { color: #f5a623; text-align: right; }
+  .pole-omitted { font-size: 12px; color: var(--red); }
+  .spectrum-bar { position: relative; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; min-height: 32px; }
+  .spectrum-bar .center-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--border); }
+  .spectrum-row { position: relative; height: 24px; }
+  .spectrum-outlet { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 600; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+  .spectrum-outlet-a { background: rgba(46,196,182,0.2); color: #2ec4b6; }
+  .spectrum-outlet-b { background: rgba(245,166,35,0.2); color: #f5a623; }
+  .spectrum-row-span { height: auto; min-height: 24px; }
+  .spectrum-span { position: absolute; top: 50%; transform: translateY(-50%); display: flex; align-items: center; }
+  .spectrum-span-line { flex: 1; height: 2px; background: linear-gradient(to right, #2ec4b6, #f5a623); margin: 0 4px; min-width: 8px; }
+  .spectrum-span-link { text-decoration: none; }
+  .centroid-toggle { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; }
+  .centroid-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  #dev-selector { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .dev-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; text-align: left; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .dev-btn:hover { border-color: var(--accent); }
+  .dev-btn.active { border-color: var(--accent); background: rgba(91,138,240,0.08); }
+  .dev-btn-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .dev-btn-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .dev-tab-bar { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 2px solid var(--border); }
+  .dev-tab { background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 600; padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .dev-tab:hover { color: var(--text); }
+  .dev-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .dev-tab-content { display: none; }
+  .dev-tab-content.active { display: block; }
+  .centroid-body { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .centroid-body.open { display: block; }
+  .centroid-text { font-size: 13px; color: var(--text); margin-bottom: 6px; }
+  .certainty { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .certainty-high { color: var(--green); }
+  .certainty-medium { color: var(--yellow); }
+  .certainty-low { color: var(--red); }
+
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 12px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; width: 0%; }
+
+  #log-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.6; color: var(--muted); }
+  #log-panel .log-phase { color: var(--accent); font-weight: 600; }
+  #log-panel .log-tool { color: var(--yellow); }
+  #log-panel .log-error { color: var(--red); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="section">
+  <a href="/story/{{ meta.id }}" class="muted" style="font-size:13px;">← {{ meta.topic }}</a>
+</div>
+
+{# --- Timeline --- #}
+{% if samples %}
+<div class="section">
+  {% set rs = running.get(meta.id) %}
+  {{ tl.render(meta, samples, analyzed_samples, current.id if current else None, rs.sample if rs else None) }}
+</div>
+{% endif %}
+
+{% set task = running.get(meta.id) %}
+{% set is_this_sample = task and current and task.get("sample") == current.id %}
+
+{# --- Log (visible when this sample is being processed) --- #}
+{% if is_this_sample %}
+<div class="section">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <span class="badge badge-yellow" id="status-badge">{{ task.phase.value }}…</span>
+    <span class="muted" id="progress-text" style="font-size:12px;"></span>
+  </div>
+  <div class="progress-bar" id="progress-bar">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+  <div id="log-panel"></div>
+</div>
+
+{% elif not current %}
+<div class="card"><p class="muted">Sample not found.</p></div>
+
+{% elif not current.get("synthesis") %}
+<div class="card" style="display:flex;align-items:center;justify-content:space-between;">
+  <p class="muted" style="margin:0;">{{ current.article_count }} articles extracted. Analysis not yet complete.</p>
+  {% if not task %}
+  <div style="display:flex;gap:8px;">
+    <form method="post" action="/stories/{{ meta.id }}/samples/{{ current.id }}/resume">
+      <button type="submit" class="btn-sm">Resume</button>
+    </form>
+    {% if current.article_count >= 5 %}
+    <form method="post" action="/stories/{{ meta.id }}/samples/{{ current.id }}/analyze">
+      <button type="submit" class="btn-sm">Analyze only</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% else %}
+{% set syn = current.synthesis %}
+
+{# --- Article Header --- #}
+{% if syn.get("headline") %}
+<div class="section" style="margin-bottom:8px;">
+  <h1 class="article-headline">{{ syn.headline }}</h1>
+  <div class="article-meta">
+    <span>{{ current.id[:4] }}-{{ current.id[4:6] }}-{{ current.id[6:8] }}</span>
+    <span>{{ current.article_count }} sources analyzed</span>
+  </div>
+</div>
+{% endif %}
+{% if syn.get("bias_summary") %}
+<div class="section">
+  <div class="card" style="border-left:3px solid var(--accent);padding:14px 18px;">
+    <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0;">{{ syn.bias_summary }}</p>
+  </div>
+</div>
+{% endif %}
+
+{# --- Key Developments (from clusters, if available) --- #}
+{% if current.get("clusters") and current.clusters.get("developments") %}
+<div class="section">
+  <h2>Key Developments</h2>
+  <div id="dev-selector"></div>
+  <div id="dev-content"></div>
+</div>
+{% endif %}
+
+{# --- All Data (tabs, demoted) --- #}
+{% set n_opinions = current.phase2.opinion_axes|length if current.phase2 and current.phase2.get("opinion_axes") else 0 %}
+{% set n_facts = current.phase2.facts|length if current.phase2 and current.phase2.get("facts") else 0 %}
+<div class="section">
+  <details id="all-data">
+    <summary style="font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;">Raw Data — Opinions ({{ n_opinions }}), Facts ({{ n_facts }}), Summary</summary>
+    <div style="margin-top:16px;">
+      <div class="tab-bar">
+        <button class="tab active" data-tab="opinions">Opinions ({{ n_opinions }})</button>
+        <button class="tab" data-tab="facts">Facts ({{ n_facts }})</button>
+        <button class="tab" data-tab="summary">Summary</button>
+      </div>
+
+      <div id="tab-opinions" class="tab-content active">
+        <div id="opinion-spectrum"></div>
+      </div>
+
+      <div id="tab-facts" class="tab-content" style="display:none;">
+        <div id="fact-cards"></div>
+      </div>
+
+      <div id="tab-summary" class="tab-content" style="display:none;">
+        <div class="card centroid-article">
+          {% for para in syn.centroid_article.split("\n\n") %}
+            {% if para.strip() %}<p>{{ para.strip() }}</p>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </details>
+</div>
+
+{% endif %}{# end current with phase3 #}
+
+{# --- Danger Zone --- #}
+{% if current %}
+<div class="section" style="margin-top:48px;">
+  <details>
+    <summary style="color:var(--red);">Danger zone</summary>
+    <div style="margin-top:12px;">
+      <form method="post" action="/stories/{{ meta.id }}/samples/{{ current.id }}/delete" onsubmit="return confirm('Delete sample {{ current.id }}?')">
+        <button type="submit" class="btn-sm" style="color:var(--red);border-color:var(--red);">Delete this sample</button>
+      </form>
+    </div>
+  </details>
+</div>
+{% endif %}
+
+{# --- Scripts --- #}
+{% if current and current.get("phase2") and current.get("synthesis") %}
+<script>
+(function() {
+  const phase2 = {{ current.phase2 | tojson }};
+  const synthesis = {{ current.synthesis | tojson }};
+  const clusters = {{ current.clusters | tojson if current.get("clusters") else "{}" }};
+  const outletUrls = {{ current.outlet_urls | tojson }};
+  const axes = phase2.opinion_axes || [];
+  const facts = phase2.facts || [];
+  const centroids = {};
+  (synthesis.axis_centroids || []).forEach(c => { centroids[c.axis_id] = c; });
+
+  function badge(name, cls) {
+    const url = outletUrls[name];
+    if (url) return `<a href="${url}" target="_blank" class="source-badge ${cls}">${name}</a>`;
+    return `<span class="source-badge ${cls}">${name}</span>`;
+  }
+
+  // --- Fact cards ---
+  const factEl = document.getElementById('fact-cards');
+  if (factEl) {
+    facts.forEach(f => {
+      const card = document.createElement('div');
+      card.className = 'opinion-card';
+      let html = `<h4>${f.claim}</h4>`;
+      html += '<div style="margin-top:6px;">';
+      f.outlets.forEach(o => { html += badge(o.name, 'source-badge-fact'); });
+      html += '</div>';
+      card.innerHTML = html;
+      factEl.appendChild(card);
+    });
+  }
+
+  // --- Opinion spectrum (sorted by bias severity) ---
+  function biasSeverity(axis) {
+    let totalI = 0, totalSQ = 0, n = 0;
+    (axis.opinions || []).forEach(op => {
+      (op.outlets || []).forEach(o => {
+        totalI += o.intensity || 0;
+        totalSQ += o.sourcing_quality || 0;
+        n++;
+      });
+    });
+    if (n === 0) return 0;
+    return (totalI / n) * (1 - totalSQ / n);
+  }
+
+  const sorted = [...axes].sort((a, b) => biasSeverity(b) - biasSeverity(a));
+  const spectrumEl = document.getElementById('opinion-spectrum');
+
+  if (spectrumEl) {
+    sorted.forEach(axis => {
+      const c = centroids[axis.id];
+      const poleA = (axis.opinions || []).filter(o => o.pole === 'A');
+      const poleB = (axis.opinions || []).filter(o => o.pole === 'B');
+      const severity = biasSeverity(axis).toFixed(2);
+
+      const card = document.createElement('div');
+      card.className = 'opinion-card';
+
+      let html = `<h4>${axis.axis}<span class="bias-score" title="Bias severity: high intensity + low sourcing quality">${severity}</span></h4>`;
+
+      html += '<div class="pole-descriptions">';
+      html += '<div class="pole-desc pole-desc-a">';
+      html += poleA.length ? poleA[0].stance : '<span class="pole-omitted">\u2715 No coverage</span>';
+      html += '</div>';
+      html += '<div class="pole-desc pole-desc-b">';
+      html += poleB.length ? poleB[0].stance : '<span class="pole-omitted">\u2715 No coverage</span>';
+      html += '</div>';
+      html += '</div>';
+
+      // Collect outlets per pole with positions
+      const aOutlets = {};
+      poleA.forEach(op => {
+        (op.outlets || []).forEach(o => {
+          aOutlets[o.name] = 50 - ((o.intensity || 3) / 5) * 45;
+        });
+      });
+      const bOutlets = {};
+      poleB.forEach(op => {
+        (op.outlets || []).forEach(o => {
+          bOutlets[o.name] = 50 + ((o.intensity || 3) / 5) * 45;
+        });
+      });
+
+      // Find outlets on both poles (balanced reporters)
+      const bothPoles = new Set();
+      for (const name in aOutlets) { if (name in bOutlets) bothPoles.add(name); }
+
+      // Single-pole outlets
+      const singleA = Object.keys(aOutlets).filter(n => !bothPoles.has(n));
+      const singleB = Object.keys(bOutlets).filter(n => !bothPoles.has(n));
+
+      html += '<div class="spectrum-bar"><div class="center-line"></div>';
+
+      // Render balanced outlets as connected spans
+      bothPoles.forEach(name => {
+        const leftPct = aOutlets[name];
+        const rightPct = bOutlets[name];
+        const url = outletUrls[name];
+        const linkOpen = url ? `<a href="${url}" target="_blank" class="spectrum-span-link">` : '<span class="spectrum-span-link">';
+        const linkClose = url ? '</a>' : '</span>';
+        html += '<div class="spectrum-row spectrum-row-span">';
+        html += `<div class="spectrum-span" style="left:${leftPct}%;right:${100-rightPct}%;">`;
+        html += `<span class="spectrum-outlet spectrum-outlet-a" style="left:0;position:relative;transform:none;">${name}</span>`;
+        html += '<span class="spectrum-span-line"></span>';
+        html += `<span class="spectrum-outlet spectrum-outlet-b" style="left:auto;right:0;position:relative;transform:none;">${name}</span>`;
+        html += '</div>';
+        html += '</div>';
+      });
+
+      // Render single-pole outlets
+      singleA.forEach(name => {
+        const url = outletUrls[name];
+        const tag = url
+          ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</a>`
+          : `<span class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</span>`;
+        html += `<div class="spectrum-row">${tag}</div>`;
+      });
+      singleB.forEach(name => {
+        const url = outletUrls[name];
+        const tag = url
+          ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</a>`
+          : `<span class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</span>`;
+        html += `<div class="spectrum-row">${tag}</div>`;
+      });
+
+      html += '</div>';
+
+      if (c) {
+        const cert = c.certainty || c.confidence || 'medium';
+        const certReason = c.certainty_reason || c.confidence_reason || '';
+        html += `<button class="centroid-toggle" onclick="this.nextElementSibling.classList.toggle('open')">Fact Check</button>`;
+        html += '<div class="centroid-body">';
+        html += `<div class="centroid-text">${c.centroid}</div>`;
+        html += `<span class="certainty certainty-${cert}">Certainty: ${cert}</span>`;
+        if (certReason) html += `<span class="muted" style="font-size:11px;"> \u2014 ${certReason}</span>`;
+        html += '</div>';
+      }
+
+      card.innerHTML = html;
+      spectrumEl.appendChild(card);
+    });
+  }
+
+  // --- Key Developments ---
+  const devSelector = document.getElementById('dev-selector');
+  const devContent = document.getElementById('dev-content');
+  if (devSelector && devContent && clusters.developments) {
+    const factsById = {};
+    facts.forEach(f => { factsById[f.id] = f; });
+    const axesById = {};
+    axes.forEach(a => { axesById[a.id] = a; });
+
+    // Pre-build HTML for each development
+    const devHtmls = clusters.developments.map(dev => {
+      const devFacts = (dev.fact_ids || []).map(id => factsById[id]).filter(Boolean);
+      const devAxes = (dev.axis_ids || []).map(id => axesById[id]).filter(Boolean);
+
+      let html = `<p class="muted" style="font-size:13px;margin-bottom:16px;">${dev.summary}</p>`;
+
+      // Tab bar
+      html += '<div class="dev-tab-bar">';
+      html += `<button class="dev-tab active" data-dtab="opinions">Opinions (${devAxes.length})</button>`;
+      html += `<button class="dev-tab" data-dtab="facts">Facts (${devFacts.length})</button>`;
+      html += '</div>';
+
+      // Opinions
+      html += '<div class="dev-tab-content active" data-dtab-content="opinions">';
+      if (devAxes.length) {
+        devAxes.forEach(axis => {
+          const c = centroids[axis.id];
+          const poleA = (axis.opinions || []).filter(o => o.pole === 'A');
+          const poleB = (axis.opinions || []).filter(o => o.pole === 'B');
+          html += '<div class="opinion-card" style="margin-top:8px;padding:12px;">';
+          html += `<h4 style="font-size:13px;">${axis.axis}</h4>`;
+          html += '<div class="pole-descriptions">';
+          html += '<div class="pole-desc pole-desc-a">' + (poleA.length ? poleA[0].stance : '<span class="pole-omitted">\u2715</span>') + '</div>';
+          html += '<div class="pole-desc pole-desc-b">' + (poleB.length ? poleB[0].stance : '<span class="pole-omitted">\u2715</span>') + '</div>';
+          html += '</div>';
+
+          const aOutlets = {}, bOutlets = {};
+          poleA.forEach(op => { (op.outlets || []).forEach(o => { aOutlets[o.name] = 50 - ((o.intensity || 3) / 5) * 45; }); });
+          poleB.forEach(op => { (op.outlets || []).forEach(o => { bOutlets[o.name] = 50 + ((o.intensity || 3) / 5) * 45; }); });
+          const bothPoles = new Set();
+          for (const n in aOutlets) { if (n in bOutlets) bothPoles.add(n); }
+          html += '<div class="spectrum-bar"><div class="center-line"></div>';
+          bothPoles.forEach(name => {
+            html += '<div class="spectrum-row spectrum-row-span">';
+            html += `<div class="spectrum-span" style="left:${aOutlets[name]}%;right:${100-bOutlets[name]}%;">`;
+            html += `<span class="spectrum-outlet spectrum-outlet-a" style="left:0;position:relative;transform:none;">${name}</span>`;
+            html += '<span class="spectrum-span-line"></span>';
+            html += `<span class="spectrum-outlet spectrum-outlet-b" style="left:auto;right:0;position:relative;transform:none;">${name}</span>`;
+            html += '</div></div>';
+          });
+          Object.keys(aOutlets).filter(n => !bothPoles.has(n)).forEach(name => {
+            const url = outletUrls[name];
+            const tag = url ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</a>` : `<span class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</span>`;
+            html += `<div class="spectrum-row">${tag}</div>`;
+          });
+          Object.keys(bOutlets).filter(n => !bothPoles.has(n)).forEach(name => {
+            const url = outletUrls[name];
+            const tag = url ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</a>` : `<span class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</span>`;
+            html += `<div class="spectrum-row">${tag}</div>`;
+          });
+          html += '</div>';
+
+          if (c) {
+            html += `<button class="centroid-toggle" onclick="this.nextElementSibling.classList.toggle('open')">Fact Check</button>`;
+            html += '<div class="centroid-body">';
+            const cert = c.certainty || c.confidence || 'medium';
+            const certReason = c.certainty_reason || c.confidence_reason || '';
+            html += `<div class="centroid-text">${c.centroid}</div>`;
+            html += `<span class="certainty certainty-${cert}">Certainty: ${cert}</span>`;
+            if (certReason) html += `<span class="muted" style="font-size:11px;"> \u2014 ${certReason}</span>`;
+            html += '</div>';
+          }
+          html += '</div>';
+        });
+      } else {
+        html += '<p class="muted">No opinions for this development.</p>';
+      }
+      html += '</div>';
+
+      // Facts
+      html += '<div class="dev-tab-content" data-dtab-content="facts">';
+      if (devFacts.length) {
+        devFacts.forEach(f => {
+          html += '<div class="opinion-card" style="margin-top:8px;padding:12px;">';
+          html += `<h4 style="font-size:13px;">${f.claim}</h4>`;
+          html += '<div style="margin-top:4px;">';
+          f.outlets.forEach(o => { html += badge(o.name, 'source-badge-fact'); });
+          html += '</div></div>';
+        });
+      } else {
+        html += '<p class="muted">No facts for this development.</p>';
+      }
+      html += '</div>';
+
+      return html;
+    });
+
+    // Build selector buttons
+    clusters.developments.forEach((dev, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'dev-btn' + (i === 0 ? ' active' : '');
+      btn.innerHTML = `<div class="dev-btn-label">${dev.label}</div><div class="dev-btn-meta">${dev.outlet_count} outlets · ${(dev.fact_ids||[]).length} facts · ${(dev.axis_ids||[]).length} opinions</div>`;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.dev-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        showDev(i);
+      });
+      devSelector.appendChild(btn);
+    });
+
+    function showDev(idx) {
+      devContent.innerHTML = devHtmls[idx];
+      // Wire up tabs inside this development
+      devContent.querySelectorAll('.dev-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          devContent.querySelectorAll('.dev-tab').forEach(t => t.classList.remove('active'));
+          devContent.querySelectorAll('.dev-tab-content').forEach(c => c.classList.remove('active'));
+          tab.classList.add('active');
+          const target = devContent.querySelector(`[data-dtab-content="${tab.dataset.dtab}"]`);
+          if (target) target.classList.add('active');
+        });
+      });
+    }
+
+    // Show first development by default
+    if (devHtmls.length) showDev(0);
+
+    if (!clusters.developments.length) {
+      const allData = document.getElementById('all-data');
+      if (allData) allData.open = true;
+    }
+  } else {
+    const allData = document.getElementById('all-data');
+    if (allData) allData.open = true;
+  }
+
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => { c.style.display = 'none'; c.classList.remove('active'); });
+      tab.classList.add('active');
+      const target = document.getElementById('tab-' + tab.dataset.tab);
+      if (target) { target.style.display = 'block'; target.classList.add('active'); }
+    });
+  });
+})();
+</script>
+{% endif %}
+
+{# --- Log polling (when this sample is being processed) --- #}
+{% if is_this_sample %}
+<script>
+(function() {
+  const badge = document.getElementById('status-badge');
+  const logPanel = document.getElementById('log-panel');
+  const progressFill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
+  if (!logPanel) return;
+
+  let logOffset = 0;
+  const poll = setInterval(async () => {
+    try {
+      const [statusResp, logResp] = await Promise.all([
+        fetch('/api/status'),
+        fetch('/api/stories/{{ meta.id }}/log?after=' + logOffset),
+      ]);
+
+      const running = await statusResp.json();
+      const info = running['{{ meta.id }}'];
+
+      if (info) {
+        if (badge) badge.textContent = info.phase + '…';
+        if (progressFill && info.total > 0) {
+          const pct = Math.round((info.done / info.total) * 100);
+          progressFill.style.width = pct + '%';
+          if (progressText) progressText.textContent = info.done + ' / ' + info.total + ' articles';
+        }
+      } else {
+        clearInterval(poll);
+        window.location.reload();
+        return;
+      }
+
+      const data = await logResp.json();
+      if (data.lines.length) {
+        for (const line of data.lines) {
+          const div = document.createElement('div');
+          if (line.startsWith('---')) div.className = 'log-phase';
+          else if (line.startsWith('[tool]')) div.className = 'log-tool';
+          else if (line.startsWith('ERROR')) div.className = 'log-error';
+          div.textContent = line;
+          logPanel.appendChild(div);
+        }
+        logOffset = data.total;
+        logPanel.scrollTop = logPanel.scrollHeight;
+      }
+    } catch {}
+  }, 2000);
+})();
+</script>
+{% endif %}
+
+{% endblock %}

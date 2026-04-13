@@ -1,6 +1,7 @@
 import json, asyncio, logging
 from pathlib import Path
-from claude_agent_sdk import query, ClaudeAgentOptions
+from claude_agent_sdk import ClaudeAgentOptions
+from scripts.retryquery import retry_query
 
 DATA = Path("/instance")
 log = logging.getLogger(__name__)
@@ -32,9 +33,7 @@ async def cluster_sample(story: dict, sample_id: str, on_message=None):
         model="claude-opus-4-6",
         cwd="/instance",
     )
-    async for msg in query(prompt=prompt, options=options):
-        if on_message:
-            on_message(msg)
+    await retry_query(prompt=prompt, options=options, on_message=on_message)
 
     if not Path(output_path).exists():
         log.warning(f"Phase 3 did not produce output for {sample_id}")

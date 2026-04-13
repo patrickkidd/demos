@@ -16,6 +16,8 @@
   .timeline-dot.active { background: var(--accent); border-color: var(--text); }
   .timeline-dot.has-analysis { background: var(--green); }
   .timeline-dot.has-analysis.active { background: var(--green); border-color: var(--text); }
+  .timeline-dot.in-progress { background: var(--yellow); }
+  .timeline-dot.in-progress.active { background: var(--yellow); border-color: var(--text); }
   .timeline-label { font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap; }
 
 </style>
@@ -65,13 +67,60 @@
 {% if samples %}
 <div class="section">
   <h2>Timeline</h2>
-  {{ tl.render(meta, samples, analyzed_samples, None) }}
+  {% set rs = running.get(meta.id) %}
+  {{ tl.render(meta, samples, analyzed_samples, None, rs.sample if rs else None) }}
 </div>
 {% else %}
 <div class="card">
   <p class="muted">No samples yet. Click Sample to collect and analyze articles.</p>
 </div>
 {% endif %}
+
+{# --- Backfill --- #}
+<div class="section">
+  <h2>Backfill</h2>
+  <div class="card">
+    {% set status = running.get(meta.id) %}
+    {% if status and status.get('backfill') %}
+      <p>Backfilling sample {{ status.bf_current }}/{{ status.bf_total }}
+         ({{ status.phase.value }}…)</p>
+    {% elif not status or not status.get('backfill') %}
+      <form method="post" action="/stories/{{ meta.id }}/backfill"
+            id="backfill-form">
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Start date</label>
+            <input type="date" name="start_date" id="bf-start" required>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>End date</label>
+            <input type="date" name="end_date" id="bf-end" required>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Every N days</label>
+            <input type="number" name="step_days" id="bf-step" value="3" min="1" max="90" style="width:60px;">
+          </div>
+          <button type="submit" class="btn-sm">Backfill</button>
+        </div>
+      </form>
+      <p class="muted" style="font-size:12px;margin-top:10px;">
+        ~30 agent calls per sample. Older dates may return fewer or less date-accurate results.
+      </p>
+    {% endif %}
+  </div>
+</div>
+<script>
+document.getElementById('backfill-form')?.addEventListener('submit', function(e) {
+  const start = new Date(document.getElementById('bf-start').value);
+  const end = new Date(document.getElementById('bf-end').value);
+  const step = parseInt(document.getElementById('bf-step').value) || 3;
+  const samples = Math.floor((end - start) / (step * 86400000)) + 1;
+  const calls = samples * 30;
+  if (!confirm('This will create ' + samples + ' samples (~' + calls + ' agent calls). Continue?')) {
+    e.preventDefault();
+  }
+});
+</script>
 
 {# --- Meta-Analysis (placeholder) --- #}
 {% if samples|length > 1 %}
@@ -106,7 +155,9 @@
       const running = await resp.json();
       const info = running['{{ meta.id }}'];
       if (info) {
-        badge.textContent = info.phase + '…';
+        let text = info.phase + '…';
+        if (info.backfill) text = 'backfill ' + info.bf_current + '/' + info.bf_total + ' ' + text;
+        badge.textContent = text;
       } else {
         clearInterval(poll);
         window.location.reload();

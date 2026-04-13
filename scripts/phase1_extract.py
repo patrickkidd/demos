@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlparse
 import httpx
 from claude_agent_sdk import query, ClaudeAgentOptions
+from scripts.retryquery import retry_query
 
 DATA = Path("/instance")
 log = logging.getLogger(__name__)
@@ -25,8 +26,9 @@ TOPIC: {topic}
 TARGET OUTLETS (find one article URL per outlet):
 {outlet_list}
 
-For each target outlet, search the web for one recent article on this
-topic. For "White House", search whitehouse.gov or state.gov.
+For each target outlet, search the web for one article on this topic
+published {date_instruction}. For "White House", search whitehouse.gov
+or state.gov.
 
 If you cannot find an article for an outlet, skip it.
 
@@ -111,7 +113,8 @@ Use the URL slug as the filename (replace non-alphanumeric chars with hyphens).
 Skip articles under 200 words after extraction."""
 
 
-async def run_story(story: dict, on_message=None, sample_id: str = None, on_progress=None):
+async def run_story(story: dict, on_message=None, sample_id: str = None,
+                    on_progress=None, target_date: str = None):
     story_dir = DATA / "stories" / story["id"]
     ts = sample_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
     sample_dir = story_dir / "samples" / ts
@@ -125,9 +128,14 @@ async def run_story(story: dict, on_message=None, sample_id: str = None, on_prog
     if not manifest_path.exists():
         outlets = all_outlets()
         outlet_list = "\n".join(f"  - {o}" for o in outlets)
+        if target_date:
+            date_instruction = f"around {target_date} (within a few days of that date)"
+        else:
+            date_instruction = "within the most recent few days"
         search_prompt = SEARCH_PROMPT.format(
             topic=story["topic"],
             outlet_list=outlet_list,
+            date_instruction=date_instruction,
         )
         search_options = ClaudeAgentOptions(
             allowed_tools=["WebSearch"],
@@ -137,17 +145,18 @@ async def run_story(story: dict, on_message=None, sample_id: str = None, on_prog
         )
 
         # Agent finds URLs only (no fetching)
+        from claude_agent_sdk import AssistantMessage
+        from claude_agent_sdk.types import TextBlock
         response_text = ""
-        async for msg in query(prompt=search_prompt, options=search_options):
+        def _capture(msg):
+            nonlocal response_text
             if on_message:
                 on_message(msg)
-            # Capture text response for URL list
-            from claude_agent_sdk import AssistantMessage
-            from claude_agent_sdk.types import TextBlock
             if isinstance(msg, AssistantMessage):
                 for block in msg.content:
                     if isinstance(block, TextBlock):
                         response_text += block.text
+        await retry_query(prompt=search_prompt, options=search_options, on_message=_capture)
 
         # Parse URL list from agent response
         urls = []
@@ -184,9 +193,7 @@ async def run_story(story: dict, on_message=None, sample_id: str = None, on_prog
                 model="claude-sonnet-4-6",
                 cwd="/instance",
             )
-            async for msg in query(prompt=fallback_prompt, options=fallback_options):
-                if on_message:
-                    on_message(msg)
+            await retry_query(prompt=fallback_prompt, options=fallback_options, on_message=on_message)
 
             # Check which failed articles now have files
             for entry in failed:
@@ -242,9 +249,7 @@ async def run_story(story: dict, on_message=None, sample_id: str = None, on_prog
             model="claude-sonnet-4-6",
             cwd="/instance",
         )
-        async for msg in query(prompt=analysis_prompt, options=analysis_options):
-            if on_message:
-                on_message(msg)
+        await retry_query(prompt=analysis_prompt, options=analysis_options, on_message=on_message)
 
         if output_path.exists():
             try:

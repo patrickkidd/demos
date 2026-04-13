@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Persuasion Mockup — Consensus-First Design</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --surface: #22223a; --border: #33335a;
+    --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0;
+    --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 8px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .article-meta { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+  .accuracy-prime { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 28px; text-align: center; }
+  .accuracy-prime-q { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .accuracy-prime-sub { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .consensus { margin-bottom: 32px; }
+  .consensus-intro { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .consensus-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; border-left: 3px solid var(--green); padding: 12px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+  .consensus-check { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(46,196,182,0.15); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--green); }
+  .consensus-text { font-size: 13px; flex: 1; }
+  .consensus-count { font-size: 11px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+  .divergence { margin-bottom: 32px; }
+  .divergence-intro { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .divergence-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
+  .divergence-question { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+  .divergence-bar-container { position: relative; height: 36px; border-radius: 6px; overflow: hidden; display: flex; margin-bottom: 8px; }
+  .divergence-bar-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .divergence-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); line-height: 1.4; gap: 20px; }
+  .divergence-label-l { text-align: left; flex: 1; }
+  .divergence-label-r { text-align: right; flex: 1; }
+  .divergence-finding { margin-top: 10px; padding: 10px 12px; background: rgba(91,138,240,0.06); border: 1px solid rgba(91,138,240,0.15); border-radius: 6px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .divergence-finding strong { color: var(--text); font-weight: 600; }
+  .blindspots { margin-bottom: 32px; }
+  .blindspots-intro { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .blindspot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .blindspot-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .blindspot-header { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .blindspot-left .blindspot-header { color: #6fa0e8; }
+  .blindspot-right .blindspot-header { color: #e8a06f; }
+  .blindspot-list { list-style: none; padding: 0; }
+  .blindspot-list li { font-size: 12px; color: var(--text); padding: 4px 0; border-bottom: 1px solid rgba(51,51,90,0.5); display: flex; align-items: flex-start; gap: 6px; }
+  .blindspot-list li:last-child { border-bottom: none; }
+  .blindspot-icon { color: var(--yellow); font-size: 10px; margin-top: 3px; flex-shrink: 0; }
+  .sourcing-summary { margin-bottom: 28px; }
+  .sourcing-bar { height: 32px; border-radius: 6px; overflow: hidden; display: flex; }
+  .sourcing-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .sourcing-legend { display: flex; gap: 16px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+  .sourcing-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  .drill-down { text-align: center; padding: 16px; }
+  .drill-btn { background: var(--surface); border: 1px solid var(--border); color: var(--accent); font-size: 13px; font-weight: 600; padding: 10px 24px; border-radius: 8px; cursor: pointer; }
+  .drill-btn:hover { border-color: var(--accent); }
+  .section-gap { margin-bottom: 32px; }
+  .certainty-badge { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+  .certainty-medium { background: rgba(245,166,35,0.15); color: var(--yellow); }
+</style>
+</head>
+<body>
+<h1>US-Iran Ceasefire Holds Amid Violations, Lebanon Escalation, and Unresolved Nuclear Dispute</h1>
+<div class="article-meta">April 9, 2026 &middot; 13 sources analyzed &middot; 40 factual claims &middot; 18 opinion axes</div>
+
+<div class="accuracy-prime">
+  <div class="accuracy-prime-q">How well-sourced is this story, really?</div>
+  <div class="accuracy-prime-sub">We analyzed 13 outlets across the political spectrum. Here's what they actually agree on, where they diverge, and what each side leaves out.</div>
+</div>
+
+<div class="consensus section-gap">
+  <h2>What all sources agree on</h2>
+  <div class="consensus-intro">These facts were reported by outlets across the political spectrum and are supported by named sources or verifiable public records.</div>
+  <div class="consensus-item"><div class="consensus-check">&#10003;</div><div class="consensus-text">Two-week ceasefire agreed, announced by Trump on Truth Social, mediated by Pakistan</div><div class="consensus-count">9 of 13</div></div>
+  <div class="consensus-item"><div class="consensus-check">&#10003;</div><div class="consensus-text">Iran submitted a 10-point peace proposal; Trump initially called it "a workable basis"</div><div class="consensus-count">8 of 13</div></div>
+  <div class="consensus-item"><div class="consensus-check">&#10003;</div><div class="consensus-text">Strait of Hormuz blockade drove US gas prices to $4.14/gal from $2.98 pre-war</div><div class="consensus-count">7 of 13</div></div>
+  <div class="consensus-item"><div class="consensus-check">&#10003;</div><div class="consensus-text">Netanyahu says ceasefire does not cover Lebanon; Pakistan and Iran say it does</div><div class="consensus-count">5 of 13</div></div>
+  <div class="consensus-item"><div class="consensus-check">&#10003;</div><div class="consensus-text">Peace talks begin this weekend in Islamabad; VP Vance leads US delegation</div><div class="consensus-count">5 of 13</div></div>
+  <div class="consensus-item"><div class="consensus-check">&#10003;</div><div class="consensus-text">Iran's enrichment rights vs. US demand for full abandonment is the core unresolved issue</div><div class="consensus-count">5 of 13</div></div>
+</div>
+
+<div class="divergence section-gap">
+  <h2>Where sources tell different stories</h2>
+  <div class="divergence-intro">On these questions, outlets report the same events but reach opposite conclusions. The bars show how many outlets lean each way.</div>
+  <div class="divergence-item">
+    <div class="divergence-question">Were US strikes effective at destroying Iran's nuclear program? <span class="certainty-badge certainty-medium">medium certainty</span></div>
+    <div class="divergence-bar-container">
+      <div class="divergence-bar-seg" style="flex:4;background:rgba(232,160,111,0.4);color:#e8a06f;">4</div>
+      <div class="divergence-bar-seg" style="flex:2;background:rgba(136,136,168,0.15);color:var(--muted);">2</div>
+      <div class="divergence-bar-seg" style="flex:1;background:rgba(111,160,232,0.4);color:#6fa0e8;">1</div>
+    </div>
+    <div class="divergence-labels"><div class="divergence-label-l">"Completely obliterated" — Fox, Breitbart, Daily Wire, White House</div><div class="divergence-label-r">"Set back 3-6 months" — MSNBC (citing DIA)</div></div>
+    <div class="divergence-finding"><strong>What the evidence shows:</strong> The only independent assessment (a leaked DIA report) found a 3-6 month setback. The "obliterated" claim comes from administration officials with no independent verification.</div>
+  </div>
+  <div class="divergence-item">
+    <div class="divergence-question">Was the ceasefire a US or Iranian victory? <span class="certainty-badge certainty-medium">medium certainty</span></div>
+    <div class="divergence-bar-container">
+      <div class="divergence-bar-seg" style="flex:4;background:rgba(232,160,111,0.4);color:#e8a06f;">4</div>
+      <div class="divergence-bar-seg" style="flex:2;background:rgba(136,136,168,0.15);color:var(--muted);">2</div>
+      <div class="divergence-bar-seg" style="flex:3;background:rgba(111,160,232,0.4);color:#6fa0e8;">3</div>
+    </div>
+    <div class="divergence-labels"><div class="divergence-label-l">"Total victory" — Fox, Breitbart, White House, CNN (quoting Trump)</div><div class="divergence-label-r">"Enduring defeat for Washington" — CNN, CBS (quoting Iran's SNSC)</div></div>
+    <div class="divergence-finding"><strong>What the evidence shows:</strong> Both sides claimed victory using their own officials' statements. Neither claim is independently verified.</div>
+  </div>
+  <div class="divergence-item">
+    <div class="divergence-question">Does military force or diplomacy resolve the Iran threat? <span class="certainty-badge certainty-medium">medium certainty</span></div>
+    <div class="divergence-bar-container">
+      <div class="divergence-bar-seg" style="flex:3;background:rgba(232,160,111,0.4);color:#e8a06f;">3</div>
+      <div class="divergence-bar-seg" style="flex:4;background:rgba(136,136,168,0.15);color:var(--muted);">4</div>
+      <div class="divergence-bar-seg" style="flex:3;background:rgba(111,160,232,0.4);color:#6fa0e8;">3</div>
+    </div>
+    <div class="divergence-labels"><div class="divergence-label-l">"Force is the proven path" — Fox, Daily Wire, White House</div><div class="divergence-label-r">"No substitute for diplomacy" — MSNBC, ABC, CBS</div></div>
+    <div class="divergence-finding"><strong>What the evidence shows:</strong> Neither side cites specific policy analysis. Both positions are assertions, not conclusions from evidence.</div>
+  </div>
+</div>
+
+<div class="blindspots section-gap">
+  <h2>What each side leaves out</h2>
+  <div class="blindspots-intro">If you only read sources from one side, these are the verified facts and sourced reports you would never encounter.</div>
+  <div class="blindspot-row">
+    <div class="blindspot-card blindspot-left">
+      <div class="blindspot-header">If you only read left-leaning sources</div>
+      <ul class="blindspot-list">
+        <li><span class="blindspot-icon">&#9679;</span> Iran launched 5,000+ drones and 2,100+ missiles at US, Israeli, and Gulf targets</li>
+        <li><span class="blindspot-icon">&#9679;</span> Pentagon destroyed 13,000+ targets, sank ~150 warships</li>
+        <li><span class="blindspot-icon">&#9679;</span> Iranian hackers actively targeting US water and energy infrastructure</li>
+        <li><span class="blindspot-icon">&#9679;</span> Ceasefire violations reported within 24 hours</li>
+      </ul>
+    </div>
+    <div class="blindspot-card blindspot-right">
+      <div class="blindspot-header">If you only read right-leaning sources</div>
+      <ul class="blindspot-list">
+        <li><span class="blindspot-icon">&#9679;</span> DIA assessment: strikes set nuclear program back only 3-6 months</li>
+        <li><span class="blindspot-icon">&#9679;</span> 3,400 killed in Iran including 1,600+ civilians (per HRANA)</li>
+        <li><span class="blindspot-icon">&#9679;</span> Israel killed 250+ people in Lebanon in one day after ceasefire announced</li>
+        <li><span class="blindspot-icon">&#9679;</span> Pope Leo XIV called Trump's threats "truly unacceptable"</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="sourcing-summary section-gap">
+  <h2>Overall sourcing quality</h2>
+  <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Of the 40 factual claims in this story, here's how well they're supported:</div>
+  <div class="sourcing-bar">
+    <div class="sourcing-seg" style="flex:17;background:rgba(46,196,182,0.5);color:#1a1a2e;">17</div>
+    <div class="sourcing-seg" style="flex:9;background:rgba(46,196,182,0.22);color:var(--green);">9</div>
+    <div class="sourcing-seg" style="flex:6;background:rgba(245,166,35,0.3);color:var(--yellow);">6</div>
+    <div class="sourcing-seg" style="flex:8;background:rgba(231,76,60,0.3);color:var(--red);">8</div>
+  </div>
+  <div class="sourcing-legend">
+    <span><span class="dot" style="background:rgba(46,196,182,0.5);"></span>Verified across 3+ sources</span>
+    <span><span class="dot" style="background:rgba(46,196,182,0.22);"></span>Attributed to named sources</span>
+    <span><span class="dot" style="background:rgba(245,166,35,0.3);"></span>Single-source or unverified</span>
+    <span><span class="dot" style="background:rgba(231,76,60,0.3);"></span>Opinion presented without evidence</span>
+  </div>
+</div>
+
+<div class="drill-down"><button class="drill-btn">See all 40 claims with full sourcing &#8594;</button></div>
+</body>
+</html>

@@ -4,95 +4,159 @@
 
 {% block head %}
 <style>
+  main { max-width: 780px; }
+
   .timeline-scroll { overflow-x: auto; padding: 16px 0; }
   .timeline { position: relative; min-height: 50px; }
   .timeline-item { display: flex; flex-direction: column; align-items: center; }
-  .timeline-dot {
-    width: 14px; height: 14px; border-radius: 50%; background: var(--border);
-    cursor: pointer; border: 2px solid transparent;
-    transition: background 0.15s, border-color 0.15s;
-  }
+  .timeline-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--border); cursor: pointer; border: 2px solid transparent; transition: background 0.15s, border-color 0.15s; }
   .timeline-dot:hover { background: var(--accent); }
   .timeline-dot.active { background: var(--accent); border-color: var(--text); }
   .timeline-dot.has-analysis { background: var(--green); }
   .timeline-dot.has-analysis.active { background: var(--green); border-color: var(--text); }
+  .timeline-dot.in-progress { background: var(--yellow); }
+  .timeline-dot.in-progress.active { background: var(--yellow); border-color: var(--text); }
   .timeline-label { font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap; }
-
-  .tab-bar { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
-  .tab { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  .article-headline { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 10px; }
-  .article-meta { display: flex; gap: 16px; font-size: 12px; color: var(--muted); padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-
-  .centroid-article p { margin-bottom: 12px; line-height: 1.7; }
-  .centroid-article p:last-child { margin-bottom: 0; }
-
-  .source-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; margin: 2px 2px 2px 0; text-decoration: none; cursor: pointer; transition: opacity 0.15s; }
-  .source-badge:hover { opacity: 0.8; text-decoration: none; }
-  .source-badge-a, .source-badge-for { background: rgba(46,196,182,0.2); color: #2ec4b6; }
-  .source-badge-b, .source-badge-against { background: rgba(245,166,35,0.2); color: #f5a623; }
-  .source-badge-fact { background: rgba(46,196,182,0.2); color: #2ec4b6; }
-
-  /* Opinion spectrum cards */
-  .opinion-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
-  .opinion-card h4 { font-size: 14px; margin-bottom: 12px; }
-  .opinion-card .bias-score { font-size: 11px; color: var(--red); margin-left: 8px; font-weight: 600; }
-  .pole-descriptions { display: flex; gap: 16px; margin-bottom: 6px; }
-  .pole-desc { flex: 1; font-size: 12px; line-height: 1.4; }
-  .pole-desc-a { color: #2ec4b6; text-align: left; }
-  .pole-desc-b { color: #f5a623; text-align: right; }
-  .pole-omitted { font-size: 12px; color: var(--red); }
-  .spectrum-bar { position: relative; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; min-height: 32px; }
-  .spectrum-bar .center-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--border); }
-  .spectrum-row { position: relative; height: 24px; }
-  .spectrum-outlet { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 600; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
-  .spectrum-outlet-a { background: rgba(46,196,182,0.2); color: #2ec4b6; }
-  .spectrum-outlet-b { background: rgba(245,166,35,0.2); color: #f5a623; }
-  .spectrum-row-span { height: auto; min-height: 24px; }
-  .spectrum-span { position: absolute; top: 50%; transform: translateY(-50%); display: flex; align-items: center; }
-  .spectrum-span-line { flex: 1; height: 2px; background: linear-gradient(to right, #2ec4b6, #f5a623); margin: 0 4px; min-width: 8px; }
-  .spectrum-span-link { text-decoration: none; }
-  .centroid-toggle { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; }
-  .centroid-toggle:hover { border-color: var(--accent); color: var(--accent); }
-  .dev-expand { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 8px; }
-  .dev-expand:hover { opacity: 0.9; }
-  .dev-body { display: none; margin-top: 16px; }
-  .dev-body.open { display: block; }
-  .dev-tab-bar { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 2px solid var(--border); }
-  .dev-tab { background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 600; padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
-  .dev-tab:hover { color: var(--text); }
-  .dev-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .dev-tab-content { display: none; }
-  .dev-tab-content.active { display: block; }
-  .centroid-body { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
-  .centroid-body.open { display: block; }
-  .centroid-text { font-size: 13px; color: var(--text); margin-bottom: 6px; }
-  .certainty { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-  .certainty-high { color: var(--green); }
-  .certainty-medium { color: var(--yellow); }
-  .certainty-low { color: var(--red); }
-
   .progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 12px; overflow: hidden; }
   .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; width: 0%; }
-
   #log-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px; line-height: 1.6; color: var(--muted); }
   #log-panel .log-phase { color: var(--accent); font-weight: 600; }
   #log-panel .log-tool { color: var(--yellow); }
   #log-panel .log-error { color: var(--red); }
+
+  /* ===== FLOW LAYOUT ===== */
+  .flow { position: relative; }
+  .flow::before {
+    content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+    width: 1px; background: linear-gradient(180deg,
+      transparent 0%, rgba(91,138,240,0.15) 5%, rgba(52,196,124,0.12) 25%,
+      rgba(245,166,35,0.12) 50%, rgba(232,93,93,0.12) 75%,
+      rgba(139,143,168,0.08) 95%, transparent 100%
+    ); z-index: 0; pointer-events: none;
+  }
+  .flow > * { position: relative; z-index: 1; }
+  .thread-dot { width: 10px; height: 10px; border-radius: 50%; margin: 0 auto; position: relative; z-index: 2; }
+
+  .flow-section { padding: 80px 0 72px; min-height: 85vh; }
+  .flow-section:last-child { min-height: auto; }
+
+  /* Hook */
+  .hook-section { text-align: center; }
+  .hook-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 14px; }
+  .hook-headline { font-size: 22px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 6px; text-transform: none; color: var(--text); }
+  .hook-meta { font-size: 12px; color: var(--muted); margin-bottom: 36px; }
+  .aha { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px 28px; margin-bottom: 20px; }
+  .aha-label { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+  .aha-versus { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 24px; }
+  .aha-pole { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 12px; }
+  .aha-num { font-size: 48px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; }
+  .aha-desc { font-size: 12px; color: var(--muted); line-height: 1.4; text-align: center; max-width: 150px; }
+  .aha-src { font-size: 10px; color: var(--muted); margin-top: 6px; opacity: 0.6; }
+  .aha-divider { width: 1px; height: 70px; background: var(--border); flex-shrink: 0; position: relative; }
+  .aha-divider::after { content: 'vs'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 10px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 4px 0; letter-spacing: 0.08em; text-transform: uppercase; }
+  .aha-verdict { font-size: 14px; line-height: 1.6; max-width: 420px; margin: 0 auto; }
+  .aha-verdict strong { color: var(--yellow); }
+  .hook-stats { display: flex; justify-content: center; gap: 24px; font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  .hook-stat-num { font-weight: 800; font-size: 16px; display: block; }
+  .scroll-cue { font-size: 12px; color: var(--accent); margin-top: 24px; cursor: pointer; }
+  .scroll-cue:hover { text-decoration: underline; }
+
+  /* Outlet picker */
+  .flow h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; text-align: center; text-transform: none; color: var(--text); }
+  .flow .section-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; text-align: center; }
+  .outlet-spectrum-labels { display: flex; justify-content: space-between; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; padding: 0 4px; }
+  .outlet-spectrum-labels .lbl-left { color: #5b8af0; }
+  .outlet-spectrum-labels .lbl-right { color: #e8a06f; }
+  .outlet-spectrum-track { position: relative; height: 4px; background: linear-gradient(to right, rgba(91,138,240,0.15), rgba(139,143,168,0.08) 50%, rgba(232,160,111,0.15)); border-radius: 2px; }
+  .outlet-spectrum-center { position: absolute; left: 50%; top: -4px; bottom: -4px; width: 1px; background: rgba(139,143,168,0.2); }
+  .outlet-field { position: relative; margin-bottom: 16px; }
+  .outlet-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; text-align: center; cursor: pointer; transition: all 0.15s; font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; position: absolute; transform: translateX(-50%); }
+  .outlet-btn:hover { border-color: var(--accent); }
+  .outlet-btn.selected { border-color: var(--accent); background: rgba(91,138,240,0.12); box-shadow: 0 0 0 1px var(--accent); }
+  .reveal { display: none; }
+  .reveal.visible { display: block; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .your-score { text-align: center; padding: 24px 0; }
+  .your-score-num { font-size: 64px; font-weight: 900; line-height: 1; letter-spacing: -0.03em; }
+  .your-score-of { font-size: 14px; color: var(--muted); }
+  .your-score-caption { font-size: 13px; color: var(--muted); margin-top: 8px; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .your-score-caption strong { color: var(--text); }
+  .topic-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .topic-label { font-size: 11px; font-weight: 600; width: 180px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topic-track { flex: 1; height: 20px; background: rgba(139,143,168,0.08); border-radius: 4px; overflow: hidden; }
+  .topic-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 9px; font-weight: 700; transition: width 0.5s ease; }
+  .topic-fill.full { background: rgba(52,196,124,0.4); color: var(--green); }
+  .topic-fill.partial { background: rgba(245,166,35,0.3); color: var(--yellow); }
+  .topic-fill.empty { background: rgba(232,93,93,0.25); color: var(--red); }
+
+  /* Phase markers */
+  .phase { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; margin-top: 64px; }
+  h2 + .phase, .phase:first-child { margin-top: 12px; }
+  .phase-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+  .phase-title { font-size: 15px; font-weight: 700; }
+  .phase-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+
+  /* Consensus */
+  .consensus-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; border-left: 3px solid var(--green); padding: 10px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+  .consensus-text { font-size: 13px; flex: 1; }
+  .consensus-count { font-size: 11px; color: var(--green); font-weight: 700; white-space: nowrap; }
+
+  /* Divergence */
+  .divergence-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+  .axis-q { font-size: 13px; font-weight: 700; margin-bottom: 0; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+  .axis-q::after { content: '+'; font-size: 16px; color: var(--muted); font-weight: 400; flex-shrink: 0; margin-left: 12px; }
+  .axis-q.open::after { content: '\2212'; }
+  .axis-detail { display: none; margin-top: 12px; }
+  .axis-detail.open { display: block; }
+  .axis-poles { display: flex; gap: 10px; margin-bottom: 10px; }
+  .axis-pole { flex: 1; padding: 8px 10px; border-radius: 6px; font-size: 11px; line-height: 1.4; }
+  .pole-a { background: rgba(232,160,111,0.06); border: 1px solid rgba(232,160,111,0.12); }
+  .pole-b { background: rgba(91,138,240,0.06); border: 1px solid rgba(91,138,240,0.12); }
+  .pole-hdr { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .pole-a .pole-hdr { color: #e8a06f; }
+  .pole-b .pole-hdr { color: #5b8af0; }
+  .pole-src { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .finding { background: rgba(91,138,240,0.05); border: 1px solid rgba(91,138,240,0.1); border-radius: 6px; padding: 8px 10px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+  .finding strong { color: var(--text); }
+  .cert-badge { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; margin-left: auto; flex-shrink: 0; }
+  .cert-high { background: rgba(52,196,124,0.15); color: var(--green); }
+  .cert-medium { background: rgba(245,166,35,0.15); color: var(--yellow); }
+  .cert-low { background: rgba(232,93,93,0.15); color: var(--red); }
+
+  /* Blind spots */
+  .bs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .bs-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .bs-hdr { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .bs-item { margin-bottom: 12px; }
+  .bs-item:last-child { margin-bottom: 0; }
+  .bs-claim { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .bs-detail { font-size: 11px; color: var(--muted); }
+  .bs-sep { border-top: 1px solid var(--border); padding-top: 12px; }
+
+  /* Method */
+  .method-box { background: rgba(91,138,240,0.05); border: 1px solid rgba(91,138,240,0.15); border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .method-box h3 { font-size: 14px; color: var(--accent); margin-bottom: 8px; }
+  .method-box p, .method-box li { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .method-box ul { padding-left: 18px; margin: 8px 0; }
+  .method-box li { margin-bottom: 3px; }
+  .method-box .warn { color: var(--yellow); font-weight: 600; }
+  .caveat-box { background: rgba(232,93,93,0.05); border: 1px solid rgba(232,93,93,0.12); border-radius: 8px; padding: 14px 16px; margin-top: 16px; }
+  .caveat-box h3 { font-size: 12px; color: var(--red); margin-bottom: 6px; }
+  .caveat-box p { font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 4px; }
+  .caveat-box p:last-child { margin-bottom: 0; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="section">
-  <a href="/story/{{ meta.id }}" class="muted" style="font-size:13px;">← {{ meta.topic }}</a>
+  <a href="/story/{{ meta.id }}" class="muted" style="font-size:13px;">&larr; {{ meta.topic }}</a>
 </div>
 
 {# --- Timeline --- #}
 {% if samples %}
 <div class="section">
-  {{ tl.render(meta, samples, analyzed_samples, current.id if current else None) }}
+  {% set rs = running.get(meta.id) %}
+  {{ tl.render(meta, samples, analyzed_samples, current.id if current else None, rs.sample if rs else None) }}
 </div>
 {% endif %}
 
@@ -103,12 +167,10 @@
 {% if is_this_sample %}
 <div class="section">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-    <span class="badge badge-yellow" id="status-badge">{{ task.phase.value }}…</span>
+    <span class="badge badge-yellow" id="status-badge">{{ task.phase.value }}&hellip;</span>
     <span class="muted" id="progress-text" style="font-size:12px;"></span>
   </div>
-  <div class="progress-bar" id="progress-bar">
-    <div class="progress-fill" id="progress-fill"></div>
-  </div>
+  <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
   <div id="log-panel"></div>
 </div>
 
@@ -135,65 +197,90 @@
 {% else %}
 {% set syn = current.synthesis %}
 
-{# --- Article Header --- #}
-{% if syn.get("headline") %}
-<div class="section" style="margin-bottom:8px;">
-  <h1 class="article-headline">{{ syn.headline }}</h1>
-  <div class="article-meta">
-    <span>{{ current.id[:4] }}-{{ current.id[4:6] }}-{{ current.id[6:8] }}</span>
-    <span>{{ current.article_count }} sources analyzed</span>
+{# ========== FLOW LAYOUT ========== #}
+<div class="flow">
+
+<!-- LAYER 1: HOOK -->
+<div class="flow-section hook-section" id="hook">
+  <div class="hook-eyebrow">{{ current.id[:4] }}-{{ current.id[4:6] }}-{{ current.id[6:8] }}</div>
+  <h1 class="hook-headline">{{ syn.headline }}</h1>
+  <div class="hook-meta">{{ current.article_count }} sources &middot; <span id="factCount">0</span> factual claims &middot; <span id="axisCount">0</span> opinion axes</div>
+  <div id="ahaCard"></div>
+  <div class="hook-stats" id="hookStats"></div>
+  <div class="scroll-cue" onclick="document.getElementById('personal').scrollIntoView({behavior:'smooth'})">See what your source is missing &darr;</div>
+</div>
+
+<div class="thread-dot" style="background:var(--accent);"></div>
+
+<!-- LAYER 2: YOUR BLIND SPOTS -->
+<div class="flow-section" id="personal">
+  <h2>What's your source not telling you?</h2>
+  <div class="section-sub">Pick where you get your news. We'll show what you missed.</div>
+  <div style="margin-bottom:20px;">
+    <div class="outlet-spectrum-labels"><span class="lbl-left">Left</span><span>Center</span><span class="lbl-right">Right</span></div>
+    <div class="outlet-spectrum-track"><div class="outlet-spectrum-center"></div></div>
   </div>
-</div>
-{% endif %}
-{% if syn.get("bias_summary") %}
-<div class="section">
-  <div class="card" style="border-left:3px solid var(--accent);padding:14px 18px;">
-    <p style="font-size:13px;color:var(--text);line-height:1.6;margin:0;">{{ syn.bias_summary }}</p>
-  </div>
-</div>
-{% endif %}
-
-{# --- Key Developments (from clusters, if available) --- #}
-{% if current.get("clusters") and current.clusters.get("developments") %}
-<div class="section">
-  <h2>Key Developments</h2>
-  <div id="developments"></div>
-</div>
-{% endif %}
-
-{# --- All Data (tabs, demoted) --- #}
-{% set n_opinions = current.phase2.opinion_axes|length if current.phase2 and current.phase2.get("opinion_axes") else 0 %}
-{% set n_facts = current.phase2.facts|length if current.phase2 and current.phase2.get("facts") else 0 %}
-<div class="section">
-  <details id="all-data">
-    <summary style="font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;">Raw Data — Opinions ({{ n_opinions }}), Facts ({{ n_facts }}), Summary</summary>
-    <div style="margin-top:16px;">
-      <div class="tab-bar">
-        <button class="tab active" data-tab="opinions">Opinions ({{ n_opinions }})</button>
-        <button class="tab" data-tab="facts">Facts ({{ n_facts }})</button>
-        <button class="tab" data-tab="summary">Summary</button>
-      </div>
-
-      <div id="tab-opinions" class="tab-content active">
-        <div id="opinion-spectrum"></div>
-      </div>
-
-      <div id="tab-facts" class="tab-content" style="display:none;">
-        <div id="fact-cards"></div>
-      </div>
-
-      <div id="tab-summary" class="tab-content" style="display:none;">
-        <div class="card centroid-article">
-          {% for para in syn.centroid_article.split("\n\n") %}
-            {% if para.strip() %}<p>{{ para.strip() }}</p>{% endif %}
-          {% endfor %}
-        </div>
-      </div>
+  <div class="outlet-field" id="outletGrid"></div>
+  <div class="reveal" id="outletReveal">
+    <div class="your-score">
+      <div class="your-score-num" id="scoreNum" style="color:var(--red);">--</div>
+      <div class="your-score-of">of <span id="scoreTotalClaims">0</span> claims missed</div>
+      <div class="your-score-caption" id="scoreCaption"></div>
     </div>
-  </details>
+    <div id="topicBars"></div>
+    <div style="text-align:center;margin-top:20px;">
+      <div class="scroll-cue" onclick="document.getElementById('full').scrollIntoView({behavior:'smooth'})">See the full picture &darr;</div>
+    </div>
+  </div>
 </div>
 
-{% endif %}{# end current with phase3 #}
+<div class="thread-dot" style="background:var(--yellow);"></div>
+
+<!-- LAYER 3: FULL PICTURE -->
+<div class="flow-section" id="full">
+  <h2>The full picture</h2>
+  <div class="phase"><div class="phase-num" style="background:rgba(52,196,124,0.2);color:var(--green);">1</div><div class="phase-title">What everyone agrees on</div></div>
+  <div class="phase-sub">Facts reported by 5+ outlets across the spectrum.</div>
+  <div id="consensusItems"></div>
+  <div id="moreConsensus" style="display:none;"></div>
+  <div id="consensusToggle" style="font-size:12px;color:var(--accent);cursor:pointer;margin-top:6px;display:none;"></div>
+
+  <div class="phase"><div class="phase-num" style="background:rgba(245,166,35,0.2);color:var(--yellow);">2</div><div class="phase-title">Where sources diverge</div></div>
+  <div class="phase-sub">Same events, opposite conclusions. Click to expand sourcing details.</div>
+  <div id="divergenceCards"></div>
+
+  <div class="phase"><div class="phase-num" style="background:rgba(232,93,93,0.2);color:var(--red);">3</div><div class="phase-title">What each side leaves out</div></div>
+  <div class="phase-sub">If you only read one side, you never encountered these.</div>
+  <div id="blindSpots"></div>
+
+  <div style="font-size:13px;color:var(--muted);text-align:center;margin-top:40px;line-height:1.6;">No single source covered more than 65% of the claims in this story. The full picture requires all three layers.</div>
+</div>
+
+<div class="thread-dot" style="background:var(--muted);"></div>
+
+<!-- LAYER 4: METHODOLOGY -->
+<div class="flow-section" id="method">
+  <h2>How we know this</h2>
+  <div class="section-sub">Every number on this page was generated by an AI pipeline. Here's how, and where it could be wrong.</div>
+  <div class="method-box">
+    <h3>Pipeline</h3>
+    <p>{{ current.article_count }} articles scraped &rarr; AI extracted claims blindly (outlet hidden) &rarr; claims cross-referenced across outlets &rarr; opinion axes identified &rarr; sourcing quality estimated</p>
+    <ul>
+      <li><span class="warn">Claim extraction</span> &mdash; the AI decides what counts as a &ldquo;claim.&rdquo; A different model might extract differently.</li>
+      <li><span class="warn">Sourcing quality</span> (0.0&ndash;1.0) &mdash; LLM-estimated, not computed from a validated rubric. Treat as rough tiers.</li>
+      <li><span class="warn">Axis selection</span> &mdash; which disagreements are surfaced is itself an editorial choice.</li>
+      <li><span class="warn">Bias labels</span> &mdash; from AllSides, used for display ordering only, not as analytical input.</li>
+    </ul>
+  </div>
+  <div class="caveat-box">
+    <h3>What this tool cannot tell you</h3>
+    <p>This covers {{ current.article_count }} English-language US sources from one day. It cannot detect stories no outlet covered, verify classified intelligence, or account for non-English coverage.</p>
+    <p>Organizing information into &ldquo;left vs. right&rdquo; is itself a political framework that structurally rewards centrist positions. This tool has a bias toward the center &mdash; not because centrism is correct, but because its methodology rewards cross-spectrum agreement.</p>
+  </div>
+</div>
+
+</div>{# end .flow #}
+{% endif %}
 
 {# --- Danger Zone --- #}
 {% if current %}
@@ -217,290 +304,229 @@
   const synthesis = {{ current.synthesis | tojson }};
   const clusters = {{ current.clusters | tojson if current.get("clusters") else "{}" }};
   const outletUrls = {{ current.outlet_urls | tojson }};
+  const biasScores = {{ bias_scores | tojson }};
   const axes = phase2.opinion_axes || [];
   const facts = phase2.facts || [];
   const centroids = {};
   (synthesis.axis_centroids || []).forEach(c => { centroids[c.axis_id] = c; });
 
-  function badge(name, cls) {
-    const url = outletUrls[name];
-    if (url) return `<a href="${url}" target="_blank" class="source-badge ${cls}">${name}</a>`;
-    return `<span class="source-badge ${cls}">${name}</span>`;
-  }
+  document.getElementById('factCount').textContent = facts.length;
+  document.getElementById('axisCount').textContent = axes.length;
+  document.getElementById('scoreTotalClaims').textContent = facts.length;
 
-  // --- Fact cards ---
-  const factEl = document.getElementById('fact-cards');
-  if (factEl) {
-    facts.forEach(f => {
-      const card = document.createElement('div');
-      card.className = 'opinion-card';
-      let html = `<h4>${f.claim}</h4>`;
-      html += '<div style="margin-top:6px;">';
-      f.outlets.forEach(o => { html += badge(o.name, 'source-badge-fact'); });
-      html += '</div>';
-      card.innerHTML = html;
-      factEl.appendChild(card);
-    });
-  }
-
-  // --- Opinion spectrum (sorted by bias severity) ---
-  function biasSeverity(axis) {
-    let totalI = 0, totalSQ = 0, n = 0;
-    (axis.opinions || []).forEach(op => {
-      (op.outlets || []).forEach(o => {
-        totalI += o.intensity || 0;
-        totalSQ += o.sourcing_quality || 0;
-        n++;
-      });
-    });
-    if (n === 0) return 0;
-    return (totalI / n) * (1 - totalSQ / n);
-  }
-
-  const sorted = [...axes].sort((a, b) => biasSeverity(b) - biasSeverity(a));
-  const spectrumEl = document.getElementById('opinion-spectrum');
-
-  if (spectrumEl) {
-    sorted.forEach(axis => {
-      const c = centroids[axis.id];
-      const poleA = (axis.opinions || []).filter(o => o.pole === 'A');
-      const poleB = (axis.opinions || []).filter(o => o.pole === 'B');
-      const severity = biasSeverity(axis).toFixed(2);
-
-      const card = document.createElement('div');
-      card.className = 'opinion-card';
-
-      let html = `<h4>${axis.axis}<span class="bias-score" title="Bias severity: high intensity + low sourcing quality">${severity}</span></h4>`;
-
-      html += '<div class="pole-descriptions">';
-      html += '<div class="pole-desc pole-desc-a">';
-      html += poleA.length ? poleA[0].stance : '<span class="pole-omitted">\u2715 No coverage</span>';
-      html += '</div>';
-      html += '<div class="pole-desc pole-desc-b">';
-      html += poleB.length ? poleB[0].stance : '<span class="pole-omitted">\u2715 No coverage</span>';
-      html += '</div>';
-      html += '</div>';
-
-      // Collect outlets per pole with positions
-      const aOutlets = {};
-      poleA.forEach(op => {
-        (op.outlets || []).forEach(o => {
-          aOutlets[o.name] = 50 - ((o.intensity || 3) / 5) * 45;
-        });
-      });
-      const bOutlets = {};
-      poleB.forEach(op => {
-        (op.outlets || []).forEach(o => {
-          bOutlets[o.name] = 50 + ((o.intensity || 3) / 5) * 45;
-        });
-      });
-
-      // Find outlets on both poles (balanced reporters)
-      const bothPoles = new Set();
-      for (const name in aOutlets) { if (name in bOutlets) bothPoles.add(name); }
-
-      // Single-pole outlets
-      const singleA = Object.keys(aOutlets).filter(n => !bothPoles.has(n));
-      const singleB = Object.keys(bOutlets).filter(n => !bothPoles.has(n));
-
-      html += '<div class="spectrum-bar"><div class="center-line"></div>';
-
-      // Render balanced outlets as connected spans
-      bothPoles.forEach(name => {
-        const leftPct = aOutlets[name];
-        const rightPct = bOutlets[name];
-        const url = outletUrls[name];
-        const linkOpen = url ? `<a href="${url}" target="_blank" class="spectrum-span-link">` : '<span class="spectrum-span-link">';
-        const linkClose = url ? '</a>' : '</span>';
-        html += '<div class="spectrum-row spectrum-row-span">';
-        html += `<div class="spectrum-span" style="left:${leftPct}%;right:${100-rightPct}%;">`;
-        html += `<span class="spectrum-outlet spectrum-outlet-a" style="left:0;position:relative;transform:none;">${name}</span>`;
-        html += '<span class="spectrum-span-line"></span>';
-        html += `<span class="spectrum-outlet spectrum-outlet-b" style="left:auto;right:0;position:relative;transform:none;">${name}</span>`;
-        html += '</div>';
-        html += '</div>';
-      });
-
-      // Render single-pole outlets
-      singleA.forEach(name => {
-        const url = outletUrls[name];
-        const tag = url
-          ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</a>`
-          : `<span class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</span>`;
-        html += `<div class="spectrum-row">${tag}</div>`;
-      });
-      singleB.forEach(name => {
-        const url = outletUrls[name];
-        const tag = url
-          ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</a>`
-          : `<span class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</span>`;
-        html += `<div class="spectrum-row">${tag}</div>`;
-      });
-
-      html += '</div>';
-
-      if (c) {
-        const cert = c.certainty || c.confidence || 'medium';
-        const certReason = c.certainty_reason || c.confidence_reason || '';
-        html += `<button class="centroid-toggle" onclick="this.nextElementSibling.classList.toggle('open')">Fact Check</button>`;
-        html += '<div class="centroid-body">';
-        html += `<div class="centroid-text">${c.centroid}</div>`;
-        html += `<span class="certainty certainty-${cert}">Certainty: ${cert}</span>`;
-        if (certReason) html += `<span class="muted" style="font-size:11px;"> \u2014 ${certReason}</span>`;
-        html += '</div>';
-      }
-
-      card.innerHTML = html;
-      spectrumEl.appendChild(card);
-    });
-  }
-
-  // --- Key Developments (scoped facts + opinions per sub-story) ---
-  const devEl = document.getElementById('developments');
-  if (devEl && clusters.developments) {
-    const factsById = {};
-    facts.forEach(f => { factsById[f.id] = f; });
-    const axesById = {};
-    axes.forEach(a => { axesById[a.id] = a; });
-
-    let devCount = 0;
-    clusters.developments.forEach(dev => {
-      const devId = 'dev-' + devCount++;
-      const card = document.createElement('div');
-      card.className = 'opinion-card';
-
-      const devFacts = (dev.fact_ids || []).map(id => factsById[id]).filter(Boolean);
-      const devAxes = (dev.axis_ids || []).map(id => axesById[id]).filter(Boolean);
-
-      let html = `<h4>${dev.label}<span class="muted" style="font-size:11px;margin-left:8px;">${dev.outlet_count} outlets</span></h4>`;
-      html += `<p class="muted" style="font-size:13px;margin-bottom:0;">${dev.summary}</p>`;
-
-      // Expand/collapse button
-      html += `<button class="dev-expand" data-target="${devId}" onclick="var b=document.getElementById('${devId}');b.classList.toggle('open');this.textContent=b.classList.contains('open')?'Collapse':'Expand'">Expand</button>`;
-
-      // Collapsible body with tabs
-      html += `<div class="dev-body" id="${devId}">`;
-
-      // Tab bar
-      html += `<div class="dev-tab-bar">`;
-      html += `<button class="dev-tab active" data-dev="${devId}" data-dtab="opinions">Opinions (${devAxes.length})</button>`;
-      html += `<button class="dev-tab" data-dev="${devId}" data-dtab="facts">Facts (${devFacts.length})</button>`;
-      html += `</div>`;
-
-      // Opinions tab
-      html += `<div class="dev-tab-content active" id="${devId}-opinions">`;
-      if (devAxes.length) {
-        devAxes.forEach(axis => {
-          const c = centroids[axis.id];
-          const poleA = (axis.opinions || []).filter(o => o.pole === 'A');
-          const poleB = (axis.opinions || []).filter(o => o.pole === 'B');
-          html += `<div class="opinion-card" style="margin-top:8px;padding:12px;">`;
-          html += `<h4 style="font-size:13px;">${axis.axis}</h4>`;
-          html += '<div class="pole-descriptions">';
-          html += '<div class="pole-desc pole-desc-a">' + (poleA.length ? poleA[0].stance : '<span class="pole-omitted">\u2715</span>') + '</div>';
-          html += '<div class="pole-desc pole-desc-b">' + (poleB.length ? poleB[0].stance : '<span class="pole-omitted">\u2715</span>') + '</div>';
-          html += '</div>';
-
-          // Spectrum bar
-          const aOutlets = {}, bOutlets = {};
-          poleA.forEach(op => { (op.outlets || []).forEach(o => { aOutlets[o.name] = 50 - ((o.intensity || 3) / 5) * 45; }); });
-          poleB.forEach(op => { (op.outlets || []).forEach(o => { bOutlets[o.name] = 50 + ((o.intensity || 3) / 5) * 45; }); });
-          const bothPoles = new Set();
-          for (const n in aOutlets) { if (n in bOutlets) bothPoles.add(n); }
-          html += '<div class="spectrum-bar"><div class="center-line"></div>';
-          bothPoles.forEach(name => {
-            html += '<div class="spectrum-row spectrum-row-span">';
-            html += `<div class="spectrum-span" style="left:${aOutlets[name]}%;right:${100-bOutlets[name]}%;">`;
-            html += `<span class="spectrum-outlet spectrum-outlet-a" style="left:0;position:relative;transform:none;">${name}</span>`;
-            html += '<span class="spectrum-span-line"></span>';
-            html += `<span class="spectrum-outlet spectrum-outlet-b" style="left:auto;right:0;position:relative;transform:none;">${name}</span>`;
-            html += '</div></div>';
-          });
-          Object.keys(aOutlets).filter(n => !bothPoles.has(n)).forEach(name => {
-            const url = outletUrls[name];
-            const tag = url ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</a>` : `<span class="spectrum-outlet spectrum-outlet-a" style="left:${aOutlets[name]}%;">${name}</span>`;
-            html += `<div class="spectrum-row">${tag}</div>`;
-          });
-          Object.keys(bOutlets).filter(n => !bothPoles.has(n)).forEach(name => {
-            const url = outletUrls[name];
-            const tag = url ? `<a href="${url}" target="_blank" class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</a>` : `<span class="spectrum-outlet spectrum-outlet-b" style="left:${bOutlets[name]}%;">${name}</span>`;
-            html += `<div class="spectrum-row">${tag}</div>`;
-          });
-          html += '</div>';
-
-          if (c) {
-            html += `<button class="centroid-toggle" onclick="this.nextElementSibling.classList.toggle('open')">Fact Check</button>`;
-            html += '<div class="centroid-body">';
-            const cert = c.certainty || c.confidence || 'medium';
-            const certReason = c.certainty_reason || c.confidence_reason || '';
-            html += `<div class="centroid-text">${c.centroid}</div>`;
-            html += `<span class="certainty certainty-${cert}">Certainty: ${cert}</span>`;
-            if (certReason) html += `<span class="muted" style="font-size:11px;"> \u2014 ${certReason}</span>`;
-            html += '</div>';
-          }
-          html += '</div>';
-        });
-      } else {
-        html += '<p class="muted">No opinions for this development.</p>';
-      }
-      html += '</div>';
-
-      // Facts tab
-      html += `<div class="dev-tab-content" id="${devId}-facts">`;
-      if (devFacts.length) {
-        devFacts.forEach(f => {
-          html += `<div class="opinion-card" style="margin-top:8px;padding:12px;">`;
-          html += `<h4 style="font-size:13px;">${f.claim}</h4>`;
-          html += '<div style="margin-top:4px;">';
-          f.outlets.forEach(o => { html += badge(o.name, 'source-badge-fact'); });
-          html += '</div></div>';
-        });
-      } else {
-        html += '<p class="muted">No facts for this development.</p>';
-      }
-      html += '</div>';
-
-      html += '</div>'; // close dev-body
-      card.innerHTML = html;
-      devEl.appendChild(card);
-    });
-
-    // Dev tab switching
-    document.querySelectorAll('.dev-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        const devId = tab.dataset.dev;
-        document.querySelectorAll(`.dev-tab[data-dev="${devId}"]`).forEach(t => t.classList.remove('active'));
-        document.querySelectorAll(`#${devId} .dev-tab-content`).forEach(c => { c.classList.remove('active'); });
-        tab.classList.add('active');
-        const target = document.getElementById(devId + '-' + tab.dataset.dtab);
-        if (target) target.classList.add('active');
-      });
-    });
-
-    if (!clusters.developments.length) {
-      const allData = document.getElementById('all-data');
-      if (allData) allData.open = true;
+  // === STATS ===
+  let verified = 0, oneSided = 0, opinionAsFact = 0;
+  facts.forEach(f => {
+    if (f.outlets.length >= 3) {
+      const named = f.outlets.filter(o => o.sourcing === 'named_primary' || o.sourcing === 'named_secondary' || o.sourcing === 'institutional').length;
+      if (named >= 2) verified++;
     }
-  } else {
-    const allData = document.getElementById('all-data');
-    if (allData) allData.open = true;
-  }
-
-  // Tab switching
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => { c.style.display = 'none'; c.classList.remove('active'); });
-      tab.classList.add('active');
-      const target = document.getElementById('tab-' + tab.dataset.tab);
-      if (target) { target.style.display = 'block'; target.classList.add('active'); }
+    const scores = f.outlets.map(o => biasScores[o.name]).filter(s => s !== undefined);
+    if (scores.length > 0 && (scores.every(s => s > 0.2) || scores.every(s => s < -0.2))) oneSided++;
+  });
+  axes.forEach(ax => {
+    ax.opinions.forEach(op => {
+      const avgSq = op.outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / (op.outlets.length||1);
+      if (avgSq < 0.35 && op.outlets.some(o => (o.intensity||0) >= 3)) opinionAsFact++;
     });
   });
+  document.getElementById('hookStats').innerHTML =
+    '<div><span class="hook-stat-num" style="color:var(--green);">' + verified + '</span> verified claims</div>' +
+    '<div><span class="hook-stat-num" style="color:var(--yellow);">' + oneSided + '</span> one-sided</div>' +
+    '<div><span class="hook-stat-num" style="color:var(--red);">' + opinionAsFact + '</span> opinion as fact</div>';
+
+  // === HOOK AHA — pick axis with widest sourcing quality gap ===
+  let bestAxis = null, bestGap = -1;
+  axes.forEach(ax => {
+    const poleA = ax.opinions.filter(o => o.pole === 'A');
+    const poleB = ax.opinions.filter(o => o.pole === 'B');
+    if (!poleA.length || !poleB.length) return;
+    const sqA = poleA[0].outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / poleA[0].outlets.length;
+    const sqB = poleB[0].outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / poleB[0].outlets.length;
+    const gap = Math.abs(sqA - sqB);
+    if (gap > bestGap) { bestGap = gap; bestAxis = ax; }
+  });
+
+  if (bestAxis) {
+    const c = centroids[bestAxis.id];
+    const pA = bestAxis.opinions.find(o => o.pole === 'A');
+    const pB = bestAxis.opinions.find(o => o.pole === 'B');
+    const sqA = (pA.outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / pA.outlets.length).toFixed(2);
+    const sqB = (pB.outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / pB.outlets.length).toFixed(2);
+    document.getElementById('ahaCard').innerHTML =
+      '<div class="aha">' +
+      '<div class="aha-label">The biggest sourcing gap in this story</div>' +
+      '<div class="aha-versus">' +
+      '<div class="aha-pole"><div class="aha-num" style="color:var(--red);">' + pA.outlets.length + '</div>' +
+      '<div class="aha-desc">' + pA.stance.substring(0,80) + '</div>' +
+      '<div class="aha-src">' + pA.outlets.length + ' outlets, sourcing: ' + sqA + '</div></div>' +
+      '<div class="aha-divider"></div>' +
+      '<div class="aha-pole"><div class="aha-num" style="color:var(--green);">' + pB.outlets.length + '</div>' +
+      '<div class="aha-desc">' + pB.stance.substring(0,80) + '</div>' +
+      '<div class="aha-src">' + pB.outlets.length + ' outlets, sourcing: ' + sqB + '</div></div>' +
+      '</div>' +
+      (c ? '<div class="aha-verdict"><strong>No outlet presented both claims side-by-side.</strong> ' + c.centroid.substring(0,200) + '</div>' : '') +
+      '</div>';
+  }
+
+  // === OUTLET PICKER ===
+  const sampleOutlets = phase2.outlets.filter(o => o !== 'White House');
+  const sorted = [...sampleOutlets].sort((a,b) => (biasScores[a]||0) - (biasScores[b]||0));
+  const grid = document.getElementById('outletGrid');
+  // Assign rows to avoid overlap — greedily assign to first row with space
+  const rows = [[]]; const ROW_H = 36;
+  sorted.forEach(name => {
+    const score = biasScores[name] || 0;
+    const pct = ((score + 1.8) / 3.6) * 100; // map -1.8..+1.8 → 0..100
+    let placed = false;
+    for (const row of rows) {
+      const conflict = row.some(r => Math.abs(r.pct - pct) < 14);
+      if (!conflict) { row.push({name, pct}); placed = true; break; }
+    }
+    if (!placed) { rows.push([{name, pct}]); }
+  });
+  grid.style.height = (rows.length * ROW_H + 8) + 'px';
+  rows.forEach((row, ri) => {
+    row.forEach(item => {
+      const btn = document.createElement('div');
+      btn.className = 'outlet-btn';
+      btn.dataset.outlet = item.name;
+      btn.textContent = item.name.replace('Washington Post','Wash Post');
+      btn.style.left = Math.max(5, Math.min(95, item.pct)) + '%';
+      btn.style.top = (ri * ROW_H) + 'px';
+      grid.appendChild(btn);
+    });
+  });
+
+  // Outlet click handler
+  grid.addEventListener('click', function(e) {
+    const btn = e.target.closest('.outlet-btn');
+    if (!btn) return;
+    grid.querySelectorAll('.outlet-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    const outlet = btn.dataset.outlet;
+    const got = facts.filter(f => f.outlets.some(o => o.name === outlet));
+    const missed = facts.filter(f => !f.outlets.some(o => o.name === outlet));
+    const pct = Math.round(missed.length / facts.length * 100);
+    document.getElementById('scoreNum').textContent = missed.length;
+    document.getElementById('scoreNum').style.color = pct > 60 ? 'var(--red)' : pct > 40 ? 'var(--yellow)' : 'var(--green)';
+    document.getElementById('scoreCaption').innerHTML = '<strong>' + outlet + '</strong> covered ' + got.length + ' of ' + facts.length + ' claims (' + (100-pct) + '%). You missed ' + pct + '% of the story.';
+
+    const TOPICS = {"Ceasefire":"Ceasefire","Military":"Military","Lebanon":"Lebanon","Economic":"Economic","Domestic":"Domestic","Humanitarian":"Humanitarian","Security":"Security"};
+    // Use cluster developments as topics if available
+    const bb = document.getElementById('topicBars');
+    bb.innerHTML = '';
+    if (clusters.developments) {
+      clusters.developments.forEach(dev => {
+        const devFacts = (dev.fact_ids||[]).map(id => facts.find(f => f.id === id)).filter(Boolean);
+        const devGot = devFacts.filter(f => f.outlets.some(o => o.name === outlet));
+        const total = devFacts.length, covered = devGot.length;
+        const p = total > 0 ? Math.round(covered/total*100) : 0;
+        const cls = p >= 70 ? 'full' : p >= 30 ? 'partial' : 'empty';
+        bb.innerHTML += '<div class="topic-bar"><div class="topic-label">' + dev.label + '</div><div class="topic-track"><div class="topic-fill ' + cls + '" style="width:' + p + '%;">' + covered + '/' + total + '</div></div></div>';
+      });
+    }
+    document.getElementById('outletReveal').classList.add('visible');
+  });
+
+  // === CONSENSUS — facts by outlet count ===
+  const sortedFacts = [...facts].sort((a,b) => b.outlets.length - a.outlets.length);
+  const consensusEl = document.getElementById('consensusItems');
+  const moreCon = document.getElementById('moreConsensus');
+  const conToggle = document.getElementById('consensusToggle');
+  const topFacts = sortedFacts.filter(f => f.outlets.length >= 5);
+  const showCount = Math.min(3, topFacts.length);
+  topFacts.forEach((f, i) => {
+    const html = '<div class="consensus-item"><div class="consensus-text">' + f.claim + '</div><div class="consensus-count">' + f.outlets.length + ' of ' + phase2.outlets.length + '</div></div>';
+    if (i < showCount) consensusEl.innerHTML += html;
+    else moreCon.innerHTML += html;
+  });
+  if (topFacts.length > showCount) {
+    conToggle.style.display = 'block';
+    conToggle.textContent = '+ ' + (topFacts.length - showCount) + ' more consensus points';
+    conToggle.onclick = function() {
+      if (moreCon.style.display === 'none') { moreCon.style.display = 'block'; this.textContent = 'Show fewer'; }
+      else { moreCon.style.display = 'none'; this.textContent = '+ ' + (topFacts.length - showCount) + ' more consensus points'; }
+    };
+  }
+
+  // === DIVERGENCE — top 3 axes by sourcing gap ===
+  const sortedAxes = [...axes].filter(ax => {
+    const pA = ax.opinions.find(o => o.pole === 'A');
+    const pB = ax.opinions.find(o => o.pole === 'B');
+    return pA && pB && pA.outlets.length > 0 && pB.outlets.length > 0;
+  }).sort((a,b) => {
+    const gapA = Math.abs(avgSq(a,'A') - avgSq(a,'B'));
+    const gapB = Math.abs(avgSq(b,'A') - avgSq(b,'B'));
+    return gapB - gapA;
+  }).slice(0, 3);
+
+  function avgSq(ax, pole) {
+    const op = ax.opinions.find(o => o.pole === pole);
+    if (!op || !op.outlets.length) return 0;
+    return op.outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / op.outlets.length;
+  }
+  function outletSide(outlets) {
+    const scores = outlets.map(o => biasScores[o.name]).filter(s => s !== undefined);
+    const avg = scores.length ? scores.reduce((a,b) => a+b, 0) / scores.length : 0;
+    if (avg > 0.3) return 'Right-leaning';
+    if (avg < -0.3) return 'Left-leaning';
+    return 'Mixed';
+  }
+
+  const divEl = document.getElementById('divergenceCards');
+  sortedAxes.forEach(ax => {
+    const c = centroids[ax.id];
+    const pA = ax.opinions.find(o => o.pole === 'A');
+    const pB = ax.opinions.find(o => o.pole === 'B');
+    const sqA = avgSq(ax,'A').toFixed(2);
+    const sqB = avgSq(ax,'B').toFixed(2);
+    const sideA = outletSide(pA.outlets);
+    const sideB = outletSide(pB.outlets);
+    const cert = c ? c.certainty : 'medium';
+    divEl.innerHTML +=
+      '<div class="divergence-card">' +
+      '<div class="axis-q" onclick="this.classList.toggle(\'open\');this.nextElementSibling.classList.toggle(\'open\')">' +
+      '<span>' + ax.axis + '</span><span class="cert-badge cert-' + cert + '">' + cert + '</span></div>' +
+      '<div class="axis-detail"><div class="axis-poles">' +
+      '<div class="axis-pole pole-a"><div class="pole-hdr">' + sideA + '</div>' + pA.stance.substring(0,100) +
+      '<div class="pole-src">' + pA.outlets.length + ' outlets · sourcing: ' + sqA + '</div></div>' +
+      '<div class="axis-pole pole-b"><div class="pole-hdr">' + sideB + '</div>' + pB.stance.substring(0,100) +
+      '<div class="pole-src">' + pB.outlets.length + ' outlets · sourcing: ' + sqB + '</div></div>' +
+      '</div>' +
+      (c ? '<div class="finding"><strong>Evidence:</strong> ' + c.centroid.substring(0,250) + '</div>' : '') +
+      '</div></div>';
+  });
+
+  // === BLIND SPOTS ===
+  const rightMissed = [], leftMissed = [];
+  facts.forEach(f => {
+    const scores = f.outlets.map(o => biasScores[o.name]).filter(s => s !== undefined);
+    if (!scores.length) return;
+    if (scores.every(s => s < 0)) rightMissed.push(f);
+    else if (scores.every(s => s > 0)) leftMissed.push(f);
+  });
+
+  const bsEl = document.getElementById('blindSpots');
+  let bsHtml = '<div class="bs-grid">';
+  bsHtml += '<div class="bs-card" style="border-top:3px solid #e8a06f;"><div class="bs-hdr" style="color:#e8a06f;">Right-leaning readers missed</div>';
+  rightMissed.slice(0,3).forEach((f,i) => {
+    bsHtml += '<div class="bs-item' + (i > 0 ? ' bs-sep' : '') + '"><div class="bs-claim">' + f.claim + '</div>' +
+      '<div class="bs-detail">' + f.outlets.length + ' outlet' + (f.outlets.length > 1 ? 's' : '') + ' reported this. No right-leaning outlet covered it.</div></div>';
+  });
+  bsHtml += '</div>';
+  bsHtml += '<div class="bs-card" style="border-top:3px solid #5b8af0;"><div class="bs-hdr" style="color:#5b8af0;">Left-leaning readers missed</div>';
+  leftMissed.slice(0,3).forEach((f,i) => {
+    bsHtml += '<div class="bs-item' + (i > 0 ? ' bs-sep' : '') + '"><div class="bs-claim">' + f.claim + '</div>' +
+      '<div class="bs-detail">' + f.outlets.length + ' outlet' + (f.outlets.length > 1 ? 's' : '') + ' reported this. No left-leaning outlet covered it.</div></div>';
+  });
+  bsHtml += '</div></div>';
+  bsEl.innerHTML = bsHtml;
 })();
 </script>
 {% endif %}
 
-{# --- Log polling (when this sample is being processed) --- #}
+{# --- Log polling --- #}
 {% if is_this_sample %}
 <script>
 (function() {
@@ -509,7 +535,6 @@
   const progressFill = document.getElementById('progress-fill');
   const progressText = document.getElementById('progress-text');
   if (!logPanel) return;
-
   let logOffset = 0;
   const poll = setInterval(async () => {
     try {
@@ -517,23 +542,16 @@
         fetch('/api/status'),
         fetch('/api/stories/{{ meta.id }}/log?after=' + logOffset),
       ]);
-
       const running = await statusResp.json();
       const info = running['{{ meta.id }}'];
-
       if (info) {
-        if (badge) badge.textContent = info.phase + '…';
+        if (badge) badge.textContent = info.phase + '\u2026';
         if (progressFill && info.total > 0) {
           const pct = Math.round((info.done / info.total) * 100);
           progressFill.style.width = pct + '%';
           if (progressText) progressText.textContent = info.done + ' / ' + info.total + ' articles';
         }
-      } else {
-        clearInterval(poll);
-        window.location.reload();
-        return;
-      }
-
+      } else { clearInterval(poll); window.location.reload(); return; }
       const data = await logResp.json();
       if (data.lines.length) {
         for (const line of data.lines) {
@@ -552,5 +570,4 @@
 })();
 </script>
 {% endif %}
-
 {% endblock %}

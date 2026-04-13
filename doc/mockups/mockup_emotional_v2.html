@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Emotional Engagement Mockup — What Are You Missing?</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --surface: #22223a; --border: #33335a;
+    --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0;
+    --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; padding: 0; margin: 0; }
+  .container { max-width: 780px; margin: 0 auto; padding: 24px; }
+  .hook { text-align: center; padding: 48px 24px 40px; background: linear-gradient(180deg, rgba(91,138,240,0.06) 0%, var(--bg) 100%); }
+  .hook-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 12px; }
+  .hook h1 { font-size: 28px; font-weight: 800; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 8px; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .hook-sub { font-size: 14px; color: var(--muted); margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto; }
+  .selector-prompt { font-size: 16px; font-weight: 600; margin-bottom: 16px; text-align: center; }
+  .outlet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-width: 640px; margin: 0 auto 12px; }
+  .outlet-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 10px; text-align: center; cursor: pointer; transition: all 0.15s; font-size: 13px; font-weight: 600; color: var(--text); user-select: none; }
+  .outlet-btn:hover { border-color: var(--accent); }
+  .outlet-btn.selected { border-color: var(--accent); background: rgba(91,138,240,0.12); box-shadow: 0 0 0 1px var(--accent); }
+  .outlet-btn .bias-tag { display: block; font-size: 9px; font-weight: 500; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .show-me-btn { display: block; margin: 20px auto 0; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 700; padding: 14px 40px; border-radius: 10px; cursor: pointer; transition: opacity 0.15s; opacity: 0.35; pointer-events: none; }
+  .show-me-btn.active { opacity: 1; pointer-events: auto; }
+  .show-me-btn.active:hover { opacity: 0.9; }
+  .result-panel { display: none; }
+  .result-panel.visible { display: block; animation: fadeUp 0.5s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .your-score { text-align: center; padding: 32px 24px 28px; border-bottom: 1px solid var(--border); }
+  .your-score-outlet { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 8px; }
+  .your-score-number { font-size: 72px; font-weight: 900; line-height: 1; letter-spacing: -0.03em; margin-bottom: 4px; }
+  .your-score-of { font-size: 16px; color: var(--muted); font-weight: 500; }
+  .your-score-label { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .split-section { margin-top: 28px; }
+  .split-header { display: flex; gap: 12px; margin-bottom: 16px; }
+  .split-tab { flex: 1; text-align: center; padding: 10px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.15s; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+  .split-tab.active-got { border-color: var(--green); color: var(--green); background: rgba(46,196,182,0.08); }
+  .split-tab.active-missed { border-color: var(--red); color: var(--red); background: rgba(231,76,60,0.08); }
+  .split-tab .tab-count { font-size: 22px; font-weight: 800; display: block; line-height: 1.2; }
+  .missed-list, .got-list { display: none; }
+  .missed-list.visible, .got-list.visible { display: block; }
+  .missed-item { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--red); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; }
+  .got-item { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; }
+  .item-claim { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+  .item-meta { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .item-meta .who-had { color: var(--yellow); }
+  .accuracy-prime { background: rgba(91,138,240,0.06); border: 1px solid rgba(91,138,240,0.15); border-radius: 10px; padding: 20px 24px; margin-top: 32px; text-align: center; }
+  .accuracy-prime h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .accuracy-prime p { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 500px; margin: 0 auto; }
+  .blindspot { margin-top: 32px; }
+  .blindspot h2 { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+  .blindspot-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .blindspot-label { font-size: 12px; font-weight: 600; width: 200px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .blindspot-track { flex: 1; height: 24px; background: rgba(136,136,168,0.08); border-radius: 4px; position: relative; overflow: hidden; }
+  .blindspot-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 10px; font-weight: 700; }
+  .blindspot-fill.full { background: rgba(46,196,182,0.4); color: var(--green); }
+  .blindspot-fill.partial { background: rgba(245,166,35,0.3); color: var(--yellow); }
+  .blindspot-fill.empty { background: rgba(231,76,60,0.25); color: var(--red); }
+  .mirror-teaser { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-top: 32px; text-align: center; }
+  .mirror-teaser h3 { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+  .mirror-teaser p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+  .mirror-teaser-example { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; text-align: left; margin-bottom: 16px; }
+  .mt-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 13px; line-height: 1.4; }
+  .mt-card-left { border-right: none; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  .mt-card-right { border-left: none; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+  .mt-vs { display: flex; align-items: center; justify-content: center; background: var(--bg); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 0 8px; font-size: 10px; font-weight: 800; color: var(--muted); }
+  .mt-pole { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .mt-pole-left { color: #6fa0e8; }
+  .mt-pole-right { color: #e8a06f; }
+  .mt-claim { font-weight: 600; }
+  .mt-sourcing { font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .mt-sourcing strong { color: var(--text); }
+  .cta-btn { background: var(--surface); border: 1px solid var(--border); color: var(--accent); font-size: 13px; font-weight: 600; padding: 10px 24px; border-radius: 8px; cursor: pointer; }
+  .cta-btn:hover { border-color: var(--accent); }
+  .footer-note { text-align: center; font-size: 11px; color: var(--muted); margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="hook">
+  <div class="hook-eyebrow">US-Iran Ceasefire</div>
+  <h1>Your news source covered 40 claims about this story. How many did you actually get?</h1>
+  <div class="hook-sub">13 outlets analyzed. 40 factual claims. 18 opinion axes. No single outlet covered more than 65%.</div>
+</div>
+<div class="container">
+<div class="selector-prompt">Where do you get your news?</div>
+<div class="outlet-grid" id="outletGrid">
+  <div class="outlet-btn" data-outlet="Fox News">Fox News<span class="bias-tag">Right</span></div>
+  <div class="outlet-btn" data-outlet="CNN">CNN<span class="bias-tag">Lean Left</span></div>
+  <div class="outlet-btn" data-outlet="MSNBC">MSNBC<span class="bias-tag">Left</span></div>
+  <div class="outlet-btn" data-outlet="CBS News">CBS News<span class="bias-tag">Lean Left</span></div>
+  <div class="outlet-btn" data-outlet="NBC News">NBC News<span class="bias-tag">Center</span></div>
+  <div class="outlet-btn" data-outlet="ABC News">ABC News<span class="bias-tag">Lean Left</span></div>
+  <div class="outlet-btn" data-outlet="NPR">NPR<span class="bias-tag">Lean Left</span></div>
+  <div class="outlet-btn" data-outlet="PBS">PBS<span class="bias-tag">Center</span></div>
+  <div class="outlet-btn" data-outlet="Washington Post">Washington Post<span class="bias-tag">Lean Left</span></div>
+  <div class="outlet-btn" data-outlet="Breitbart">Breitbart<span class="bias-tag">Right</span></div>
+  <div class="outlet-btn" data-outlet="Daily Wire">Daily Wire<span class="bias-tag">Right</span></div>
+  <div class="outlet-btn" data-outlet="The Federalist">The Federalist<span class="bias-tag">Right</span></div>
+</div>
+<button class="show-me-btn" id="showMeBtn">Show me what I'm missing</button>
+<div class="result-panel" id="resultPanel">
+  <div class="your-score">
+    <div class="your-score-outlet" id="yourOutletName"></div>
+    <div class="your-score-number" id="yourScoreNum"></div>
+    <div class="your-score-of">of 40 claims</div>
+    <div class="your-score-label" id="yourScoreLabel"></div>
+  </div>
+  <div class="split-section">
+    <div class="split-header">
+      <div class="split-tab active-got" id="tabGot" onclick="showTab('got')"><span class="tab-count" id="gotCount"></span>You got</div>
+      <div class="split-tab" id="tabMissed" onclick="showTab('missed')"><span class="tab-count" id="missedCount"></span>You missed</div>
+    </div>
+    <div class="got-list visible" id="gotList"></div>
+    <div class="missed-list" id="missedList"></div>
+  </div>
+  <div class="blindspot">
+    <h2>Your coverage by topic</h2>
+    <div id="blindspotBars"></div>
+  </div>
+  <div class="accuracy-prime">
+    <h3>Before you scroll further, ask yourself:</h3>
+    <p>Of the claims your outlet <em>did</em> cover, how many were corroborated by 3+ independent sources versus repeated from a single official? The number of claims matters less than the quality of sourcing behind them.</p>
+  </div>
+  <div class="mirror-teaser">
+    <h3>The biggest contradiction no single outlet showed you</h3>
+    <div class="mirror-teaser-example">
+      <div class="mt-card mt-card-left"><div class="mt-pole mt-pole-left">Right-leaning outlets say</div><div class="mt-claim">"Strikes completely obliterated Iran's nuclear program"</div><div class="mt-sourcing"><strong>4</strong> outlets, <strong>0</strong> independent verification</div></div>
+      <div class="mt-vs">VS</div>
+      <div class="mt-card mt-card-right"><div class="mt-pole mt-pole-right">Left-leaning outlets say</div><div class="mt-claim">"Strikes only set program back 3-6 months"</div><div class="mt-sourcing"><strong>1</strong> outlet, <strong>1</strong> leaked DIA assessment</div></div>
+    </div>
+    <p>Neither claim is well-sourced. One repeats government assertions with no verification. The other relies on a single leaked preliminary report. No outlet presented both claims side-by-side.</p>
+    <button class="cta-btn">See all 18 contested opinion axes</button>
+  </div>
+  <div class="footer-note">Data from 13 outlets, April 9 2026. Claims extracted and cross-referenced by AI pipeline.<br>Bias labels via AllSides Media Bias Ratings. Used for display only, not as analytical input.</div>
+</div>
+</div>
+<script>
+const CLAIMS=[{id:"F-001",text:"US and Iran agreed to a two-week ceasefire, announced by Trump on Truth Social.",outlets:["CBS News","CNN","Breitbart","Fox News","NBC News","NPR","PBS","Washington Post","White House"],topic:"Ceasefire"},{id:"F-002",text:"Ceasefire mediated by Pakistan's PM Sharif and Field Marshal Munir.",outlets:["CBS News","CNN","Fox News","NBC News","NPR"],topic:"Ceasefire"},{id:"F-003",text:"Iran submitted a 10-point peace proposal, initially called 'workable' by Trump.",outlets:["Breitbart","CBS News","CNN","Fox News","NBC News","NPR","PBS","Washington Post"],topic:"Ceasefire"},{id:"F-004",text:"Iran's plan includes: Strait of Hormuz control, US withdrawal, sanctions relief, enrichment rights.",outlets:["CBS News","CNN","Fox News","NBC News","NPR","PBS","Washington Post"],topic:"Ceasefire"},{id:"F-005",text:"White House rejected Iran's 10-point plan; Leavitt said it was 'thrown in the garbage.'",outlets:["NPR","Fox News"],topic:"Ceasefire"},{id:"F-006",text:"Netanyahu's office stated ceasefire does not cover Lebanon.",outlets:["CBS News","CNN","Fox News","NBC News","NPR"],topic:"Lebanon"},{id:"F-007",text:"Pakistan and Iran say ceasefire covers Lebanon, contradicting Israel.",outlets:["CBS News","CNN","Fox News","NPR"],topic:"Lebanon"},{id:"F-008",text:"Operation Epic Fury launched Feb 28, 2026; ceasefire after 38 days of combat.",outlets:["Fox News","White House","NBC News","PBS","Washington Post"],topic:"Military"},{id:"F-009",text:"June 2025: US launched Operation Midnight Hammer, striking Natanz, Fordow, Isfahan.",outlets:["ABC News","Breitbart","Daily Wire","Fox News","NBC News","PBS","Washington Post","White House"],topic:"Military"},{id:"F-010",text:"US and Israeli strikes killed Supreme Leader Khamenei; succeeded by son Mojtaba.",outlets:["PBS","Washington Post","Fox News"],topic:"Military"},{id:"F-011",text:"US struck 13,000+ targets including 4,000+ dynamic targets.",outlets:["Fox News","White House"],topic:"Military"},{id:"F-012",text:"CENTCOM destroyed ~150 Iranian warships, effectively sinking their navy.",outlets:["Fox News","PBS","Washington Post","White House"],topic:"Military"},{id:"F-013",text:"80-85% of Iran's defense industrial base and air defense destroyed.",outlets:["Fox News","White House"],topic:"Military"},{id:"F-014",text:"Strait of Hormuz carries ~20% of world oil; Iran blockaded it during war.",outlets:["CBS News","CNN","NBC News","NPR","PBS","Washington Post","The Federalist"],topic:"Economic"},{id:"F-015",text:"Iran charged transit fees up to $2M per vessel through Strait.",outlets:["CBS News","NPR","PBS","Washington Post"],topic:"Economic"},{id:"F-016",text:"US gas prices rose to $4.14/gal from $2.98 before the war.",outlets:["CBS News","CNN","Fox News","NBC News","NPR","PBS","Washington Post"],topic:"Economic"},{id:"F-017",text:"Ceasefire triggered 13% drop in Brent crude to ~$95/barrel.",outlets:["CBS News","CNN","Fox News","NBC News"],topic:"Economic"},{id:"F-018",text:"Dow surged 1,300+ points after ceasefire.",outlets:["CBS News","CNN","Fox News"],topic:"Economic"},{id:"F-019",text:"Russia and China vetoed UN resolution to reopen Strait of Hormuz (11-2-2).",outlets:["CBS News","NPR","PBS","Washington Post"],topic:"Economic"},{id:"F-020",text:"Iran launched 5,000+ drones, 2,100+ ballistic missiles, 50+ cruise missiles.",outlets:["Fox News","White House","NBC News","PBS"],topic:"Military"},{id:"F-021",text:"~3,400 killed in Iran including 1,600+ civilians (HRANA).",outlets:["NBC News"],topic:"Humanitarian"},{id:"F-022",text:"23 killed in Israel; 13 US service members dead.",outlets:["NBC News","Fox News","White House"],topic:"Humanitarian"},{id:"F-023",text:"~50,000 US troops remain deployed, including two carrier strike groups.",outlets:["Fox News","White House","PBS"],topic:"Military"},{id:"F-024",text:"Joint FBI/NSA/DOE/EPA warning: Iranian hackers targeting US infrastructure.",outlets:["NBC News","CNN"],topic:"Security"},{id:"F-025",text:"Israel launched 100 strikes in 10 min in Beirut after ceasefire, 250+ killed in one day.",outlets:["CBS News","CNN","NPR","NBC News","PBS"],topic:"Lebanon"},{id:"F-026",text:"1,500+ killed in Israeli strikes on Lebanon total (health ministry).",outlets:["CBS News","NPR","NBC News"],topic:"Lebanon"},{id:"F-027",text:"Three journalists killed in Israeli strikes on Lebanon.",outlets:["NPR"],topic:"Lebanon"},{id:"F-028",text:"1M+ displaced in Lebanon from Israeli strikes.",outlets:["CBS News","CNN","NPR","NBC News"],topic:"Lebanon"},{id:"F-029",text:"DIA assessment: June 2025 strikes set nuclear program back only 3-6 months.",outlets:["MSNBC"],topic:"Military"},{id:"F-030",text:"Iran's HEU remains in-country, likely entombed at bombed sites.",outlets:["MSNBC","NBC News","PBS"],topic:"Military"},{id:"F-031",text:"Peace talks scheduled in Islamabad; VP Vance leads US delegation.",outlets:["CBS News","CNN","Fox News","NPR","PBS","Washington Post"],topic:"Ceasefire"},{id:"F-032",text:"Ceasefire violations reported within 24 hours.",outlets:["CBS News","CNN","NPR"],topic:"Ceasefire"},{id:"F-033",text:"Trump posted 'a whole civilization will die tonight' before deadline.",outlets:["MSNBC","ABC News","CBS News","CNN","NBC News"],topic:"Domestic"},{id:"F-034",text:"Pelosi called for 25th Amendment invocation.",outlets:["MSNBC","ABC News","CBS News"],topic:"Domestic"},{id:"F-035",text:"Pope Leo XIV called Trump's threats 'truly unacceptable' and the war 'unjust.'",outlets:["NPR","CBS News"],topic:"Domestic"},{id:"F-036",text:"Schumer called Trump 'a military moron'; cited $44B war cost.",outlets:["CBS News","CNN"],topic:"Domestic"},{id:"F-037",text:"Congress rejected multiple war powers resolutions along party lines.",outlets:["MSNBC","ABC News"],topic:"Domestic"},{id:"F-038",text:"Trump's approval ratings declined during the conflict.",outlets:["CBS News","CNN"],topic:"Domestic"},{id:"F-039",text:"50+ new Polymarket accounts made well-timed ceasefire bets; flagged as disputed.",outlets:["CNN","NBC News"],topic:"Economic"},{id:"F-040",text:"Saudi Arabia, Kuwait, Bahrain, UAE reported Iranian strikes on oil facilities/airports.",outlets:["CBS News","Fox News","PBS","Washington Post"],topic:"Military"}];
+const TOPICS=["Ceasefire","Military","Lebanon","Economic","Domestic","Humanitarian","Security"];
+const TOPIC_LABELS={Ceasefire:"Ceasefire & Peace Talks",Military:"Military Operations",Lebanon:"Israel-Lebanon Escalation",Economic:"Economic Impact",Domestic:"Domestic Political Fallout",Humanitarian:"Humanitarian Toll",Security:"Cyber & Security"};
+let selectedOutlet=null;
+document.querySelectorAll('.outlet-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.outlet-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');selectedOutlet=btn.dataset.outlet;document.getElementById('showMeBtn').classList.add('active')})});
+document.getElementById('showMeBtn').addEventListener('click',()=>{if(!selectedOutlet)return;renderResults(selectedOutlet)});
+function renderResults(outlet){const got=CLAIMS.filter(c=>c.outlets.includes(outlet)),missed=CLAIMS.filter(c=>!c.outlets.includes(outlet));document.getElementById('yourOutletName').textContent=outlet;const sn=document.getElementById('yourScoreNum');sn.textContent=got.length;const pct=Math.round(got.length/CLAIMS.length*100);sn.style.color=pct>=50?'var(--yellow)':'var(--red)';document.getElementById('yourScoreLabel').textContent=outlet+' covered '+pct+'% of the verifiable claims in this story';document.getElementById('gotCount').textContent=got.length;document.getElementById('missedCount').textContent=missed.length;const gl=document.getElementById('gotList');gl.innerHTML='';got.forEach(c=>{gl.innerHTML+='<div class="got-item"><div class="item-claim">'+c.text+'</div><div class="item-meta">'+c.outlets.length+' outlet'+(c.outlets.length>1?'s':'')+' total</div></div>'});const ml=document.getElementById('missedList');ml.innerHTML='';missed.forEach(c=>{const others=c.outlets.filter(o=>o!==outlet),str=others.length>3?others.slice(0,3).join(', ')+' +'+(others.length-3)+' more':others.join(', ');ml.innerHTML+='<div class="missed-item"><div class="item-claim">'+c.text+'</div><div class="item-meta">Covered by: <span class="who-had">'+str+'</span></div></div>'});const bb=document.getElementById('blindspotBars');bb.innerHTML='';TOPICS.forEach(topic=>{const tc=CLAIMS.filter(c=>c.topic===topic),tg=tc.filter(c=>c.outlets.includes(outlet)),total=tc.length,covered=tg.length,p=total>0?Math.round(covered/total*100):0;let cls='full';if(p<30)cls='empty';else if(p<70)cls='partial';bb.innerHTML+='<div class="blindspot-bar"><div class="blindspot-label">'+(TOPIC_LABELS[topic]||topic)+'</div><div class="blindspot-track"><div class="blindspot-fill '+cls+'" style="width:'+p+'%;">'+covered+'/'+total+'</div></div></div>'});document.getElementById('resultPanel').classList.add('visible');document.querySelector('.your-score').scrollIntoView({behavior:'smooth',block:'start'});showTab('missed')}
+function showTab(w){const tg=document.getElementById('tabGot'),tm=document.getElementById('tabMissed'),gl=document.getElementById('gotList'),ml=document.getElementById('missedList');if(w==='got'){tg.className='split-tab active-got';tm.className='split-tab';gl.classList.add('visible');ml.classList.remove('visible')}else{tm.className='split-tab active-missed';tg.className='split-tab';ml.classList.add('visible');gl.classList.remove('visible')}}
+</script>
+</body>
+</html>

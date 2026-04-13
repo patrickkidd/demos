@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Sample Page Mockup — Proposed Changes</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --surface: #22223a; --border: #33335a;
+    --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0;
+    --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 10px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+  h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .section { margin-bottom: 28px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+  .muted { color: var(--muted); }
+  .article-meta { display: flex; gap: 16px; font-size: 12px; color: var(--muted); padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+
+  /* Annotation callouts */
+  .annotation {
+    background: rgba(91,138,240,0.08); border: 1px dashed var(--accent);
+    border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;
+    font-size: 13px; color: var(--accent); line-height: 1.5;
+  }
+  .annotation strong { color: #7ba4f7; }
+  .annotation .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; display: block; }
+
+  /* Coverage matrix */
+  .coverage-matrix { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .coverage-matrix th { text-align: left; padding: 6px 8px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .coverage-matrix th.outlet-col { writing-mode: vertical-lr; text-orientation: mixed; transform: rotate(180deg); min-width: 28px; text-align: center; padding: 8px 2px; height: 90px; }
+  .coverage-matrix td { padding: 4px 8px; border-bottom: 1px solid rgba(51,51,90,0.4); text-align: center; }
+  .coverage-matrix td.dev-label { text-align: left; font-weight: 600; color: var(--text); font-size: 12px; white-space: nowrap; }
+  .cov-dot { display: inline-block; width: 16px; height: 16px; border-radius: 3px; font-size: 9px; font-weight: 700; line-height: 16px; text-align: center; }
+  .cov-high { background: rgba(46,196,182,0.3); color: #2ec4b6; }
+  .cov-mid { background: rgba(46,196,182,0.15); color: #2ec4b6; }
+  .cov-low { background: rgba(245,166,35,0.15); color: #f5a623; }
+  .cov-none { background: rgba(231,76,60,0.08); color: var(--red); font-size: 8px; }
+
+  /* Verification tiers */
+  .tier-badge { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 3px; margin-right: 6px; }
+  .tier-corroborated { background: rgba(46,196,182,0.2); color: #2ec4b6; }
+  .tier-attributed { background: rgba(245,166,35,0.2); color: #f5a623; }
+  .tier-unverified { background: rgba(231,76,60,0.2); color: #e74c3c; }
+  .tier-contested { background: rgba(91,138,240,0.2); color: #5b8af0; }
+
+  .fact-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; }
+  .fact-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .fact-sourcing { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .source-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; margin: 2px 2px 2px 0; }
+  .source-badge-fact { background: rgba(46,196,182,0.2); color: #2ec4b6; }
+
+  /* Opinion cards / spectrum — kept from current design */
+  .opinion-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 14px; }
+  .opinion-card h4 { font-size: 14px; margin-bottom: 12px; }
+  .pole-descriptions { display: flex; gap: 16px; margin-bottom: 6px; }
+  .pole-desc { flex: 1; font-size: 12px; line-height: 1.4; }
+  .pole-desc-a { color: #2ec4b6; text-align: left; }
+  .pole-desc-b { color: #f5a623; text-align: right; }
+  .spectrum-bar { position: relative; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; min-height: 32px; }
+  .spectrum-bar .center-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--border); }
+  .spectrum-row { position: relative; height: 24px; }
+  .spectrum-outlet { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 600; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+  .spectrum-outlet-a { background: rgba(46,196,182,0.2); color: #2ec4b6; }
+  .spectrum-outlet-b { background: rgba(245,166,35,0.2); color: #f5a623; }
+
+  /* Sourcing scorecard — replaces centroid prose */
+  .scorecard { display: flex; gap: 12px; margin-top: 10px; }
+  .scorecard-pole { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 11px; }
+  .scorecard-pole h5 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .scorecard-pole-a h5 { color: #2ec4b6; }
+  .scorecard-pole-b h5 { color: #f5a623; }
+  .scorecard-stat { display: flex; justify-content: space-between; padding: 2px 0; }
+  .scorecard-stat .label { color: var(--muted); }
+  .scorecard-stat .value { color: var(--text); font-weight: 600; }
+  .scorecard-vs { display: flex; align-items: center; color: var(--muted); font-size: 10px; font-weight: 700; padding: 0 4px; }
+
+  /* Dev selector */
+  .dev-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; text-align: left; cursor: pointer; transition: border-color 0.15s; margin-bottom: 6px; }
+  .dev-btn:hover { border-color: var(--accent); }
+  .dev-btn.active { border-color: var(--accent); background: rgba(91,138,240,0.08); }
+  .dev-btn-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .dev-btn-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .centroid-article p { margin-bottom: 12px; line-height: 1.7; }
+  .centroid-article p:last-child { margin-bottom: 0; }
+
+  .old-new { display: flex; gap: 20px; margin-bottom: 20px; }
+  .old-new > div { flex: 1; }
+  .label-old { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--red); letter-spacing: 0.08em; margin-bottom: 8px; }
+  .label-new { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--green); letter-spacing: 0.08em; margin-bottom: 8px; }
+  .strikethrough { text-decoration: line-through; opacity: 0.5; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- HEADER — unchanged -->
+<!-- ============================================================ -->
+<div class="section">
+  <a href="#" class="muted" style="font-size:13px;">← US-Iran Relations</a>
+</div>
+
+<div class="section" style="margin-bottom:8px;">
+  <h1>US-Iran Ceasefire Holds Amid Violations, Lebanon Escalation, and Unresolved Nuclear Dispute</h1>
+  <div class="article-meta">
+    <span>2026-04-09</span>
+    <span>13 sources analyzed</span>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHANGE 1: Bias Summary → Coverage Matrix -->
+<!-- ============================================================ -->
+
+<div class="annotation">
+  <span class="label">Change 1 — Replace bias summary with coverage matrix</span>
+  <strong>Before:</strong> Free-form LLM prose naming outlets with asymmetric language ("downplaying," "foregrounded," "echoed talking points").<br>
+  <strong>After:</strong> Mechanical grid computed from Phase 2 data. Shows what each outlet covered, not how Claude characterizes them. Reader draws own conclusions about omissions.
+</div>
+
+<div class="section">
+  <h2>Source Coverage</h2>
+  <div class="card" style="overflow-x:auto;padding:12px;">
+    <table class="coverage-matrix">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="outlet-col">ABC News</th>
+          <th class="outlet-col">Breitbart</th>
+          <th class="outlet-col">CBS News</th>
+          <th class="outlet-col">CNN</th>
+          <th class="outlet-col">Daily Wire</th>
+          <th class="outlet-col">Federalist</th>
+          <th class="outlet-col">Fox News</th>
+          <th class="outlet-col">MSNBC</th>
+          <th class="outlet-col">NBC News</th>
+          <th class="outlet-col">NPR</th>
+          <th class="outlet-col">PBS</th>
+          <th class="outlet-col">Wash Post</th>
+          <th class="outlet-col">White House</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="dev-label">Ceasefire &amp; peace talks</td>
+          <td><span class="cov-dot cov-low">1</span></td>
+          <td><span class="cov-dot cov-mid">4</span></td>
+          <td><span class="cov-dot cov-high">8</span></td>
+          <td><span class="cov-dot cov-high">8</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-high">9</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-high">7</span></td>
+          <td><span class="cov-dot cov-mid">6</span></td>
+          <td><span class="cov-dot cov-mid">5</span></td>
+          <td><span class="cov-dot cov-mid">5</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+        </tr>
+        <tr>
+          <td class="dev-label">Military &amp; damage assessment</td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">1</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">1</span></td>
+          <td><span class="cov-dot cov-high">9</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-mid">5</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-mid">5</span></td>
+          <td><span class="cov-dot cov-mid">5</span></td>
+          <td><span class="cov-dot cov-mid">5</span></td>
+        </tr>
+        <tr>
+          <td class="dev-label">Domestic political fallout</td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-low">1</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">1</span></td>
+          <td><span class="cov-dot cov-low">1</span></td>
+          <td><span class="cov-dot cov-low">1</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-low">1</span></td>
+        </tr>
+        <tr>
+          <td class="dev-label">Economic &amp; Strait of Hormuz</td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-low">1</span></td>
+          <td><span class="cov-dot cov-low">1</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+        </tr>
+        <tr>
+          <td class="dev-label">Israel-Lebanon escalation</td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-low">2</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+          <td><span class="cov-dot cov-none">–</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;">
+      Numbers = facts + opinions covered. Color: <span style="color:#2ec4b6;">green</span> = 5+, <span style="color:#f5a623;">yellow</span> = 1-4, <span style="color:var(--red);">–</span> = no coverage.
+    </p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHANGE 2: Facts with verification tiers -->
+<!-- ============================================================ -->
+
+<div class="annotation">
+  <span class="label">Change 2 — Facts tagged by verification tier</span>
+  <strong>Before:</strong> Facts listed with outlet badges but no indication of sourcing strength. A single-source anonymous claim looked identical to a 9-outlet named-source fact.<br>
+  <strong>After:</strong> Each fact gets a mechanical tier badge computed from outlet count + sourcing levels. No LLM judgment involved — pure counting.
+  <ul style="margin-top:6px;">
+    <li><strong>Corroborated:</strong> 3+ outlets AND 2+ named/institutional sources</li>
+    <li><strong>Attributed:</strong> 1-2 outlets with at least one named/institutional source</li>
+    <li><strong>Contested:</strong> Sources directly contradict each other on this claim</li>
+    <li><strong>Unverified:</strong> Anonymous or unsourced, single outlet</li>
+  </ul>
+</div>
+
+<div class="section">
+  <h2>Key Developments</h2>
+  <div style="margin-bottom:16px;">
+    <div class="dev-btn active">
+      <div class="dev-btn-label">Ceasefire deal and peace talk preparations</div>
+      <div class="dev-btn-meta">12 outlets · 10 facts · 5 opinions</div>
+    </div>
+  </div>
+
+  <h3>Facts</h3>
+
+  <div class="fact-card">
+    <h4>
+      <span class="tier-badge tier-corroborated">Corroborated</span>
+      The US and Iran agreed to a two-week ceasefire on approximately April 7-8, 2026, announced by Trump on Truth Social.
+    </h4>
+    <div style="margin-top:6px;">
+      <span class="source-badge source-badge-fact">CBS News</span>
+      <span class="source-badge source-badge-fact">CNN</span>
+      <span class="source-badge source-badge-fact">Breitbart</span>
+      <span class="source-badge source-badge-fact">Fox News</span>
+      <span class="source-badge source-badge-fact">NBC News</span>
+      <span class="source-badge source-badge-fact">NPR</span>
+      <span class="source-badge source-badge-fact">PBS</span>
+      <span class="source-badge source-badge-fact">Wash Post</span>
+      <span class="source-badge source-badge-fact">White House</span>
+    </div>
+    <div class="fact-sourcing">9 outlets · 5 named primary, 4 unsourced</div>
+  </div>
+
+  <div class="fact-card">
+    <h4>
+      <span class="tier-badge tier-attributed">Attributed</span>
+      The White House later rejected Iran's 10-point plan; Leavitt said it was "literally thrown in the garbage by President Trump."
+    </h4>
+    <div style="margin-top:6px;">
+      <span class="source-badge source-badge-fact">NPR</span>
+      <span class="source-badge source-badge-fact">Fox News</span>
+    </div>
+    <div class="fact-sourcing">2 outlets · 2 named primary</div>
+  </div>
+
+  <div class="fact-card">
+    <h4>
+      <span class="tier-badge tier-unverified">Unverified</span>
+      The US military struck more than 13,000 targets during Operation Epic Fury, including 4,000+ dynamic targets.
+    </h4>
+    <div style="margin-top:6px;">
+      <span class="source-badge source-badge-fact">Fox News</span>
+      <span class="source-badge source-badge-fact">White House</span>
+    </div>
+    <div class="fact-sourcing">2 outlets · 1 named primary, 1 unsourced · not independently verifiable</div>
+  </div>
+
+  <div class="fact-card">
+    <h4>
+      <span class="tier-badge tier-contested">Contested</span>
+      A leaked DIA assessment found strikes set Iran's nuclear program back only 3-6 months — contradicting admin claims of total destruction.
+    </h4>
+    <div style="margin-top:6px;">
+      <span class="source-badge source-badge-fact">MSNBC</span>
+    </div>
+    <div class="fact-sourcing">1 outlet · 1 anonymous source · contradicts F-013 (admin claim from Fox News, White House)</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHANGE 3: Opinion card with sourcing scorecard -->
+<!-- ============================================================ -->
+
+<div class="annotation">
+  <span class="label">Change 3 — Sourcing scorecard replaces centroid prose</span>
+  <strong>Before:</strong> A "Fact Check" toggle opened LLM-written centroid text like "the DIA finding represents a higher-quality evidentiary basis than presidential assertions alone" — subjective language presented as objective analysis.<br>
+  <strong>After:</strong> A structured scorecard showing raw numbers for each pole. The opinion spectrum visualization is <strong>kept unchanged</strong> — it's already mechanical (position = intensity score). The scorecard sits below it instead of the centroid prose.
+</div>
+
+<div class="section">
+  <h3>Opinions</h3>
+
+  <div class="opinion-card">
+    <h4>Was the ceasefire a US or Iranian victory?</h4>
+
+    <div class="pole-descriptions">
+      <div class="pole-desc pole-desc-a">The ceasefire represents a total US/military victory achieved through overwhelming force</div>
+      <div class="pole-desc pole-desc-b">The ceasefire represents an Iranian victory or forced US retreat driven by political desperation</div>
+    </div>
+
+    <!-- Spectrum bar — KEPT from current design, unchanged -->
+    <div class="spectrum-bar">
+      <div class="center-line"></div>
+      <!-- CNN and Fox appear on both poles — shown as spans -->
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-a" style="left:23%;">CNN</span>
+        <span class="spectrum-outlet spectrum-outlet-b" style="left:86%;">CNN</span>
+      </div>
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-a" style="left:14%;">Fox News</span>
+        <span class="spectrum-outlet spectrum-outlet-b" style="left:86%;">Fox News</span>
+      </div>
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-a" style="left:14%;">White House</span>
+      </div>
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-a" style="left:23%;">Breitbart</span>
+      </div>
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-b" style="left:86%;">CBS News</span>
+      </div>
+    </div>
+
+    <!-- NEW: Sourcing scorecard — mechanical, no LLM prose -->
+    <div class="scorecard">
+      <div class="scorecard-pole scorecard-pole-a">
+        <h5>Pole A — US Victory</h5>
+        <div class="scorecard-stat"><span class="label">Outlets</span><span class="value">4</span></div>
+        <div class="scorecard-stat"><span class="label">Avg intensity</span><span class="value">3.5 / 5</span></div>
+        <div class="scorecard-stat"><span class="label">Avg sourcing quality</span><span class="value">0.25</span></div>
+        <div class="scorecard-stat"><span class="label">Speaker type</span><span class="value">3 quoted, 1 editorial</span></div>
+      </div>
+      <div class="scorecard-vs">vs</div>
+      <div class="scorecard-pole scorecard-pole-b">
+        <h5>Pole B — Iran Victory</h5>
+        <div class="scorecard-stat"><span class="label">Outlets</span><span class="value">3</span></div>
+        <div class="scorecard-stat"><span class="label">Avg intensity</span><span class="value">4.0 / 5</span></div>
+        <div class="scorecard-stat"><span class="label">Avg sourcing quality</span><span class="value">0.23</span></div>
+        <div class="scorecard-stat"><span class="label">Speaker type</span><span class="value">3 quoted</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Second example axis -->
+  <div class="opinion-card">
+    <h4>Were US strikes effective at destroying Iran's nuclear program?</h4>
+
+    <div class="pole-descriptions">
+      <div class="pole-desc pole-desc-a">Administration claims strikes completely obliterated Iran's nuclear sites and program</div>
+      <div class="pole-desc pole-desc-b">A leaked DIA assessment found the strikes set Iran's nuclear program back only 3-6 months</div>
+    </div>
+
+    <div class="spectrum-bar">
+      <div class="center-line"></div>
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-a" style="left:5%;">Fox News</span>
+      </div>
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-a" style="left:5%;">White House</span>
+      </div>
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-a" style="left:14%;">Daily Wire</span>
+      </div>
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-b" style="left:86%;">MSNBC</span>
+      </div>
+      <div style="position:relative;height:24px;">
+        <span class="spectrum-outlet spectrum-outlet-b" style="left:77%;">ABC News</span>
+      </div>
+    </div>
+
+    <div class="scorecard">
+      <div class="scorecard-pole scorecard-pole-a">
+        <h5>Pole A — Total Destruction</h5>
+        <div class="scorecard-stat"><span class="label">Outlets</span><span class="value">3</span></div>
+        <div class="scorecard-stat"><span class="label">Avg intensity</span><span class="value">4.3 / 5</span></div>
+        <div class="scorecard-stat"><span class="label">Avg sourcing quality</span><span class="value">0.27</span></div>
+        <div class="scorecard-stat"><span class="label">Speaker type</span><span class="value">2 quoted, 1 editorial</span></div>
+      </div>
+      <div class="scorecard-vs">vs</div>
+      <div class="scorecard-pole scorecard-pole-b">
+        <h5>Pole B — 3-6 Month Setback</h5>
+        <div class="scorecard-stat"><span class="label">Outlets</span><span class="value">2</span></div>
+        <div class="scorecard-stat"><span class="label">Avg intensity</span><span class="value">3.5 / 5</span></div>
+        <div class="scorecard-stat"><span class="label">Avg sourcing quality</span><span class="value">0.70</span></div>
+        <div class="scorecard-stat"><span class="label">Speaker type</span><span class="value">2 quoted</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHANGE 4: Summary relabeled and restructured -->
+<!-- ============================================================ -->
+
+<div class="annotation">
+  <span class="label">Change 4 — AI Synthesis label + verification tiers in narrative</span>
+  <strong>Before:</strong> The centroid article was presented like authoritative reporting — no indication it was LLM-generated, no distinction between verified and unverified claims within the narrative.<br>
+  <strong>After:</strong> Explicitly labeled "AI Synthesis." Optionally, key claims in the narrative inherit their verification tier from the facts tab via inline markers. This is a lighter touch — the summary still reads as prose, but the reader knows (a) it's AI-generated and (b) which claims have strong vs weak sourcing.
+</div>
+
+<div class="section">
+  <details>
+    <summary style="font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;">
+      AI Synthesis
+      <span style="font-size:11px;font-weight:400;margin-left:8px;">— generated from structured data above, not editorial</span>
+    </summary>
+    <div style="margin-top:16px;">
+      <div class="card centroid-article">
+        <p>The United States and Iran agreed to a two-week ceasefire on approximately April 7-8, mediated by Pakistani Prime Minister Shehbaz Sharif and Field Marshal Asim Munir, ending 38 days of combat operations that began with Operation Epic Fury on February 28, 2026. President Trump announced the deal on Truth Social, calling it a "total and complete victory," while Iran's Supreme National Security Council described it as an "enduring defeat" for Washington. Peace talks are scheduled to begin this weekend in Islamabad, with Vice President Vance leading the US delegation. However, ceasefire violations were reported within 24 hours, and the agreement's durability is widely assessed as fragile.</p>
+
+        <p>The conflict's origins trace to June 2025, when the US launched Operation Midnight Hammer, striking Iranian nuclear facilities at Natanz, Fordow, and Isfahan. Pentagon officials reported destroying more than 13,000 targets <span class="tier-badge tier-unverified" style="font-size:9px;">Unverified</span>, sinking approximately 150 Iranian warships, and degrading 80-85 percent of Iran's defense industrial base. A preliminary Defense Intelligence Agency assessment, leaked to media, concluded the June 2025 nuclear strikes set Iran's program back by only three to six months <span class="tier-badge tier-unverified" style="font-size:9px;">1 source</span> — a finding that directly contradicts the administration's claim of total destruction.</p>
+
+        <p>Whether US military objectives were met depends on which objectives are measured. Pentagon metrics show significant destruction of Iranian military capacity, but the Iranian government survived, its nuclear material remains in-country, and the 10-point Iranian peace proposal shaped the framework for upcoming talks even after the White House publicly rejected it.</p>
+      </div>
+    </div>
+  </details>
+</div>
+
+<!-- ============================================================ -->
+<!-- SUMMARY OF ALL CHANGES -->
+<!-- ============================================================ -->
+
+<div class="section" style="margin-top:48px;border-top:2px solid var(--accent);padding-top:24px;">
+  <h2 style="color:var(--accent);">Summary of Changes</h2>
+  <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:12px;">
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 12px;color:var(--red);font-weight:600;width:35%;">Bias summary (LLM prose)</td>
+      <td style="padding:10px 4px;color:var(--muted);">→</td>
+      <td style="padding:10px 12px;color:var(--green);font-weight:600;">Coverage matrix (mechanical)</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 12px;color:var(--red);font-weight:600;">Facts without sourcing tiers</td>
+      <td style="padding:10px 4px;color:var(--muted);">→</td>
+      <td style="padding:10px 12px;color:var(--green);font-weight:600;">Facts with verification badges (computed)</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 12px;color:var(--red);font-weight:600;">Centroid prose ("Fact Check")</td>
+      <td style="padding:10px 4px;color:var(--muted);">→</td>
+      <td style="padding:10px 12px;color:var(--green);font-weight:600;">Sourcing scorecard (raw numbers)</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 12px;color:var(--red);font-weight:600;">Opinion spectrum</td>
+      <td style="padding:10px 4px;color:var(--muted);">→</td>
+      <td style="padding:10px 12px;color:var(--text);font-weight:600;">Kept unchanged</td>
+    </tr>
+    <tr>
+      <td style="padding:10px 12px;color:var(--red);font-weight:600;">Centroid article (unlabeled)</td>
+      <td style="padding:10px 4px;color:var(--muted);">→</td>
+      <td style="padding:10px 12px;color:var(--green);font-weight:600;">Labeled "AI Synthesis" + inline tier markers</td>
+    </tr>
+  </table>
+</div>
+
+</body>
+</html>

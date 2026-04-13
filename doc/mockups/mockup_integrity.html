@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Integrity View — Transparent Analysis</title>
+<style>
+  :root { --bg: #1a1a2e; --surface: #22223a; --border: #33335a; --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0; --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
+  h2 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+  .article-meta { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+  .section { margin-bottom: 32px; }
+  .method-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(91,138,240,0.08); border: 1px solid rgba(91,138,240,0.2); border-radius: 6px; padding: 6px 12px; font-size: 11px; color: var(--accent); margin-bottom: 16px; }
+  .method-badge .icon { font-weight: 800; font-size: 13px; }
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .hero-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 16px; }
+  .hero-range { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
+  .hero-number { font-size: 36px; font-weight: 800; line-height: 1; }
+  .hero-of { font-size: 14px; color: var(--muted); }
+  .hero-label { font-size: 12px; color: var(--muted); line-height: 1.3; }
+  .hero-explain { font-size: 11px; color: var(--muted); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); line-height: 1.5; }
+  .hero-explain em { color: var(--text); font-style: normal; font-weight: 600; }
+  .sq-bar-wrap { margin-bottom: 20px; }
+  .sq-bar { height: 28px; border-radius: 6px; overflow: hidden; display: flex; }
+  .sq-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .sq-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+  .sq-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  .consensus-caveat { background: rgba(245,166,35,0.06); border: 1px solid rgba(245,166,35,0.15); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .consensus-caveat strong { color: var(--yellow); }
+  .claim-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
+  .claim-text { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 10px; }
+  .claim-provenance { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .claim-outlet { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .sourcing-institutional { background: rgba(91,138,240,0.15); color: var(--accent); }
+  .claim-meta { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .mini-spectrum { position: relative; height: 20px; margin: 8px 0 4px; background: linear-gradient(to right, rgba(91,138,240,0.06), rgba(136,136,168,0.02) 50%, rgba(245,166,35,0.06)); border-radius: 3px; }
+  .mini-spectrum .ms-center { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(136,136,168,0.12); }
+  .ms-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--surface); }
+  .ms-dot-l { background: #6fa0e8; } .ms-dot-r { background: #e8a06f; } .ms-dot-c { background: #8888a8; }
+  .method-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .method-step { display: flex; gap: 12px; margin-bottom: 14px; font-size: 12px; line-height: 1.5; }
+  .method-step:last-child { margin-bottom: 0; }
+  .method-num { width: 22px; height: 22px; border-radius: 50%; background: rgba(91,138,240,0.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+  .method-step strong { color: var(--text); }
+  .method-step .caveat { color: var(--yellow); }
+  .limitation { padding: 10px 14px; border-radius: 8px; background: rgba(231,76,60,0.06); border: 1px solid rgba(231,76,60,0.12); font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 12px; }
+  .limitation strong { color: var(--red); }
+  .drill-down { text-align: center; padding: 16px; }
+  .drill-btn { background: var(--surface); border: 1px solid var(--border); color: var(--accent); font-size: 13px; font-weight: 600; padding: 10px 24px; border-radius: 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>US-Iran Ceasefire Holds Amid Violations, Lebanon Escalation, and Unresolved Nuclear Dispute</h1>
+<div class="article-meta">April 9, 2026 &middot; 13 sources analyzed &middot; 40 factual claims &middot; 18 opinion axes</div>
+
+<div class="method-badge"><span class="icon">i</span> All classifications on this page are AI-generated estimates, not ground truth. <a href="#method" style="color:var(--accent);text-decoration:underline;margin-left:4px;">See method</a></div>
+
+<div class="section">
+  <h2>How are these 40 claims sourced?</h2>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Each claim was traced to its sourcing type in each outlet. Sourcing type is a factual classification — not a quality judgment.</p>
+  <div class="hero">
+    <div class="hero-stat">
+      <div class="hero-range"><div class="hero-number" style="color: var(--green);">17</div><div class="hero-of">of 40</div></div>
+      <div class="hero-label">claims reported by 3+ outlets with named or institutional sources</div>
+      <div class="hero-explain">"Reported by multiple outlets" does not mean verified. Multiple outlets can repeat the same original source.</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-range"><div class="hero-number" style="color: var(--yellow);">9</div><div class="hero-of">of 40</div></div>
+      <div class="hero-label">claims reported by only 1 outlet or sourced only anonymously</div>
+      <div class="hero-explain">Single-source claims aren't necessarily wrong — some come from credible institutional sources. But they lack corroboration.</div>
+    </div>
+  </div>
+  <div class="sq-bar-wrap">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Sourcing types across all 40 claims (counting each outlet-claim pair):</div>
+    <div class="sq-bar">
+      <div class="sq-seg" style="flex:58;background:rgba(46,196,182,0.45);color:#1a1a2e;">58</div>
+      <div class="sq-seg" style="flex:38;background:rgba(91,138,240,0.35);color:var(--accent);">38</div>
+      <div class="sq-seg" style="flex:11;background:rgba(245,166,35,0.35);color:#1a1a2e;">11</div>
+      <div class="sq-seg" style="flex:44;background:rgba(231,76,60,0.25);color:var(--red);">44</div>
+    </div>
+    <div class="sq-legend">
+      <span><span class="dot" style="background:rgba(46,196,182,0.5);"></span>Named primary (58)</span>
+      <span><span class="dot" style="background:rgba(91,138,240,0.4);"></span>Institutional record (38)</span>
+      <span><span class="dot" style="background:rgba(245,166,35,0.4);"></span>Anonymous source (11)</span>
+      <span><span class="dot" style="background:rgba(231,76,60,0.3);"></span>Unsourced (44)</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Points of cross-spectrum agreement</h2>
+  <div class="consensus-caveat"><strong>Agreement is not proof.</strong> All 13 outlets agreeing means the claim is widely reported — not verified. Historical precedent: WMDs in Iraq had near-universal media consensus.</div>
+  <div style="display:flex;flex-direction:column;gap:6px;">
+    <div class="claim-card" style="padding:10px 14px;border-left:3px solid var(--green);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="mini-spectrum" style="width:120px;flex-shrink:0;margin:0;"><div class="ms-center"></div><div class="ms-dot ms-dot-l" style="left:7%;"></div><div class="ms-dot ms-dot-l" style="left:20%;"></div><div class="ms-dot ms-dot-c" style="left:33%;"></div><div class="ms-dot ms-dot-c" style="left:43%;"></div><div class="ms-dot ms-dot-c" style="left:53%;"></div><div class="ms-dot ms-dot-r" style="left:67%;"></div><div class="ms-dot ms-dot-r" style="left:77%;"></div><div class="ms-dot ms-dot-r" style="left:87%;"></div><div class="ms-dot ms-dot-r" style="left:95%;"></div></div>
+        <span style="font-size:13px;flex:1;">Two-week ceasefire agreed, mediated by Pakistan</span>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap;">9 sources</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">Sourcing: 5 named primary (Trump Truth Social), 1 anonymous, 3 unsourced.</div>
+    </div>
+    <div class="claim-card" style="padding:10px 14px;border-left:3px solid var(--green);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="mini-spectrum" style="width:120px;flex-shrink:0;margin:0;"><div class="ms-center"></div><div class="ms-dot ms-dot-l" style="left:20%;"></div><div class="ms-dot ms-dot-c" style="left:33%;"></div><div class="ms-dot ms-dot-c" style="left:43%;"></div><div class="ms-dot ms-dot-c" style="left:53%;"></div><div class="ms-dot ms-dot-r" style="left:67%;"></div><div class="ms-dot ms-dot-r" style="left:77%;"></div><div class="ms-dot ms-dot-r" style="left:87%;"></div><div class="ms-dot ms-dot-r" style="left:95%;"></div></div>
+        <span style="font-size:13px;flex:1;">Iran submitted 10-point peace proposal</span>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap;">8 sources</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">Sourcing: 4 named primary, 3 institutional (Iran's SNSC), 1 unsourced.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Gaps in the coverage</h2>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Important claims that appear in only one outlet, where corroboration would significantly change the story.</p>
+  <div class="claim-card">
+    <div class="claim-text">~3,400 killed in Iran including 1,600+ civilians</div>
+    <div class="claim-provenance"><span class="claim-outlet sourcing-institutional">NBC News (HRANA)</span></div>
+    <div class="claim-meta">Single source: HRANA, a US-based human rights organization. No other outlet reported casualty figures. If accurate, this is the most consequential underreported fact.</div>
+  </div>
+  <div class="claim-card">
+    <div class="claim-text">DIA assessment: strikes set nuclear program back only 3-6 months</div>
+    <div class="claim-provenance"><span class="claim-outlet sourcing-institutional">MSNBC (Pentagon DIA)</span></div>
+    <div class="claim-meta">Single outlet reporting a leaked preliminary assessment. Institutional source lends credibility, but "preliminary" and "leaked" are important qualifiers.</div>
+  </div>
+  <div class="claim-card">
+    <div class="claim-text">50 Polymarket accounts made well-timed ceasefire bets</div>
+    <div class="claim-provenance"><span class="claim-outlet sourcing-institutional">Fox News (AP, blockchain data)</span></div>
+    <div class="claim-meta">Single outlet citing AP and blockchain analysis. Suggests potential insider trading on ceasefire timing.</div>
+  </div>
+</div>
+
+<div class="section" id="method">
+  <h2>How this analysis was made</h2>
+  <div class="method-section">
+    <div class="method-step"><div class="method-num">1</div><div><strong>Article collection:</strong> 13 articles from outlets spanning left, center, and right. Outlet selection is an editorial choice that affects results.</div></div>
+    <div class="method-step"><div class="method-num">2</div><div><strong>Claim extraction:</strong> An AI model (Claude) read each article and extracted factual claims. <span class="caveat">The model decides what counts as a "claim" — a different model might extract differently.</span></div></div>
+    <div class="method-step"><div class="method-num">3</div><div><strong>Sourcing classification:</strong> For each claim-outlet pair, the AI classified the sourcing type. These categories are relatively objective but edge cases exist.</div></div>
+    <div class="method-step"><div class="method-num">4</div><div><strong>Opinion axis identification:</strong> The AI identified 18 questions where outlets took opposing positions. <span class="caveat">Which questions get identified is itself an editorial act.</span></div></div>
+    <div class="method-step"><div class="method-num">5</div><div><strong>Sourcing quality scores (0.0-1.0):</strong> For each opinion, the AI estimated how well the outlet supported its position. <span class="caveat">This is the most subjective step. Treat these as rough tiers, not precise measurements.</span></div></div>
+    <div class="limitation"><strong>Known limitations:</strong> This tool uses an AI model with its own training biases. It may systematically favor certain framings, underweight non-Western perspectives, or apply sourcing standards inconsistently. Cross-spectrum agreement can reflect shared assumptions rather than truth. This is a starting point for critical reading, not a replacement for it.</div>
+  </div>
+</div>
+
+<div class="drill-down"><button class="drill-btn">See all 40 claims with full provenance data</button></div>
+</body>
+</html>

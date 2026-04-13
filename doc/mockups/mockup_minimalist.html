@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Minimalist Hero — One Aha Moment</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --surface: #22223a; --border: #33335a;
+    --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0;
+    --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 32px 24px;
+  }
+  .container { max-width: 620px; width: 100%; }
+  .story-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--muted); margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 20px; font-weight: 700; line-height: 1.3;
+    letter-spacing: -0.01em; margin-bottom: 28px; color: var(--text);
+  }
+  .aha {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 36px 32px; margin-bottom: 24px;
+    text-align: center;
+  }
+  .aha-question {
+    font-size: 13px; color: var(--muted); font-weight: 500;
+    margin-bottom: 28px; line-height: 1.5;
+  }
+  .aha-versus {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; margin-bottom: 28px;
+  }
+  .aha-pole {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; padding: 0 12px;
+  }
+  .aha-pole-number {
+    font-size: 56px; font-weight: 800; line-height: 1;
+    letter-spacing: -0.03em; margin-bottom: 6px;
+  }
+  .aha-pole-label {
+    font-size: 12px; color: var(--muted); line-height: 1.4;
+    text-align: center; max-width: 160px;
+  }
+  .aha-pole-source {
+    font-size: 10px; color: var(--muted); margin-top: 8px; opacity: 0.7;
+  }
+  .aha-divider {
+    width: 1px; height: 80px; background: var(--border);
+    flex-shrink: 0; position: relative;
+  }
+  .aha-divider::after {
+    content: 'vs'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px; font-weight: 700; color: var(--muted);
+    background: var(--surface); padding: 6px 0;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .aha-verdict {
+    font-size: 15px; line-height: 1.6; color: var(--text);
+    max-width: 440px; margin: 0 auto;
+  }
+  .aha-verdict strong { color: var(--yellow); font-weight: 700; }
+  .confidence {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 24px;
+  }
+  .conf-bar {
+    flex: 1; height: 6px; border-radius: 3px;
+    background: var(--border); overflow: hidden;
+  }
+  .conf-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--green), var(--yellow));
+  }
+  .conf-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .conf-num { font-size: 14px; font-weight: 700; color: var(--yellow); white-space: nowrap; }
+  .context-line {
+    font-size: 12px; color: var(--muted); text-align: center;
+    margin-bottom: 28px; line-height: 1.5;
+  }
+  .expand { display: flex; justify-content: center; }
+  .expand-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--accent); font-size: 13px; font-weight: 600;
+    padding: 10px 28px; border-radius: 8px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .expand-btn:hover { border-color: var(--accent); background: rgba(91,138,240,0.06); }
+  .below-fold {
+    margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border);
+  }
+  .bf-heading {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px;
+  }
+  .bf-items { display: flex; flex-direction: column; gap: 8px; }
+  .bf-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px;
+    display: flex; align-items: baseline; gap: 12px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .bf-count { font-size: 18px; font-weight: 800; flex-shrink: 0; min-width: 28px; text-align: right; }
+  .bf-desc { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="story-label">13 sources analyzed &middot; April 9, 2026</div>
+  <h1>US-Iran Ceasefire Holds Amid Violations and Unresolved Nuclear Dispute</h1>
+  <div class="aha">
+    <div class="aha-question">The biggest gap between what you're being told and what the evidence says</div>
+    <div class="aha-versus">
+      <div class="aha-pole">
+        <div class="aha-pole-number" style="color: var(--red);">100%</div>
+        <div class="aha-pole-label">White House claim: nuclear program "completely obliterated"</div>
+        <div class="aha-pole-source">4 outlets, 0 independent verification</div>
+      </div>
+      <div class="aha-divider"></div>
+      <div class="aha-pole">
+        <div class="aha-pole-number" style="color: var(--green);">3-6 mo</div>
+        <div class="aha-pole-label">DIA assessment: program set back months, not destroyed</div>
+        <div class="aha-pole-source">Leaked preliminary intelligence finding</div>
+      </div>
+    </div>
+    <div class="aha-verdict">
+      <strong>No outlet presented both claims side-by-side.</strong>
+      The only independent assessment directly contradicts the official narrative, and neither side has been verified.
+    </div>
+  </div>
+  <div class="confidence">
+    <div class="conf-label">Story reliability</div>
+    <div class="conf-bar"><div class="conf-fill" style="width: 42%;"></div></div>
+    <div class="conf-num">17 of 40 claims verified</div>
+  </div>
+  <div class="context-line">14 claims reported by only one side &middot; 8 opinions framed as fact</div>
+  <div class="expand"><button class="expand-btn">Explore all 40 claims with sourcing</button></div>
+  <div class="below-fold">
+    <div class="bf-heading">What all 13 sources agree on</div>
+    <div class="bf-items">
+      <div class="bf-item"><div class="bf-count" style="color: var(--green);">9</div><div><div class="bf-desc">Two-week ceasefire agreed, mediated by Pakistan</div></div></div>
+      <div class="bf-item"><div class="bf-count" style="color: var(--green);">8</div><div><div class="bf-desc">Iran submitted 10-point peace proposal</div></div></div>
+      <div class="bf-item"><div class="bf-count" style="color: var(--green);">7</div><div><div class="bf-desc">Strait of Hormuz blockade drove gas to $4.14/gal</div></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

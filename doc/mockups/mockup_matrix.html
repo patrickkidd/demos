@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Coverage Matrix Mockup</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --surface: #22223a; --border: #33335a;
+    --text: #e0e0e8; --muted: #8888a8; --accent: #5b8af0;
+    --green: #2ec4b6; --yellow: #f5a623; --red: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 960px; margin: 0 auto; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+
+  /* Matrix */
+  .matrix-wrap { overflow-x: auto; }
+  .coverage-matrix { width: 100%; border-collapse: collapse; font-size: 11px; }
+
+  /* Bias group headers */
+  .bias-group-row th {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; padding: 6px 0 2px; text-align: center;
+    border-bottom: none;
+  }
+  .bias-left { color: #6fa0e8; }
+  .bias-lean-left { color: #7fb8d0; }
+  .bias-center { color: #8888a8; }
+  .bias-right { color: #e8a06f; }
+  .bias-source { color: var(--muted); }
+
+  .coverage-matrix th.outlet-col {
+    writing-mode: vertical-lr; text-orientation: mixed;
+    transform: rotate(180deg); min-width: 32px; text-align: center;
+    padding: 8px 2px; height: 80px; font-weight: 600;
+    border-bottom: 2px solid var(--border); color: var(--text);
+  }
+
+  .group-sep { border-left: 1px solid rgba(136,136,168,0.2); }
+
+  .coverage-matrix td {
+    padding: 3px 2px; text-align: center;
+    border-bottom: 1px solid rgba(51,51,90,0.3);
+  }
+  .coverage-matrix td.dev-label {
+    text-align: left; font-weight: 600; color: var(--text);
+    font-size: 12px; white-space: nowrap; padding: 8px 12px 8px 0;
+    position: sticky; left: 0; background: var(--surface); z-index: 1;
+  }
+
+  /* Heatmap cells — no numbers, pure color */
+  .hcell {
+    display: block; margin: 2px auto;
+    width: 26px; height: 22px; border-radius: 3px;
+    transition: opacity 0.15s;
+    cursor: default;
+  }
+  .hcell:hover { outline: 1px solid var(--text); }
+
+  /* Coverage gravity indicator */
+  .gravity-col { width: 120px; padding: 4px 8px !important; }
+  .gravity-bar {
+    position: relative; height: 8px; border-radius: 4px;
+    background: linear-gradient(to right,
+      rgba(91,138,240,0.15),
+      rgba(136,136,168,0.1) 50%,
+      rgba(245,166,35,0.15)
+    );
+  }
+  .gravity-center {
+    position: absolute; top: -2px; width: 3px; height: 12px;
+    background: var(--border); left: 50%; transform: translateX(-50%);
+    border-radius: 1px;
+  }
+  .gravity-dot {
+    position: absolute; top: -3px;
+    width: 14px; height: 14px; border-radius: 50%;
+    transform: translateX(-50%);
+    border: 2px solid var(--surface);
+  }
+  .gravity-label {
+    font-size: 9px; color: var(--muted); margin-top: 3px;
+    text-align: center; white-space: nowrap;
+  }
+
+  /* Legend */
+  .matrix-legend {
+    display: flex; gap: 14px; margin-top: 12px;
+    font-size: 11px; color: var(--muted); align-items: center;
+    flex-wrap: wrap;
+  }
+  .matrix-legend .leg-item { display: flex; align-items: center; gap: 5px; }
+  .leg-swatch { width: 18px; height: 14px; border-radius: 2px; }
+
+  .attribution {
+    font-size: 10px; color: var(--muted); margin-top: 8px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h2>Source Coverage</h2>
+
+<div class="card">
+  <div class="matrix-wrap">
+    <table class="coverage-matrix">
+      <thead>
+        <tr class="bias-group-row">
+          <th></th>
+          <th colspan="2" class="bias-left">Left</th>
+          <th colspan="4" class="bias-lean-left">Lean Left</th>
+          <th colspan="2" class="bias-center">Center</th>
+          <th colspan="4" class="bias-right">Right</th>
+          <th class="bias-source">Source</th>
+          <th></th>
+        </tr>
+        <tr>
+          <th></th>
+          <th class="outlet-col">MSNBC</th>
+          <th class="outlet-col group-sep">Wash Post</th>
+          <th class="outlet-col group-sep">NPR</th>
+          <th class="outlet-col">CNN</th>
+          <th class="outlet-col">ABC News</th>
+          <th class="outlet-col">CBS News</th>
+          <th class="outlet-col group-sep">NBC News</th>
+          <th class="outlet-col">PBS</th>
+          <th class="outlet-col group-sep">Breitbart</th>
+          <th class="outlet-col">Federalist</th>
+          <th class="outlet-col">Fox News</th>
+          <th class="outlet-col">Daily Wire</th>
+          <th class="outlet-col group-sep">White House</th>
+          <th style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:0 8px;text-align:center;border-bottom:2px solid var(--border);">Coverage<br>center</th>
+        </tr>
+      </thead>
+      <tbody id="matrix-body">
+      </tbody>
+    </table>
+  </div>
+
+  <div class="matrix-legend">
+    <div class="leg-item"><div class="leg-swatch" style="background:rgba(46,196,182,0.85);"></div> Heavy</div>
+    <div class="leg-item"><div class="leg-swatch" style="background:rgba(46,196,182,0.45);"></div> Moderate</div>
+    <div class="leg-item"><div class="leg-swatch" style="background:rgba(46,196,182,0.18);"></div> Light</div>
+    <div class="leg-item"><div class="leg-swatch" style="background:rgba(136,136,168,0.06);border:1px solid rgba(136,136,168,0.15);"></div> None</div>
+    <span style="flex:1;"></span>
+    <div class="leg-item" style="gap:6px;">
+      <svg width="14" height="14"><circle cx="7" cy="7" r="5" fill="#6fa0e8" stroke="var(--surface)" stroke-width="2"/></svg>
+      <span>← coverage skews left</span>
+    </div>
+    <div class="leg-item" style="gap:6px;">
+      <svg width="14" height="14"><circle cx="7" cy="7" r="5" fill="#e8a06f" stroke="var(--surface)" stroke-width="2"/></svg>
+      <span>coverage skews right →</span>
+    </div>
+  </div>
+  <div class="attribution">
+    Column order and coverage center based on AllSides Media Bias Ratings. Used for display only, not as analytical input.
+  </div>
+</div>
+
+<script>
+const data = [
+  {
+    label: "Ceasefire & peace talks",
+    // MSNBC, WaPo | NPR, CNN, ABC, CBS | NBC, PBS | Breit, Fed, Fox, DW | WH
+    values: [1, 7, 7, 12, 5, 9, 11, 7, 5, 0, 12, 2, 4],
+    biasScores: [-1.5, -0.9, -0.7, -0.5, -0.4, -0.4, -0.4, 0.1, 1.2, 1.3, 1.4, 1.5, null],
+  },
+  {
+    label: "Military & damage assessment",
+    values: [3, 8, 0, 1, 2, 2, 5, 8, 2, 2, 13, 2, 9],
+    biasScores: [-1.5, -0.9, -0.7, -0.5, -0.4, -0.4, -0.4, 0.1, 1.2, 1.3, 1.4, 1.5, null],
+  },
+  {
+    label: "Domestic political fallout",
+    values: [1, 0, 0, 2, 1, 10, 2, 0, 0, 3, 8, 1, 5],
+    biasScores: [-1.5, -0.9, -0.7, -0.5, -0.4, -0.4, -0.4, 0.1, 1.2, 1.3, 1.4, 1.5, null],
+  },
+  {
+    label: "Economic & Strait of Hormuz",
+    values: [0, 3, 4, 3, 0, 4, 2, 3, 0, 1, 4, 0, 0],
+    biasScores: [-1.5, -0.9, -0.7, -0.5, -0.4, -0.4, -0.4, 0.1, 1.2, 1.3, 1.4, 1.5, null],
+  },
+  {
+    label: "Israel-Lebanon escalation",
+    values: [0, 0, 7, 3, 0, 6, 5, 0, 0, 0, 5, 0, 0],
+    biasScores: [-1.5, -0.9, -0.7, -0.5, -0.4, -0.4, -0.4, 0.1, 1.2, 1.3, 1.4, 1.5, null],
+  },
+];
+
+const outletNames = [
+  "MSNBC","Wash Post","NPR","CNN","ABC News","CBS News",
+  "NBC News","PBS","Breitbart","Federalist","Fox News","Daily Wire","White House"
+];
+const groupSepIndices = new Set([1, 2, 6, 8, 12]); // 0-indexed cols that get left border
+
+const tbody = document.getElementById('matrix-body');
+
+data.forEach(row => {
+  const maxVal = Math.max(...row.values);
+  const tr = document.createElement('tr');
+
+  // Dev label
+  const tdLabel = document.createElement('td');
+  tdLabel.className = 'dev-label';
+  tdLabel.textContent = row.label;
+  tr.appendChild(tdLabel);
+
+  // Heatmap cells
+  row.values.forEach((v, i) => {
+    const td = document.createElement('td');
+    if (groupSepIndices.has(i)) td.classList.add('group-sep');
+
+    const cell = document.createElement('span');
+    cell.className = 'hcell';
+    cell.title = `${outletNames[i]}: ${v} items`;
+
+    if (v === 0) {
+      cell.style.background = 'rgba(136,136,168,0.06)';
+    } else {
+      // Normalize: map value to opacity range 0.18–0.85
+      const norm = Math.min(v / 13, 1); // 13 is max across all data
+      const opacity = 0.18 + norm * 0.67;
+      cell.style.background = `rgba(46,196,182,${opacity.toFixed(2)})`;
+    }
+
+    td.appendChild(cell);
+    tr.appendChild(td);
+  });
+
+  // Coverage center of gravity
+  const tdGrav = document.createElement('td');
+  tdGrav.className = 'gravity-col';
+
+  // Compute weighted average bias score (exclude White House / null scores)
+  let weightedSum = 0, totalWeight = 0;
+  row.values.forEach((v, i) => {
+    if (v > 0 && row.biasScores[i] !== null) {
+      weightedSum += row.biasScores[i] * v;
+      totalWeight += v;
+    }
+  });
+
+  const gravityScore = totalWeight > 0 ? weightedSum / totalWeight : 0;
+  // Map score from [-1.5, 1.5] to [0%, 100%]
+  const gravityPct = ((gravityScore + 1.5) / 3.0) * 100;
+
+  // Color: interpolate blue ↔ gray ↔ orange based on score
+  let dotColor;
+  if (gravityScore < -0.15) {
+    const t = Math.min(Math.abs(gravityScore) / 1.5, 1);
+    dotColor = `rgb(${Math.round(111 + (136-111)*(1-t))},${Math.round(160 + (136-160)*(1-t))},${Math.round(232 + (168-232)*(1-t))})`;
+  } else if (gravityScore > 0.15) {
+    const t = Math.min(gravityScore / 1.5, 1);
+    dotColor = `rgb(${Math.round(232 + (136-232)*(1-t))},${Math.round(160 + (136-160)*(1-t))},${Math.round(111 + (168-111)*(1-t))})`;
+  } else {
+    dotColor = 'rgb(136,136,168)';
+  }
+
+  tdGrav.innerHTML = `
+    <div class="gravity-bar">
+      <div class="gravity-center"></div>
+      <div class="gravity-dot" style="left:${gravityPct.toFixed(1)}%;background:${dotColor};" title="Coverage center: ${gravityScore.toFixed(2)}"></div>
+    </div>
+    <div class="gravity-label">${gravityScore.toFixed(2)}</div>
+  `;
+  tr.appendChild(tdGrav);
+
+  tbody.appendChild(tr);
+});
+</script>
+
+</body>
+</html>
