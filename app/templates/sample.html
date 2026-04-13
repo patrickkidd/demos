@@ -43,21 +43,26 @@
   /* Hook */
   .hook-section { text-align: center; }
   .hook-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 14px; }
-  .hook-headline { font-size: 22px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 6px; text-transform: none; color: var(--text); }
-  .hook-meta { font-size: 12px; color: var(--muted); margin-bottom: 36px; }
-  .aha { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px 28px; margin-bottom: 20px; }
-  .aha-label { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
-  .aha-versus { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 24px; }
+  .hook-headline { font-size: 20px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; margin-bottom: 28px; text-transform: none; color: var(--text); }
+  .hook-meta { font-size: 12px; color: var(--muted); margin-bottom: 36px; display: none; }
+  .aha { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 32px; margin-bottom: 24px; }
+  .aha-label { font-size: 13px; color: var(--muted); font-weight: 500; margin-bottom: 28px; line-height: 1.5; }
+  .aha-versus { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 28px; }
   .aha-pole { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 12px; }
-  .aha-num { font-size: 48px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; }
-  .aha-desc { font-size: 12px; color: var(--muted); line-height: 1.4; text-align: center; max-width: 150px; }
-  .aha-src { font-size: 10px; color: var(--muted); margin-top: 6px; opacity: 0.6; }
-  .aha-divider { width: 1px; height: 70px; background: var(--border); flex-shrink: 0; position: relative; }
-  .aha-divider::after { content: 'vs'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 10px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 4px 0; letter-spacing: 0.08em; text-transform: uppercase; }
-  .aha-verdict { font-size: 14px; line-height: 1.6; max-width: 420px; margin: 0 auto; }
+  .aha-num { font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; }
+  .aha-desc { font-size: 12px; color: var(--muted); line-height: 1.4; text-align: center; max-width: 160px; }
+  .aha-src { font-size: 10px; color: var(--muted); margin-top: 8px; opacity: 0.7; }
+  .aha-divider { width: 1px; height: 80px; background: var(--border); flex-shrink: 0; position: relative; }
+  .aha-divider::after { content: 'vs'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 10px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 6px 0; letter-spacing: 0.08em; text-transform: uppercase; }
+  .aha-verdict { font-size: 15px; line-height: 1.6; max-width: 440px; margin: 0 auto; }
   .aha-verdict strong { color: var(--yellow); }
   .hook-stats { display: flex; justify-content: center; gap: 24px; font-size: 12px; color: var(--muted); margin-bottom: 20px; }
   .hook-stat-num { font-weight: 800; font-size: 16px; display: block; }
+  .confidence { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; }
+  .conf-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+  .conf-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--green), var(--yellow)); }
+  .conf-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .conf-num { font-size: 14px; font-weight: 700; color: var(--yellow); white-space: nowrap; }
   .scroll-cue { font-size: 12px; color: var(--accent); margin-top: 24px; cursor: pointer; }
   .scroll-cue:hover { text-decoration: underline; }
 
@@ -82,8 +87,8 @@
   .your-score-caption { font-size: 13px; color: var(--muted); margin-top: 8px; max-width: 400px; margin-left: auto; margin-right: auto; }
   .your-score-caption strong { color: var(--text); }
   .topic-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-  .topic-label { font-size: 11px; font-weight: 600; width: 180px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .topic-track { flex: 1; height: 20px; background: rgba(139,143,168,0.08); border-radius: 4px; overflow: hidden; }
+  .topic-label { font-size: 11px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+  .topic-track { flex: 1; height: 18px; background: rgba(139,143,168,0.08); border-radius: 4px; overflow: hidden; }
   .topic-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 9px; font-weight: 700; transition: width 0.5s ease; }
   .topic-fill.full { background: rgba(52,196,124,0.4); color: var(--green); }
   .topic-fill.partial { background: rgba(245,166,35,0.3); color: var(--yellow); }
@@ -202,11 +207,12 @@
 
 <!-- LAYER 1: HOOK -->
 <div class="flow-section hook-section" id="hook">
-  <div class="hook-eyebrow">{{ current.id[:4] }}-{{ current.id[4:6] }}-{{ current.id[6:8] }}</div>
+  <div class="hook-eyebrow">{{ current.article_count }} sources analyzed &middot; {{ current.id[:4] }}-{{ current.id[4:6] }}-{{ current.id[6:8] }}</div>
   <h1 class="hook-headline">{{ syn.headline }}</h1>
   <div class="hook-meta">{{ current.article_count }} sources &middot; <span id="factCount">0</span> factual claims &middot; <span id="axisCount">0</span> opinion axes</div>
   <div id="ahaCard"></div>
-  <div class="hook-stats" id="hookStats"></div>
+  <div id="reliabilityBar"></div>
+  <div id="contextLine" class="muted" style="font-size:12px;text-align:center;margin-bottom:20px;"></div>
   <div class="scroll-cue" onclick="document.getElementById('personal').scrollIntoView({behavior:'smooth'})">See what your source is missing &darr;</div>
 </div>
 
@@ -330,10 +336,14 @@
       if (avgSq < 0.35 && op.outlets.some(o => (o.intensity||0) >= 3)) opinionAsFact++;
     });
   });
-  document.getElementById('hookStats').innerHTML =
-    '<div><span class="hook-stat-num" style="color:var(--green);">' + verified + '</span> verified claims</div>' +
-    '<div><span class="hook-stat-num" style="color:var(--yellow);">' + oneSided + '</span> one-sided</div>' +
-    '<div><span class="hook-stat-num" style="color:var(--red);">' + opinionAsFact + '</span> opinion as fact</div>';
+  // Reliability bar + context line (minimalist style)
+  const pct = Math.round(verified / facts.length * 100);
+  document.getElementById('reliabilityBar').innerHTML =
+    '<div class="confidence"><div class="conf-label">Story reliability</div>' +
+    '<div class="conf-bar"><div class="conf-fill" style="width:' + pct + '%;"></div></div>' +
+    '<div class="conf-num">' + verified + ' of ' + facts.length + ' claims verified</div></div>';
+  document.getElementById('contextLine').textContent =
+    oneSided + ' claims reported by only one side \u00b7 ' + opinionAsFact + ' opinions framed as fact';
 
   // === HOOK AHA — pick axis with widest sourcing quality gap ===
   let bestAxis = null, bestGap = -1;
@@ -353,19 +363,46 @@
     const pB = bestAxis.opinions.find(o => o.pole === 'B');
     const sqA = (pA.outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / pA.outlets.length).toFixed(2);
     const sqB = (pB.outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / pB.outlets.length).toFixed(2);
+    // Extract short punchy number for display
+    // Look for numbers/percentages/timeframes in quote or stance
+    function extractShortLabel(text) {
+      // Try percentage
+      const pctMatch = text.match(/(\d+[\.\d]*\s*%)/);
+      if (pctMatch) return pctMatch[1];
+      // Try timeframe like "3-6 months", "three to six months"
+      const timeMatch = text.match(/(\d+[-–]\d+\s*(?:mo(?:nths?)?|years?|days?|weeks?))/i);
+      if (timeMatch) return timeMatch[1].replace('months','mo').replace('month','mo');
+      // Try word-number timeframes
+      const wordTime = text.match(/(three to six months|one to two years)/i);
+      if (wordTime) return wordTime[1].replace(/three to six months/i,'3-6 mo').replace(/one to two years/i,'1-2 yr');
+      // Try "completely", "total" → 100%
+      if (/completely|totally|100%|obliterat/i.test(text)) return '100%';
+      // Try standalone big number
+      const numMatch = text.match(/(\d{1,3}(?:,\d{3})+|\d+\+?)\s/);
+      if (numMatch) return numMatch[1];
+      return null;
+    }
+
+    // Prefer LLM-generated labels from phase4, fall back to regex extraction
+    const numA = (c && c.pole_a_label) || extractShortLabel(pA.stance + ' ' + (pA.quote_excerpt||'')) || pA.outlets.length + '';
+    const numB = (c && c.pole_b_label) || extractShortLabel(pB.stance + ' ' + (pB.quote_excerpt||'')) || pB.outlets.length + '';
+    // Short description — first meaningful clause, max ~60 chars
+    const descA = (c ? c.pole_a_summary : pA.stance).substring(0, 60);
+    const descB = (c ? c.pole_b_summary : pB.stance).substring(0, 60);
+
     document.getElementById('ahaCard').innerHTML =
       '<div class="aha">' +
-      '<div class="aha-label">The biggest sourcing gap in this story</div>' +
+      '<div class="aha-label">The biggest gap between what you\'re being told and what the evidence says</div>' +
       '<div class="aha-versus">' +
-      '<div class="aha-pole"><div class="aha-num" style="color:var(--red);">' + pA.outlets.length + '</div>' +
-      '<div class="aha-desc">' + pA.stance.substring(0,80) + '</div>' +
+      '<div class="aha-pole"><div class="aha-num" style="color:var(--red);">' + numA + '</div>' +
+      '<div class="aha-desc">' + descA + '</div>' +
       '<div class="aha-src">' + pA.outlets.length + ' outlets, sourcing: ' + sqA + '</div></div>' +
       '<div class="aha-divider"></div>' +
-      '<div class="aha-pole"><div class="aha-num" style="color:var(--green);">' + pB.outlets.length + '</div>' +
-      '<div class="aha-desc">' + pB.stance.substring(0,80) + '</div>' +
-      '<div class="aha-src">' + pB.outlets.length + ' outlets, sourcing: ' + sqB + '</div></div>' +
+      '<div class="aha-pole"><div class="aha-num" style="color:var(--green);">' + numB + '</div>' +
+      '<div class="aha-desc">' + descB + '</div>' +
+      '<div class="aha-src">' + pB.outlets.length + ' outlet' + (pB.outlets.length>1?'s':'') + ', sourcing: ' + sqB + '</div></div>' +
       '</div>' +
-      (c ? '<div class="aha-verdict"><strong>No outlet presented both claims side-by-side.</strong> ' + c.centroid.substring(0,200) + '</div>' : '') +
+      (c ? '<div class="aha-verdict"><strong>No outlet presented both claims side-by-side.</strong> ' + c.centroid.substring(0,180) + '</div>' : '') +
       '</div>';
   }
 
@@ -423,7 +460,7 @@
         const total = devFacts.length, covered = devGot.length;
         const p = total > 0 ? Math.round(covered/total*100) : 0;
         const cls = p >= 70 ? 'full' : p >= 30 ? 'partial' : 'empty';
-        bb.innerHTML += '<div class="topic-bar"><div class="topic-label">' + dev.label + '</div><div class="topic-track"><div class="topic-fill ' + cls + '" style="width:' + p + '%;">' + covered + '/' + total + '</div></div></div>';
+        bb.innerHTML += '<div class="topic-bar"><div class="topic-label" title="' + dev.label + '">' + dev.label + '</div><div class="topic-track"><div class="topic-fill ' + cls + '" style="width:' + p + '%;">' + covered + '/' + total + '</div></div></div>';
       });
     }
     document.getElementById('outletReveal').classList.add('visible');

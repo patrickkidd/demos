@@ -64,7 +64,9 @@ OUTPUT SCHEMA:
     {{
       "axis_id": "AX-001",
       "axis": "string — the debatable question",
+      "pole_a_label": "string — 2-5 word punchy label for display, e.g. '100%', '3-6 months', '$44 billion', 'regime change'. Extract a specific number, percentage, timeframe, or dollar amount from the claim when possible. If no number exists, use the shortest phrase that captures the core assertion.",
       "pole_a_summary": "string — brief stance summary, or OMITTED if no coverage",
+      "pole_b_label": "string — same format as pole_a_label for the opposing claim",
       "pole_b_summary": "string — brief stance summary, or OMITTED if no coverage",
       "centroid": "string — the balanced conclusion (1-2 sentences max)",
       "certainty": "high | medium | low",
