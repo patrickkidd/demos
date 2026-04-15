@@ -3,25 +3,25 @@
 
 {% block head %}
 <style>
-  .story-row { padding: 20px; border-bottom: 1px solid var(--border); }
-  .story-row:last-child { border-bottom: none; }
-  .story-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
-  .story-title { font-size: 15px; font-weight: 600; }
-  .story-meta { display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .demos .story-row { padding: 20px; border-bottom: 1px solid var(--border); }
+  .demos .story-row:last-child { border-bottom: none; }
+  .demos .story-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .demos .story-title { font-size: 15px; font-weight: 600; }
+  .demos .story-meta { display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
 
-  .mini-timeline { display: flex; align-items: center; gap: 0; padding: 4px 0; }
-  .mini-dot {
+  .demos .mini-timeline { display: flex; align-items: center; gap: 0; padding: 4px 0; }
+  .demos .mini-dot {
     width: 10px; height: 10px; border-radius: 50%; background: var(--border);
     cursor: pointer; flex-shrink: 0; border: 2px solid transparent;
     transition: background 0.15s;
   }
-  .mini-dot:hover { background: var(--accent); }
-  .mini-dot.analyzed { background: var(--green); }
-  .mini-dot.extracted { background: var(--yellow); }
-  .mini-line { width: 12px; height: 2px; background: var(--border); flex-shrink: 0; }
-  .mini-label { font-size: 10px; color: var(--muted); margin-left: 8px; }
+  .demos .mini-dot:hover { background: var(--accent); }
+  .demos .mini-dot.analyzed { background: var(--green); }
+  .demos .mini-dot.extracted { background: var(--yellow); }
+  .demos .mini-line { width: 12px; height: 2px; background: var(--border); flex-shrink: 0; }
+  .demos .mini-label { font-size: 10px; color: var(--muted); margin-left: 8px; }
 
-  .no-samples { font-size: 12px; color: var(--muted); padding: 4px 0; }
+  .demos .no-samples { font-size: 12px; color: var(--muted); padding: 4px 0; }
 </style>
 {% endblock %}
 

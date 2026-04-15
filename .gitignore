@@ -4,3 +4,4 @@ instance/stories.json
 instance/corpus.json
 *.pyc
 __pycache__
+.env

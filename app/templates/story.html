@@ -4,21 +4,21 @@
 
 {% block head %}
 <style>
-  .timeline-scroll { overflow-x: auto; padding: 16px 0; }
-  .timeline { position: relative; min-height: 50px; }
-  .timeline-item { display: flex; flex-direction: column; align-items: center; }
-  .timeline-dot {
+  .demos .timeline-scroll { overflow-x: auto; padding: 16px 0; }
+  .demos .timeline { position: relative; min-height: 50px; }
+  .demos .timeline-item { display: flex; flex-direction: column; align-items: center; }
+  .demos .timeline-dot {
     width: 14px; height: 14px; border-radius: 50%; background: var(--border);
     cursor: pointer; border: 2px solid transparent;
     transition: background 0.15s, border-color 0.15s;
   }
-  .timeline-dot:hover { background: var(--accent); }
-  .timeline-dot.active { background: var(--accent); border-color: var(--text); }
-  .timeline-dot.has-analysis { background: var(--green); }
-  .timeline-dot.has-analysis.active { background: var(--green); border-color: var(--text); }
-  .timeline-dot.in-progress { background: var(--yellow); }
-  .timeline-dot.in-progress.active { background: var(--yellow); border-color: var(--text); }
-  .timeline-label { font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap; }
+  .demos .timeline-dot:hover { background: var(--accent); }
+  .demos .timeline-dot.active { background: var(--accent); border-color: var(--text); }
+  .demos .timeline-dot.has-analysis { background: var(--green); }
+  .demos .timeline-dot.has-analysis.active { background: var(--green); border-color: var(--text); }
+  .demos .timeline-dot.in-progress { background: var(--yellow); }
+  .demos .timeline-dot.in-progress.active { background: var(--yellow); border-color: var(--text); }
+  .demos .timeline-label { font-size: 10px; color: var(--muted); margin-top: 4px; white-space: nowrap; }
 
 </style>
 {% endblock %}
