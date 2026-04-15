@@ -383,6 +383,13 @@ async def analyze_sample_route(story_id: str, sample_id: str):
 @app.post("/stories/{story_id}/delete")
 async def delete_story(story_id: str):
     import shutil
+    from scripts.publish_state import is_published
+    from scripts.publish import redact_story
+    if is_published(story_id):
+        try:
+            redact_story(story_id)
+        except Exception:
+            pass
     stories_path = DATA / "stories.json"
     stories = json.loads(stories_path.read_text())
     stories = [s for s in stories if s["id"] != story_id]
@@ -397,6 +404,13 @@ async def delete_story(story_id: str):
 @app.post("/stories/{story_id}/samples/{sample_id}/delete")
 async def delete_sample(story_id: str, sample_id: str):
     import shutil
+    from scripts.publish_state import is_published
+    from scripts.publish import redact_sample
+    if is_published(story_id, sample_id):
+        try:
+            redact_sample(story_id, sample_id)
+        except Exception:
+            pass
     sample_dir = DATA / "stories" / story_id / "samples" / sample_id
     if sample_dir.exists():
         shutil.rmtree(sample_dir)
@@ -478,6 +492,83 @@ async def backfill_story(story_id: str,
     bf_path.write_text(json.dumps(bf, indent=2))
     asyncio.create_task(_backfill_bg(story_id))
     return RedirectResponse(f"/story/{story_id}", status_code=303)
+
+
+# --- Publish routes ---
+
+@app.get("/publish")
+async def publish_dashboard(request: Request):
+    from scripts.publish_state import load_manifest, get_story_sync_status
+    from scripts.publish import test_connection
+
+    stories = json.loads((DATA / "stories.json").read_text())
+    manifest = load_manifest()
+    config_exists = (DATA / "publish_config.json").exists()
+    connection = test_connection() if config_exists else {"ok": False, "error": "publish_config.json not found"}
+
+    story_statuses = []
+    for s in stories:
+        samples = _story_samples(s["id"])
+        analyzed = {sid for sid in samples
+                    if (DATA / "stories" / s["id"] / "samples" / sid / "phase4.json").exists()
+                    or (DATA / "stories" / s["id"] / "samples" / sid / "phase3.json").exists()}
+        sync = get_story_sync_status(s["id"], samples, analyzed)
+        story_statuses.append({
+            "id": s["id"],
+            "topic": s["topic"],
+            "total_samples": len(samples),
+            "analyzed": len(analyzed),
+            "published": len([v for v in sync["samples"].values() if v["status"] == "synced"]),
+            "stale": len([v for v in sync["samples"].values() if v["status"] in ("unpublished", "deleted_locally")]),
+            "sync": sync,
+        })
+
+    return templates.TemplateResponse(request, "publish.html", {
+        "stories": story_statuses,
+        "connection": connection,
+        "config_exists": config_exists,
+    })
+
+
+@app.post("/publish/story/{story_id}")
+def publish_story_route(story_id: str):
+    from scripts.publish import publish_story
+    publish_story(story_id)
+    return RedirectResponse("/publish", status_code=303)
+
+
+@app.post("/publish/story/{story_id}/samples/{sample_id}")
+def publish_sample_route(story_id: str, sample_id: str):
+    from scripts.publish import publish_sample
+    from scripts.publish_state import mark_sample_published, load_manifest
+
+    meta = json.loads((DATA / "stories" / story_id / "meta.json").read_text())
+    manifest = load_manifest()
+    existing = manifest.get("stories", {}).get(story_id, {}).get("samples", {}).get(sample_id, {})
+
+    wp_id, h = publish_sample(story_id, sample_id, meta["topic"], existing.get("wp_page_id"))
+    mark_sample_published(story_id, sample_id, wp_id, h)
+    return RedirectResponse("/publish", status_code=303)
+
+
+@app.post("/redact/story/{story_id}")
+def redact_story_route(story_id: str):
+    from scripts.publish import redact_story
+    redact_story(story_id)
+    return RedirectResponse("/publish", status_code=303)
+
+
+@app.post("/redact/story/{story_id}/samples/{sample_id}")
+def redact_sample_route(story_id: str, sample_id: str):
+    from scripts.publish import redact_sample
+    redact_sample(story_id, sample_id)
+    return RedirectResponse("/publish", status_code=303)
+
+
+@app.get("/api/publish/test")
+async def api_publish_test():
+    from scripts.publish import test_connection
+    return JSONResponse(test_connection())
 
 
 @app.on_event("startup")

@@ -2,6 +2,8 @@ instance/.claude/
 instance/stories/
 instance/stories.json
 instance/corpus.json
+instance/publish_config.json
+instance/publish_manifest.json
 *.pyc
 __pycache__
 .env
