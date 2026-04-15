@@ -66,6 +66,14 @@
   .scroll-cue { font-size: 12px; color: var(--accent); margin-top: 24px; cursor: pointer; }
   .scroll-cue:hover { text-decoration: underline; }
 
+  /* Sticky nav */
+  .flow-nav { position: sticky; top: 0; z-index: 50; background: rgba(15,17,23,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); margin: 0 -24px; padding: 0 24px; opacity: 0; transform: translateY(-100%); pointer-events: none; transition: opacity 0.3s, transform 0.3s; }
+  .flow-nav.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .flow-nav-inner { display: flex; gap: 0; }
+  .flow-nav-item { padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .flow-nav-item:hover { color: var(--text); }
+  .flow-nav-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+
   /* Outlet picker */
   .flow h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; text-align: center; text-transform: none; color: var(--text); }
   .flow .section-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; text-align: center; }
@@ -203,6 +211,14 @@
 {% set syn = current.synthesis %}
 
 {# ========== FLOW LAYOUT ========== #}
+<div class="flow-nav" id="flowNav">
+  <div class="flow-nav-inner">
+    <div class="flow-nav-item active" data-target="hook">The Gap</div>
+    <div class="flow-nav-item" data-target="personal">Your Blind Spots</div>
+    <div class="flow-nav-item" data-target="full">Full Picture</div>
+    <div class="flow-nav-item" data-target="method">How We Know</div>
+  </div>
+</div>
 <div class="flow">
 
 <!-- LAYER 1: HOOK -->
@@ -212,8 +228,7 @@
   <div class="hook-meta">{{ current.article_count }} sources &middot; <span id="factCount">0</span> factual claims &middot; <span id="axisCount">0</span> opinion axes</div>
   <div id="ahaCard"></div>
   <div id="reliabilityBar"></div>
-  <div id="contextLine" class="muted" style="font-size:12px;text-align:center;margin-bottom:20px;"></div>
-  <div class="scroll-cue" onclick="document.getElementById('personal').scrollIntoView({behavior:'smooth'})">See what your source is missing &darr;</div>
+  <div class="scroll-cue" onclick="smoothScroll('personal')">See what your source is missing &darr;</div>
 </div>
 
 <div class="thread-dot" style="background:var(--accent);"></div>
@@ -235,7 +250,7 @@
     </div>
     <div id="topicBars"></div>
     <div style="text-align:center;margin-top:20px;">
-      <div class="scroll-cue" onclick="document.getElementById('full').scrollIntoView({behavior:'smooth'})">See the full picture &darr;</div>
+      <div class="scroll-cue" onclick="smoothScroll('full')">See the full picture &darr;</div>
     </div>
   </div>
 </div>
@@ -305,6 +320,49 @@
 {# --- Scripts --- #}
 {% if current and current.get("phase2") and current.get("synthesis") %}
 <script>
+// Smooth scroll with easing
+function smoothScroll(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = window.scrollY;
+  const target = el.getBoundingClientRect().top + start - 100;
+  const distance = target - start;
+  const duration = Math.min(800, Math.abs(distance) * 0.5);
+  let startTime = null;
+  function ease(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3) / 2; }
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    const progress = Math.min((ts - startTime) / duration, 1);
+    window.scrollTo(0, start + distance * ease(progress));
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// Sticky nav: show after scrolling past hook, highlight active section
+(function() {
+  const nav = document.getElementById('flowNav');
+  const items = nav ? nav.querySelectorAll('.flow-nav-item') : [];
+  const sectionIds = ['hook','personal','full','method'];
+  if (nav) {
+    items.forEach(item => {
+      item.addEventListener('click', () => smoothScroll(item.dataset.target));
+    });
+    window.addEventListener('scroll', () => {
+      const hookBottom = document.getElementById('hook');
+      nav.classList.toggle('visible', hookBottom && hookBottom.getBoundingClientRect().bottom < 52);
+      let current = 'hook';
+      sectionIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= 120) current = id;
+      });
+      items.forEach(item => {
+        item.classList.toggle('active', item.dataset.target === current);
+      });
+    });
+  }
+})();
+
 (function() {
   const phase2 = {{ current.phase2 | tojson }};
   const synthesis = {{ current.synthesis | tojson }};
@@ -336,14 +394,12 @@
       if (avgSq < 0.35 && op.outlets.some(o => (o.intensity||0) >= 3)) opinionAsFact++;
     });
   });
-  // Reliability bar + context line (minimalist style)
+  // Reliability bar
   const pct = Math.round(verified / facts.length * 100);
   document.getElementById('reliabilityBar').innerHTML =
     '<div class="confidence"><div class="conf-label">Story reliability</div>' +
     '<div class="conf-bar"><div class="conf-fill" style="width:' + pct + '%;"></div></div>' +
-    '<div class="conf-num">' + verified + ' of ' + facts.length + ' claims verified</div></div>';
-  document.getElementById('contextLine').textContent =
-    oneSided + ' claims reported by only one side \u00b7 ' + opinionAsFact + ' opinions framed as fact';
+    '<div class="conf-num">' + opinionAsFact + ' opinions framed as fact</div></div>';
 
   // === HOOK AHA — pick axis with widest sourcing quality gap ===
   let bestAxis = null, bestGap = -1;
@@ -386,23 +442,31 @@
     // Prefer LLM-generated labels from phase4, fall back to regex extraction
     const numA = (c && c.pole_a_label) || extractShortLabel(pA.stance + ' ' + (pA.quote_excerpt||'')) || pA.outlets.length + '';
     const numB = (c && c.pole_b_label) || extractShortLabel(pB.stance + ' ' + (pB.quote_excerpt||'')) || pB.outlets.length + '';
-    // Short description — first meaningful clause, max ~60 chars
-    const descA = (c ? c.pole_a_summary : pA.stance).substring(0, 60);
-    const descB = (c ? c.pole_b_summary : pB.stance).substring(0, 60);
 
     document.getElementById('ahaCard').innerHTML =
       '<div class="aha">' +
       '<div class="aha-label">The biggest gap between what you\'re being told and what the evidence says</div>' +
       '<div class="aha-versus">' +
       '<div class="aha-pole"><div class="aha-num" style="color:var(--red);">' + numA + '</div>' +
-      '<div class="aha-desc">' + descA + '</div>' +
-      '<div class="aha-src">' + pA.outlets.length + ' outlets, sourcing: ' + sqA + '</div></div>' +
+      '<div class="aha-src">' + pA.outlets.length + ' source' + (pA.outlets.length>1?'s':'') + '</div></div>' +
       '<div class="aha-divider"></div>' +
       '<div class="aha-pole"><div class="aha-num" style="color:var(--green);">' + numB + '</div>' +
-      '<div class="aha-desc">' + descB + '</div>' +
-      '<div class="aha-src">' + pB.outlets.length + ' outlet' + (pB.outlets.length>1?'s':'') + ', sourcing: ' + sqB + '</div></div>' +
+      '<div class="aha-src">' + pB.outlets.length + ' source' + (pB.outlets.length>1?'s':'') + '</div></div>' +
       '</div>' +
-      (c ? '<div class="aha-verdict"><strong>No outlet presented both claims side-by-side.</strong> ' + c.centroid.substring(0,180) + '</div>' : '') +
+      (function() {
+        const aNames = new Set(pA.outlets.map(o => o.name));
+        const bNames = new Set(pB.outlets.map(o => o.name));
+        const both = [...aNames].filter(n => bNames.has(n));
+        let verdict = '';
+        if (both.length === 0) {
+          verdict = '<strong>No outlet presented both claims.</strong> ' +
+            pA.outlets.length + ' reported one side, ' + pB.outlets.length + ' reported the other, and none showed you the contradiction.';
+        } else {
+          verdict = '<strong>Only ' + both.length + ' of ' + (aNames.size + bNames.size - both.length) + ' outlets covered both sides.</strong> ' +
+            'The rest reported one claim without acknowledging the other.';
+        }
+        return '<div class="aha-verdict">' + verdict + '</div>';
+      })() +
       '</div>';
   }
 
@@ -526,12 +590,12 @@
       '<div class="axis-q" onclick="this.classList.toggle(\'open\');this.nextElementSibling.classList.toggle(\'open\')">' +
       '<span>' + ax.axis + '</span><span class="cert-badge cert-' + cert + '">' + cert + '</span></div>' +
       '<div class="axis-detail"><div class="axis-poles">' +
-      '<div class="axis-pole pole-a"><div class="pole-hdr">' + sideA + '</div>' + pA.stance.substring(0,100) +
+      '<div class="axis-pole pole-a"><div class="pole-hdr">' + sideA + '</div>' + pA.stance +
       '<div class="pole-src">' + pA.outlets.length + ' outlets · sourcing: ' + sqA + '</div></div>' +
-      '<div class="axis-pole pole-b"><div class="pole-hdr">' + sideB + '</div>' + pB.stance.substring(0,100) +
+      '<div class="axis-pole pole-b"><div class="pole-hdr">' + sideB + '</div>' + pB.stance +
       '<div class="pole-src">' + pB.outlets.length + ' outlets · sourcing: ' + sqB + '</div></div>' +
       '</div>' +
-      (c ? '<div class="finding"><strong>Evidence:</strong> ' + c.centroid.substring(0,250) + '</div>' : '') +
+      (c ? '<div class="finding"><strong>Evidence:</strong> ' + c.centroid + '</div>' : '') +
       '</div></div>';
   });
 

@@ -1,5 +1,7 @@
 {% macro render(meta, samples, analyzed_samples, active_sample_id, running_sample_id=None) %}
-<div class="timeline-scroll">
+<div style="display:flex;align-items:flex-start;gap:8px;padding-top:10px;">
+  <button class="tl-arrow tl-arrow-left" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:24px;flex-shrink:0;opacity:0;transition:opacity 0.2s;" onclick="this.parentElement.querySelector('.timeline-scroll').scrollBy({left:-200,behavior:'smooth'})">&lsaquo;</button>
+<div class="timeline-scroll" style="position:relative;flex:1;">
   <div class="timeline" id="timeline-{{ meta.id }}">
     <div class="timeline-scale"></div>
     <div class="timeline-track"></div>
@@ -12,6 +14,8 @@
     </div>
     {% endfor %}
   </div>
+</div>
+  <button class="tl-arrow tl-arrow-right" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:24px;flex-shrink:0;transition:opacity 0.2s;" onclick="this.parentElement.querySelector('.timeline-scroll').scrollBy({left:200,behavior:'smooth'})">&rsaquo;</button>
 </div>
 <script>
 (function() {
@@ -105,6 +109,27 @@
       window.location.href = '/story/' + dot.dataset.story + '/samples/' + dot.dataset.sample;
     });
   });
+
+  // Auto-scroll to active dot
+  const activeDot = tl.querySelector('.timeline-dot.active');
+  const scrollContainer = tl.parentElement;
+  if (activeDot && scrollContainer) {
+    const dotLeft = activeDot.closest('.timeline-item').offsetLeft;
+    scrollContainer.scrollLeft = Math.max(0, dotLeft - scrollContainer.offsetWidth / 2);
+  }
+
+  // Arrow button visibility
+  const wrapper = scrollContainer.parentElement;
+  const arrowLeft = wrapper.querySelector('.tl-arrow-left');
+  const arrowRight = wrapper.querySelector('.tl-arrow-right');
+  function updateArrows() {
+    const sl = scrollContainer.scrollLeft;
+    const maxScroll = scrollContainer.scrollWidth - scrollContainer.offsetWidth;
+    if (arrowRight) arrowRight.style.opacity = sl >= maxScroll - 2 ? '0.3' : '1';
+    if (arrowLeft) arrowLeft.style.opacity = sl <= 2 ? '0.3' : '1';
+  }
+  scrollContainer.addEventListener('scroll', updateArrows);
+  updateArrows();
 })();
 </script>
 {% endmacro %}
