@@ -50,8 +50,8 @@
   .demos .aha { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 32px; margin-bottom: 24px; }
   .demos .aha-label { font-size: 13px; color: var(--muted); font-weight: 500; margin-bottom: 28px; line-height: 1.5; }
   .demos .aha-versus { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 28px; }
-  .demos .aha-pole { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 12px; }
-  .demos .aha-num { font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; }
+  .demos .aha-pole { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 12px; min-width: 0; }
+  .demos .aha-num { font-size: clamp(28px, 7vw, 56px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; word-break: break-word; text-align: center; }
   .demos .aha-desc { font-size: 12px; color: var(--muted); line-height: 1.4; text-align: center; max-width: 160px; }
   .demos .aha-src { font-size: 10px; color: var(--muted); margin-top: 8px; opacity: 0.7; }
   .demos .aha-divider { width: 1px; height: 80px; background: var(--border); flex-shrink: 0; position: relative; }
@@ -161,21 +161,17 @@
   .demos .caveat-box p { font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 4px; }
   .demos .caveat-box p:last-child { margin-bottom: 0; }
 
+  /* Landscape phones / small tablets */
   @media (max-width: 600px) {
     .demos main { padding: 16px 12px; }
     .demos .flow-section { padding: 48px 0 36px; min-height: auto; }
     .demos .hook-headline { font-size: 17px; }
-    /* AHA card: scale numbers with viewport, prevent overflow */
     .demos .aha { padding: 20px 16px; border-radius: 10px; }
-    .demos .aha-num { font-size: clamp(20px, 8vw, 36px); }
-    .demos .aha-divider { height: 50px; }
-    .demos .aha-versus { gap: 0; }
-    .demos .aha-pole { padding: 0 4px; }
+    .demos .aha-pole { padding: 0 6px; }
     .demos .aha-desc { font-size: 11px; max-width: 120px; }
     .demos .aha-verdict { font-size: 13px; }
     .demos .your-score-num { font-size: 48px; }
     .demos .outlet-btn { font-size: 9px; padding: 4px 6px; border-radius: 6px; }
-    /* Topic bars: stack label above bar so both get full width */
     .demos .topic-bar { flex-direction: column; align-items: stretch; gap: 3px; }
     .demos .topic-label { white-space: normal; }
     .demos .topic-track { height: 22px; }
@@ -186,6 +182,14 @@
     .demos .confidence { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
     .demos .method-box { padding: 12px 14px; }
     .demos .phase { margin-top: 40px; }
+  }
+  /* Portrait phones only — stack AHA poles vertically */
+  @media (max-width: 430px) {
+    .demos .aha-versus { flex-direction: column; gap: 0; }
+    .demos .aha-pole { padding: 8px 0; }
+    .demos .aha-divider { width: 60%; height: 1px; margin: 0 auto; }
+    .demos .aha-divider::after { padding: 0 8px; }
+    .demos .aha-desc { max-width: none; }
   }
 </style>
 {% endblock %}
