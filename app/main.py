@@ -551,6 +551,20 @@ def publish_sample_route(story_id: str, sample_id: str):
     return RedirectResponse("/publish", status_code=303)
 
 
+@app.post("/publish/index")
+def publish_index_route():
+    from scripts.publish import publish_index
+    publish_index()
+    return RedirectResponse("/publish", status_code=303)
+
+
+@app.post("/publish/methodology")
+def publish_methodology_route():
+    from scripts.publish import publish_methodology
+    publish_methodology()
+    return RedirectResponse("/publish", status_code=303)
+
+
 @app.post("/redact/story/{story_id}")
 def redact_story_route(story_id: str):
     from scripts.publish import redact_story

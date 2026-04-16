@@ -21,6 +21,21 @@
   {% endif %}
 </div>
 
+{% if connection.ok %}
+<div class="section">
+  <h2>Pages</h2>
+  <div class="card" style="display:flex;gap:12px;align-items:center;">
+    <form method="post" action="/publish/index" style="margin:0;">
+      <button type="submit" class="btn-sm">Push landing page</button>
+    </form>
+    <form method="post" action="/publish/methodology" style="margin:0;">
+      <button type="submit" class="btn-sm">Push methodology</button>
+    </form>
+    <span class="muted" style="font-size:12px;">Updates the News Reader index and Methodology pages on AFS</span>
+  </div>
+</div>
+{% endif %}
+
 {% if stories %}
 <div class="section">
   <h2>Stories</h2>

@@ -62,6 +62,8 @@ def _extract_wp_content(html: str) -> str:
     inner = re.sub(r'<form[^>]*action="[^"]*/(sample|settings|backfill)".*?</form>', "", inner, flags=re.DOTALL)
     # Strip status badges and sample buttons
     inner = re.sub(r'<span class="badge badge-yellow" id="status-badge">.*?</span>', "", inner, flags=re.DOTALL)
+    # Rewrite story backlinks to point to the WP landing page
+    inner = re.sub(r'href="/story/[a-f0-9]+"', 'href="/research/news-reader/"', inner)
 
     # Separate scripts from HTML
     html_only = re.sub(r"<script>.*?</script>", "", inner, flags=re.DOTALL).strip()
@@ -81,10 +83,37 @@ def _extract_wp_content(html: str) -> str:
         r'<div class="section"[^>]*style="margin-top:48px;">\s*<details>.*?</details>\s*</div>',
         "", html_only, flags=re.DOTALL)
 
-    # Base64 encode HTML and JS to bypass wpautop
-    html_b64 = b64encode(html_only.encode()).decode()
-    all_js = f'document.getElementById("demos-root").innerHTML=atob("{html_b64}");\n'
+    # Rewrite local links to WP URLs
+    html_only = _rewrite_local_links(html_only)
+
+    # Base64 encode HTML and JS to bypass wpautop.
+    # atob() only handles Latin-1, so use TextEncoder/Decoder for UTF-8 safety.
+    html_b64 = b64encode(html_only.encode("utf-8")).decode()
+    all_js = (
+        f'document.getElementById("demos-root").innerHTML='
+        f'new TextDecoder().decode(Uint8Array.from(atob("{html_b64}"),'
+        f'c=>c.charCodeAt(0)));\n'
+    )
+    # Build a sample URL map for timeline dot navigation
+    from scripts.publish_state import load_manifest
+    manifest = load_manifest()
+    stories_data = json.loads((DATA / "stories.json").read_text())
+    url_map = {}
+    for sid_key, story_data in manifest.get("stories", {}).items():
+        s_meta = next((s for s in stories_data if s["id"] == sid_key), None)
+        topic_slug = _slugify(s_meta["topic"]) if s_meta else "story"
+        for sample_id in story_data.get("samples", {}):
+            date_slug = sample_id[:8]
+            url_map[sample_id] = f"/research/news-reader/demos-{topic_slug}-{date_slug}/"
+    url_map_json = json.dumps(url_map)
+
     for s in app_scripts:
+        # Replace dynamic timeline navigation with WP URL lookup
+        s = s.replace(
+            "window.location.href = '/story/' + dot.dataset.story + '/samples/' + dot.dataset.sample;",
+            f"var _u = ({url_map_json})[dot.dataset.sample]; if (_u) window.location.href = _u;"
+        )
+        s = _rewrite_local_links(s)
         all_js += s + "\n"
     # Fix sticky nav to sit below AFS site header.
     # Elementor applies sticky dynamically, so we measure the actual header
@@ -129,13 +158,14 @@ def _extract_wp_content(html: str) -> str:
     setTimeout(function() { nav.style.top = getHeaderBottom() + 'px'; }, 500);
 })();
 """
-    combined_b64 = b64encode(all_js.encode()).decode()
+    combined_b64 = b64encode(all_js.encode("utf-8")).decode()
 
     parts = [f"<style>{minified_css}</style>"]
     parts.append(
         '<div class="demos" data-theme="dark" id="demos-root"'
         ' style="width:100vw;margin-left:calc(-50vw + 50%);padding:32px 24px;">'
-        f'<script>eval(atob("{combined_b64}"))</script>'
+        f'<script>eval(new TextDecoder().decode(Uint8Array.from(atob("{combined_b64}"),'
+        f'c=>c.charCodeAt(0))))</script>'
         '</div>'
     )
     return "\n".join(parts)
@@ -275,6 +305,12 @@ def publish_story(story_id: str) -> dict:
     from scripts.publish_state import save_manifest
     save_manifest(manifest)
 
+    # Re-push the index page so timeline dots and links are current
+    try:
+        publish_index()
+    except Exception as e:
+        results["errors"].append({"sample": "index", "error": str(e)})
+
     return results
 
 
@@ -312,6 +348,139 @@ def redact_sample(story_id: str, sample_id: str):
     if sample and sample.get("wp_page_id"):
         delete_page(sample["wp_page_id"])
     mark_redacted(story_id, sample_id)
+
+
+def _rewrite_local_links(html: str) -> str:
+    """Rewrite local /story/ID/samples/SID links to published WP URLs."""
+    from scripts.publish_state import load_manifest
+    manifest = load_manifest()
+    config = _load_config()
+
+    def _replace_sample_link(m):
+        story_id = m.group(1)
+        sample_id = m.group(2)
+        story = manifest["stories"].get(story_id, {})
+        sample = story.get("samples", {}).get(sample_id, {})
+        wp_id = sample.get("wp_page_id")
+        if wp_id:
+            # Use the WP permalink pattern
+            topic = "news"
+            stories = json.loads((DATA / "stories.json").read_text())
+            s = next((s for s in stories if s["id"] == story_id), None)
+            if s:
+                topic = _slugify(s["topic"])
+            date_slug = sample_id[:8]
+            parent_slug = "research/news-reader"
+            return f"/{parent_slug}/demos-{topic}-{date_slug}/"
+        return m.group(0)
+
+    # Rewrite sample links everywhere (href, onclick, JS strings)
+    html = re.sub(
+        r"/story/([a-f0-9]+)/samples/(\d{8}T\d{6})",
+        _replace_sample_link, html)
+
+    # Rewrite story detail links to point to latest published sample
+    def _replace_story_link(m):
+        story_id = m.group(1)
+        attrs = m.group(2)
+        text = m.group(3)
+        story = manifest["stories"].get(story_id, {})
+        samples = story.get("samples", {})
+        if samples:
+            latest_sid = sorted(samples.keys())[-1]
+            stories_data = json.loads((DATA / "stories.json").read_text())
+            s = next((s for s in stories_data if s["id"] == story_id), None)
+            topic = _slugify(s["topic"]) if s else "story"
+            date_slug = latest_sid[:8]
+            return f'<a href="/research/news-reader/demos-{topic}-{date_slug}/"{attrs}>{text}</a>'
+        return text  # No published samples, strip link
+
+    html = re.sub(
+        r'<a href="/story/([a-f0-9]+)"([^>]*)>(.*?)</a>',
+        _replace_story_link, html)
+    return html
+
+
+def publish_index():
+    """Push the Stories index page as content of the landing page (page 4111)."""
+    config = _load_config()
+    parent_id = config.get("parent_page_id")
+    if not parent_id:
+        raise ValueError("parent_page_id not set in publish_config.json")
+
+    html = _fetch_page("/")
+    wp_content = _extract_index_content(html)
+    push_page("news-reader", "News Reader", wp_content, existing_wp_id=parent_id)
+
+
+def _extract_index_content(html: str) -> str:
+    """Extract the Stories index page for WP, stripping admin controls."""
+    styles = re.findall(r"<style[^>]*>(.*?)</style>", html, re.DOTALL)
+    minified_css = " ".join(
+        line.strip() for css in styles for line in css.splitlines() if line.strip()
+    )
+
+    demos_match = re.search(
+        r'<div class="demos"[^>]*>(.*?)</div>\s*</body>', html, re.DOTALL)
+    if not demos_match:
+        raise ValueError("Could not find .demos wrapper")
+    inner = demos_match.group(1)
+
+    # Strip nav, theme toggle
+    inner = re.sub(r"<nav>.*?</nav>", "", inner, flags=re.DOTALL)
+    inner = re.sub(r"<script>\s*function toggleTheme.*?</script>", "", inner, flags=re.DOTALL)
+    # Strip admin controls: "Track a new story" entire card block
+    inner = re.sub(r'<div class="card"[^>]*>\s*<h3[^>]*>Track a new story</h3>.+?</form>\s*</div>', "", inner, flags=re.DOTALL)
+    inner = re.sub(r'<form[^>]*action="/sample-all"[^>]*>.*?</form>', "", inner, flags=re.DOTALL)
+    inner = re.sub(r'<form[^>]*action="/stories/[^"]*sample"[^>]*>.*?</form>', "", inner, flags=re.DOTALL)
+    # Strip status badges and polling
+    inner = re.sub(r'<span class="badge badge-yellow"[^>]*>.*?</span>', "", inner, flags=re.DOTALL)
+
+    # Separate scripts (only keep non-admin ones)
+    all_scripts = re.findall(r"<script>(.*?)</script>", html, re.DOTALL)
+    app_scripts = [
+        s for s in all_scripts
+        if "/api/status" not in s
+        and "toggleTheme" not in s
+        and "localStorage" not in s
+        and "data-story-status" not in s
+    ]
+
+    html_only = re.sub(r"<script>.*?</script>", "", inner, flags=re.DOTALL).strip()
+
+    # Rewrite local links to WP URLs
+    html_only = _rewrite_local_links(html_only)
+
+    html_b64 = b64encode(html_only.encode("utf-8")).decode()
+    all_js = (
+        f'document.getElementById("demos-root").innerHTML='
+        f'new TextDecoder().decode(Uint8Array.from(atob("{html_b64}"),'
+        f'c=>c.charCodeAt(0)));\n'
+    )
+    for s in app_scripts:
+        all_js += s + "\n"
+    combined_b64 = b64encode(all_js.encode("utf-8")).decode()
+
+    parts = [f"<style>{minified_css}</style>"]
+    parts.append(
+        '<div class="demos" data-theme="dark" id="demos-root"'
+        ' style="width:100vw;margin-left:calc(-50vw + 50%);padding:32px 24px;">'
+        f'<script>eval(new TextDecoder().decode(Uint8Array.from(atob("{combined_b64}"),'
+        f'c=>c.charCodeAt(0))))</script>'
+        '</div>'
+    )
+    return "\n".join(parts)
+
+
+def publish_methodology():
+    """Push the Methodology page as a child of the landing page."""
+    config = _load_config()
+    parent_id = config.get("parent_page_id")
+
+    html = _fetch_page("/methodology")
+    wp_content = _extract_wp_content(html)
+
+    push_page("methodology", "Methodology", wp_content, parent_id)
 
 
 def _slugify(text: str) -> str:
