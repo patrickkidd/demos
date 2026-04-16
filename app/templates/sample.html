@@ -165,15 +165,21 @@
     .demos main { padding: 16px 12px; }
     .demos .flow-section { padding: 48px 0 36px; min-height: auto; }
     .demos .hook-headline { font-size: 17px; }
+    /* AHA card: scale numbers with viewport, prevent overflow */
     .demos .aha { padding: 20px 16px; border-radius: 10px; }
-    .demos .aha-num { font-size: 36px; }
+    .demos .aha-num { font-size: clamp(20px, 8vw, 36px); }
     .demos .aha-divider { height: 50px; }
     .demos .aha-versus { gap: 0; }
-    .demos .aha-pole { padding: 0 6px; }
+    .demos .aha-pole { padding: 0 4px; }
     .demos .aha-desc { font-size: 11px; max-width: 120px; }
     .demos .aha-verdict { font-size: 13px; }
     .demos .your-score-num { font-size: 48px; }
     .demos .outlet-btn { font-size: 9px; padding: 4px 6px; border-radius: 6px; }
+    /* Topic bars: stack label above bar so both get full width */
+    .demos .topic-bar { flex-direction: column; align-items: stretch; gap: 3px; }
+    .demos .topic-label { white-space: normal; }
+    .demos .topic-track { height: 22px; }
+    .demos .topic-fill { justify-content: center; padding: 0 4px; font-size: 10px; min-width: 28px; }
     .demos .bs-grid { grid-template-columns: 1fr; }
     .demos .axis-poles { flex-direction: column; }
     .demos .flow-nav-item { padding: 8px 10px; font-size: 11px; }
