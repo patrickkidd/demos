@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHA Sources — Mockups</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3a; --text: #e2e4ed;
+    --muted: #8b8fa8; --accent: #5b8af0; --green: #34c47c; --yellow: #f5a623; --red: #e85d5d;
+  }
+  [data-theme="light"] {
+    --bg: #FFFAF5; --surface: #f0ece6; --border: #d5d0c9; --text: #1a1a2e;
+    --muted: #6e7280; --accent: #467CCC; --green: #2a9d63; --yellow: #b87d18; --red: #c94444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; font-size: 14px; line-height: 1.6; -webkit-tap-highlight-color: transparent; }
+  .page { max-width: 780px; margin: 0 auto; padding: 32px 24px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .desc { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  a { color: var(--accent); text-decoration: none; }
+  .separator { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* Shared AHA base styles */
+  .aha { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 36px 32px; margin-bottom: 24px; }
+  .aha-label { font-size: 13px; color: var(--muted); font-weight: 500; margin-bottom: 28px; line-height: 1.5; }
+  .aha-versus { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 28px; }
+  .aha-pole { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 12px; min-width: 0; }
+  .aha-num { font-size: clamp(28px, 7vw, 56px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; text-align: center; }
+  .aha-desc { font-size: 12px; color: var(--muted); line-height: 1.4; text-align: center; max-width: 160px; }
+  .aha-src { font-size: 10px; color: var(--muted); margin-top: 8px; opacity: 0.7; }
+  .aha-divider { width: 1px; height: 80px; background: var(--border); flex-shrink: 0; position: relative; }
+  .aha-divider::after { content: 'vs'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 10px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 6px 0; letter-spacing: 0.08em; text-transform: uppercase; }
+  .aha-verdict { font-size: 15px; line-height: 1.6; max-width: 440px; margin: 0 auto; text-align: center; }
+  .aha-verdict strong { color: var(--yellow); }
+
+  /* === Mockup A: Inline outlet names under source count === */
+  .ma-outlets { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 6px; }
+  .ma-outlet { font-size: 10px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; white-space: nowrap; }
+
+  /* === Mockup B: Colored columns with outlet lists === */
+  .mb-sources { display: flex; gap: 0; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+  .mb-col { flex: 1; min-width: 0; }
+  .mb-col:first-child { padding-right: 16px; border-right: 1px solid var(--border); }
+  .mb-col:last-child { padding-left: 16px; }
+  .mb-col-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .mb-col-label.red { color: var(--red); }
+  .mb-col-label.green { color: var(--green); }
+  .mb-outlet { font-size: 12px; color: var(--text); padding: 2px 0; }
+  .mb-outlet .sq { font-size: 10px; color: var(--muted); margin-left: 4px; }
+
+  /* === Mockup C: Tap-to-reveal === */
+  .mc-reveal { text-align: center; margin-top: 16px; }
+  .mc-reveal-btn { font-size: 12px; color: var(--accent); cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; }
+  .mc-panel { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.3s, opacity 0.2s; }
+  .mc-panel.open { max-height: 200px; opacity: 1; margin-top: 12px; }
+  .mc-panel-inner { display: flex; gap: 0; border-top: 1px solid var(--border); padding-top: 12px; }
+  .mc-pcol { flex: 1; min-width: 0; text-align: center; }
+  .mc-pcol:first-child { border-right: 1px solid var(--border); }
+  .mc-pcol-head { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .mc-pcol-head.red { color: var(--red); }
+  .mc-pcol-head.green { color: var(--green); }
+  .mc-pname { font-size: 12px; color: var(--text); padding: 1px 0; }
+
+  /* === Mockup D: Inline tags in verdict === */
+  .md-tag { display: inline-block; font-size: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; margin: 1px 1px; vertical-align: middle; color: var(--muted); }
+  .md-tag.red { border-color: var(--red); color: var(--red); opacity: 0.8; }
+  .md-tag.green { border-color: var(--green); color: var(--green); opacity: 0.8; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .aha { padding: 20px 16px; border-radius: 10px; }
+    .aha-pole { padding: 0 6px; }
+    .aha-desc { font-size: 11px; max-width: 120px; }
+    .aha-verdict { font-size: 13px; }
+  }
+  @media (max-width: 430px) {
+    .aha-versus { flex-direction: column; gap: 0; }
+    .aha-pole { padding: 8px 0; }
+    .aha-divider { width: 60%; height: 1px; margin: 0 auto; }
+    .aha-divider::after { padding: 0 8px; }
+    .aha-desc { max-width: none; }
+    .mb-sources, .mc-panel-inner { flex-direction: column; gap: 12px; }
+    .mb-col:first-child { padding-right: 0; border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .mb-col:last-child { padding-left: 0; }
+    .mc-pcol:first-child { border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  }
+
+  .mockup-nav { position: fixed; top: 24px; right: 24px; display: flex; flex-direction: column; gap: 4px; z-index: 100; }
+  .mockup-nav a { font-size: 11px; color: var(--muted); padding: 3px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; text-decoration: none; }
+  .mockup-nav a:hover { border-color: var(--accent); color: var(--accent); }
+  @media (max-width: 700px) { .mockup-nav { display: none; } }
+
+  .tradeoffs { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  .tradeoffs th { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tradeoffs td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .tradeoffs tr:last-child td { border-bottom: none; }
+  .t-green { color: var(--green); }
+  .t-yellow { color: var(--yellow); }
+  .t-red { color: var(--red); }
+</style>
+</head>
+<body data-theme="dark">
+<div class="page">
+
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;">
+  <div>
+    <h1>AHA Sources — Mockups</h1>
+    <p class="desc" style="margin-top:4px;">Four ways to show which outlets are behind each pole of the biggest-gap card. Real data from US-Iran sample.</p>
+  </div>
+  <button onclick="toggleTheme()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:3px 10px;font-size:12px;cursor:pointer;" id="theme-btn">Light</button>
+</div>
+
+<nav class="mockup-nav">
+  <a href="#mockup-a">A: Inline Tags</a>
+  <a href="#mockup-b">B: Split Columns</a>
+  <a href="#mockup-c">C: Tap to Reveal</a>
+  <a href="#mockup-d">D: Verdict Tags</a>
+</nav>
+
+<!-- ===== MOCKUP A: Inline outlet tags under each pole ===== -->
+<div id="mockup-a">
+  <h2>A: Inline Tags</h2>
+  <p class="desc">Outlet names appear as small tags directly beneath each pole's source count. Always visible, no interaction required. Adds ~20px per pole.</p>
+  <div class="aha">
+    <div class="aha-label">The biggest gap between what you're being told and what the evidence says</div>
+    <div class="aha-versus">
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--red);">Decisive victory</div>
+        <div class="aha-src">2 sources</div>
+        <div class="ma-outlets">
+          <span class="ma-outlet">White House</span>
+          <span class="ma-outlet">Daily Wire</span>
+        </div>
+      </div>
+      <div class="aha-divider"></div>
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--green);">Reckless folly</div>
+        <div class="aha-src">4 sources</div>
+        <div class="ma-outlets">
+          <span class="ma-outlet">The Dispatch</span>
+          <span class="ma-outlet">MSNBC</span>
+          <span class="ma-outlet">CBS News</span>
+          <span class="ma-outlet">NPR</span>
+        </div>
+      </div>
+    </div>
+    <div class="aha-verdict"><strong>No outlet presented both claims.</strong> 2 reported one side, 4 reported the other, and none showed you the contradiction.</div>
+  </div>
+</div>
+
+<hr class="separator">
+
+<!-- ===== MOCKUP B: Split columns below ===== -->
+<div id="mockup-b">
+  <h2>B: Split Columns</h2>
+  <p class="desc">A two-column source list appears below the verdict, separated by a divider. Clear visual grouping. Adds ~60px but makes the attribution unambiguous.</p>
+  <div class="aha">
+    <div class="aha-label">The biggest gap between what you're being told and what the evidence says</div>
+    <div class="aha-versus">
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--red);">Decisive victory</div>
+        <div class="aha-src">2 sources</div>
+      </div>
+      <div class="aha-divider"></div>
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--green);">Reckless folly</div>
+        <div class="aha-src">4 sources</div>
+      </div>
+    </div>
+    <div class="aha-verdict"><strong>No outlet presented both claims.</strong> 2 reported one side, 4 reported the other, and none showed you the contradiction.</div>
+    <div class="mb-sources">
+      <div class="mb-col">
+        <div class="mb-col-label red">Reported "decisive victory"</div>
+        <div class="mb-outlet">White House</div>
+        <div class="mb-outlet">Daily Wire</div>
+      </div>
+      <div class="mb-col">
+        <div class="mb-col-label green">Reported "reckless folly"</div>
+        <div class="mb-outlet">The Dispatch</div>
+        <div class="mb-outlet">MSNBC</div>
+        <div class="mb-outlet">CBS News</div>
+        <div class="mb-outlet">NPR</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="separator">
+
+<!-- ===== MOCKUP C: Tap to reveal ===== -->
+<div id="mockup-c">
+  <h2>C: Tap to Reveal</h2>
+  <p class="desc">A "Which sources?" link below the verdict expands to show the split. Keeps the card compact by default. Requires interaction.</p>
+  <div class="aha">
+    <div class="aha-label">The biggest gap between what you're being told and what the evidence says</div>
+    <div class="aha-versus">
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--red);">Decisive victory</div>
+        <div class="aha-src">2 sources</div>
+      </div>
+      <div class="aha-divider"></div>
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--green);">Reckless folly</div>
+        <div class="aha-src">4 sources</div>
+      </div>
+    </div>
+    <div class="aha-verdict"><strong>No outlet presented both claims.</strong> 2 reported one side, 4 reported the other, and none showed you the contradiction.</div>
+    <div class="mc-reveal">
+      <span class="mc-reveal-btn" onclick="var p=this.parentElement.querySelector('.mc-panel');p.classList.toggle('open');this.textContent=p.classList.contains('open')?'Hide sources':'Which sources?'">Which sources?</span>
+      <div class="mc-panel">
+        <div class="mc-panel-inner">
+          <div class="mc-pcol">
+            <div class="mc-pcol-head red">"Decisive victory"</div>
+            <div class="mc-pname">White House</div>
+            <div class="mc-pname">Daily Wire</div>
+          </div>
+          <div class="mc-pcol">
+            <div class="mc-pcol-head green">"Reckless folly"</div>
+            <div class="mc-pname">The Dispatch</div>
+            <div class="mc-pname">MSNBC</div>
+            <div class="mc-pname">CBS News</div>
+            <div class="mc-pname">NPR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="separator">
+
+<!-- ===== MOCKUP D: Tags woven into verdict text ===== -->
+<div id="mockup-d">
+  <h2>D: Verdict Tags</h2>
+  <p class="desc">Outlet names appear as colored tags inline within the verdict sentence itself. Sources are part of the narrative, not a separate section. Most compact, but can get dense with many outlets.</p>
+  <div class="aha">
+    <div class="aha-label">The biggest gap between what you're being told and what the evidence says</div>
+    <div class="aha-versus">
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--red);">Decisive victory</div>
+        <div class="aha-src">2 sources</div>
+      </div>
+      <div class="aha-divider"></div>
+      <div class="aha-pole">
+        <div class="aha-num" style="color:var(--green);">Reckless folly</div>
+        <div class="aha-src">4 sources</div>
+      </div>
+    </div>
+    <div class="aha-verdict">
+      <strong>No outlet presented both claims.</strong>
+      <span class="md-tag red">White House</span> <span class="md-tag red">Daily Wire</span> reported one side;
+      <span class="md-tag green">The Dispatch</span> <span class="md-tag green">MSNBC</span> <span class="md-tag green">CBS News</span> <span class="md-tag green">NPR</span> reported the other — and none showed you the contradiction.
+    </div>
+  </div>
+</div>
+
+<hr class="separator">
+
+<!-- Tradeoffs -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px;">
+  <h2 style="margin-bottom:10px;">Tradeoffs</h2>
+  <table class="tradeoffs">
+    <thead>
+      <tr><th>Approach</th><th>Space</th><th>Discoverability</th><th>Mobile</th><th>10+ outlets</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>A: Inline Tags</td>
+        <td class="t-yellow">+20px/pole</td>
+        <td class="t-green">Always visible</td>
+        <td class="t-green">Tags wrap naturally</td>
+        <td class="t-yellow">Gets wide</td>
+      </tr>
+      <tr>
+        <td>B: Split Columns</td>
+        <td class="t-yellow">+60px fixed</td>
+        <td class="t-green">Always visible</td>
+        <td class="t-green">Stacks vertically</td>
+        <td class="t-green">Scales well</td>
+      </tr>
+      <tr>
+        <td>C: Tap to Reveal</td>
+        <td class="t-green">+0 until tap</td>
+        <td class="t-yellow">Requires tap</td>
+        <td class="t-green">Stacks vertically</td>
+        <td class="t-green">Scales well</td>
+      </tr>
+      <tr>
+        <td>D: Verdict Tags</td>
+        <td class="t-green">+0 (inline)</td>
+        <td class="t-green">Always visible</td>
+        <td class="t-green">Wraps with text</td>
+        <td class="t-red">Clutters sentence</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<script>
+function toggleTheme() {
+  var b = document.body, btn = document.getElementById('theme-btn');
+  var next = b.dataset.theme === 'dark' ? 'light' : 'dark';
+  b.dataset.theme = next;
+  btn.textContent = next === 'dark' ? 'Light' : 'Dark';
+}
+</script>
+</body>
+</html>

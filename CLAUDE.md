@@ -88,6 +88,12 @@ to prevent wpautop from wrapping scripts in `<p>` tags.
 - The publish_manifest.json and publish_config.json are gitignored and live
   in the bind-mounted `instance/` volume — they survive container rebuilds.
 
+## Responsive Design Rule
+- Every UI change MUST work at all browser widths: desktop, tablet, and
+  mobile portrait. Test and include responsive CSS for any new or modified
+  component. Use the existing `@media (max-width: 700px)` and
+  `@media (max-width: 430px)` breakpoints already in the codebase.
+
 ## Methodology Maintenance Rule
 - Any change to prompts, output schemas, analytical approach, centroid
   weighting, or visualization logic MUST include a corresponding update to

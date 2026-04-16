@@ -72,6 +72,8 @@
   .demos .aha-num { font-size: clamp(28px, 7vw, 56px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; word-break: break-word; text-align: center; }
   .demos .aha-desc { font-size: 12px; color: var(--muted); line-height: 1.4; text-align: center; max-width: 160px; }
   .demos .aha-src { font-size: 10px; color: var(--muted); margin-top: 8px; opacity: 0.7; }
+  .demos .aha-outlets { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 6px; }
+  .demos .aha-outlet { font-size: 10px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; white-space: nowrap; }
   .demos .aha-divider { width: 1px; height: 80px; background: var(--border); flex-shrink: 0; position: relative; }
   .demos .aha-divider::after { content: 'vs'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 10px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 6px 0; letter-spacing: 0.08em; text-transform: uppercase; }
   .demos .aha-verdict { font-size: 15px; line-height: 1.6; max-width: 440px; margin: 0 auto; }
@@ -214,7 +216,7 @@
 
 {% block content %}
 <div class="section">
-  <a href="/story/{{ meta.id }}" class="muted" style="font-size:13px;">&larr; {{ meta.topic }}</a>
+  <a href="/" class="backlink muted" style="font-size:13px;">&larr; News Reader</a>
 </div>
 
 {# --- Timeline --- #}
@@ -500,10 +502,12 @@ function smoothScroll(id) {
       '<div class="aha-label">The biggest gap between what you\'re being told and what the evidence says</div>' +
       '<div class="aha-versus">' +
       '<div class="aha-pole"><div class="aha-num" style="color:var(--red);">' + numA + '</div>' +
-      '<div class="aha-src">' + pA.outlets.length + ' source' + (pA.outlets.length>1?'s':'') + '</div></div>' +
+      '<div class="aha-src">' + pA.outlets.length + ' source' + (pA.outlets.length>1?'s':'') + '</div>' +
+      '<div class="aha-outlets">' + pA.outlets.map(o => '<span class="aha-outlet">' + o.name + '</span>').join('') + '</div></div>' +
       '<div class="aha-divider"></div>' +
       '<div class="aha-pole"><div class="aha-num" style="color:var(--green);">' + numB + '</div>' +
-      '<div class="aha-src">' + pB.outlets.length + ' source' + (pB.outlets.length>1?'s':'') + '</div></div>' +
+      '<div class="aha-src">' + pB.outlets.length + ' source' + (pB.outlets.length>1?'s':'') + '</div>' +
+      '<div class="aha-outlets">' + pB.outlets.map(o => '<span class="aha-outlet">' + o.name + '</span>').join('') + '</div></div>' +
       '</div>' +
       (function() {
         const aNames = new Set(pA.outlets.map(o => o.name));
