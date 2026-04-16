@@ -1,4 +1,4 @@
-# Demos — Methodology
+# News Reader — Methodology
 
 ## Why This Exists
 

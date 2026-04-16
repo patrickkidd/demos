@@ -24,9 +24,9 @@
 {% endblock %}
 
 {% block content %}
+<a href="/" class="backlink muted" style="font-size:13px;">&larr; News Reader</a>
 <div class="section">
-  <a href="/" class="muted" style="font-size:13px;">← Stories</a>
-  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:12px;">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;">
     <h1>{{ meta.topic }}</h1>
     <div style="display:flex;gap:8px;align-items:center;">
       {% set status = running.get(meta.id) %}

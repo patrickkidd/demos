@@ -2,6 +2,7 @@
 {% block title %}Publish — Demos{% endblock %}
 
 {% block content %}
+<a href="/" class="backlink muted" style="font-size:13px;">&larr; News Reader</a>
 <div class="section">
   <div style="display:flex;align-items:baseline;justify-content:space-between;">
     <h1>Publish</h1>
@@ -31,7 +32,10 @@
     <form method="post" action="/publish/methodology" style="margin:0;">
       <button type="submit" class="btn-sm">Push methodology</button>
     </form>
-    <span class="muted" style="font-size:12px;">Updates the News Reader index and Methodology pages on AFS</span>
+    <form method="post" action="/publish/why" style="margin:0;">
+      <button type="submit" class="btn-sm">Push why page</button>
+    </form>
+    <span class="muted" style="font-size:12px;">Updates the News Reader pages on AFS</span>
   </div>
 </div>
 {% endif %}

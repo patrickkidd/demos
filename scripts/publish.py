@@ -62,8 +62,9 @@ def _extract_wp_content(html: str) -> str:
     inner = re.sub(r'<form[^>]*action="[^"]*/(sample|settings|backfill)".*?</form>', "", inner, flags=re.DOTALL)
     # Strip status badges and sample buttons
     inner = re.sub(r'<span class="badge badge-yellow" id="status-badge">.*?</span>', "", inner, flags=re.DOTALL)
-    # Rewrite story backlinks to point to the WP landing page
+    # Rewrite backlinks to point to the WP landing page
     inner = re.sub(r'href="/story/[a-f0-9]+"', 'href="/research/news-reader/"', inner)
+    inner = inner.replace('href="/" class="backlink muted"', 'href="/research/news-reader/" class="backlink muted"')
 
     # Separate scripts from HTML
     html_only = re.sub(r"<script>.*?</script>", "", inner, flags=re.DOTALL).strip()
@@ -85,6 +86,8 @@ def _extract_wp_content(html: str) -> str:
 
     # Rewrite local links to WP URLs
     html_only = _rewrite_local_links(html_only)
+    html_only = html_only.replace('href="/methodology"', 'href="/research/news-reader/methodology/"')
+    html_only = html_only.replace('href="/why"', 'href="/research/news-reader/why/"')
 
     # Base64 encode HTML and JS to bypass wpautop.
     # atob() only handles Latin-1, so use TextEncoder/Decoder for UTF-8 safety.
@@ -433,8 +436,13 @@ def _extract_index_content(html: str) -> str:
     inner = re.sub(r'<div class="card"[^>]*>\s*<h3[^>]*>Track a new story</h3>.+?</form>\s*</div>', "", inner, flags=re.DOTALL)
     inner = re.sub(r'<form[^>]*action="/sample-all"[^>]*>.*?</form>', "", inner, flags=re.DOTALL)
     inner = re.sub(r'<form[^>]*action="/stories/[^"]*sample"[^>]*>.*?</form>', "", inner, flags=re.DOTALL)
+    # Strip admin-only links (Publish, Auth)
+    inner = re.sub(r'<div class="admin-links">.*?</div>', "", inner, flags=re.DOTALL)
     # Strip status badges and polling
     inner = re.sub(r'<span class="badge badge-yellow"[^>]*>.*?</span>', "", inner, flags=re.DOTALL)
+    # Rewrite nav-card links to WP child page URLs
+    inner = inner.replace('href="/why"', 'href="/research/news-reader/why/"')
+    inner = inner.replace('href="/methodology"', 'href="/research/news-reader/methodology/"')
 
     # Separate scripts (only keep non-admin ones)
     all_scripts = re.findall(r"<script>(.*?)</script>", html, re.DOTALL)
@@ -481,6 +489,17 @@ def publish_methodology():
     wp_content = _extract_wp_content(html)
 
     push_page("methodology", "Methodology", wp_content, parent_id)
+
+
+def publish_why():
+    """Push the Why page as a child of the landing page."""
+    config = _load_config()
+    parent_id = config.get("parent_page_id")
+
+    html = _fetch_page("/why")
+    wp_content = _extract_wp_content(html)
+
+    push_page("why", "Why This Exists", wp_content, parent_id)
 
 
 def _slugify(text: str) -> str:

@@ -261,6 +261,15 @@ async def api_sample(story_id: str, sample_id: str):
     return JSONResponse(_load_sample(story_id, sample_id))
 
 
+@app.get("/why")
+async def why(request: Request):
+    md_path = Path("/app/doc/why.md")
+    html = markdown.markdown(md_path.read_text(), extensions=["tables", "fenced_code"])
+    return templates.TemplateResponse(request, "why.html", {
+        "content": html,
+    })
+
+
 @app.get("/methodology")
 async def methodology(request: Request):
     md_path = Path("/app/doc/methodology.md")
@@ -562,6 +571,13 @@ def publish_index_route():
 def publish_methodology_route():
     from scripts.publish import publish_methodology
     publish_methodology()
+    return RedirectResponse("/publish", status_code=303)
+
+
+@app.post("/publish/why")
+def publish_why_route():
+    from scripts.publish import publish_why
+    publish_why()
     return RedirectResponse("/publish", status_code=303)
 
 

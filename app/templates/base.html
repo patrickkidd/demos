@@ -117,14 +117,7 @@
 </head>
 <body>
   <div class="demos" data-theme="dark">
-    <nav>
-      <span class="brand">Demos</span>
-      <a href="/" {% if request.url.path == "/" %}class="active"{% endif %}>Stories</a>
-      <a href="/methodology" {% if request.url.path == "/methodology" %}class="active"{% endif %}>Methodology</a>
-      <a href="/publish" {% if request.url.path == "/publish" %}class="active"{% endif %}>Publish</a>
-      <a href="/auth" {% if request.url.path == "/auth" %}class="active"{% endif %}>Auth</a>
-      <button class="theme-toggle" onclick="toggleTheme()">Light</button>
-    </nav>
+    {# nav stripped for WP parity — back links live in page content #}
     <script>
     function toggleTheme() {
       const el = document.querySelector('.demos');
