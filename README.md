@@ -13,6 +13,14 @@ open http://localhost:8000
 
 Add a topic. Click **Sample**. Get the full picture in minutes.
 
+<img src="doc/screenshots/Screenshot%202026-04-16%20at%207.20.18%20AM.png" width="520" alt="Landing page — story list with sample timeline">
+
+<img src="doc/screenshots/Screenshot%202026-04-16%20at%207.20.47%20AM.png" width="520" alt="Sample analysis — biggest gap between narrative and evidence">
+
+<img src="doc/screenshots/Screenshot%202026-04-16%20at%207.21.05%20AM.png" width="520" alt="Outlet picker — what your source is not telling you">
+
+<img src="doc/screenshots/Screenshot%202026-04-16%20at%207.21.20%20AM.png" width="520" alt="The full picture — consensus, divergence, and blind spots">
+
 ---
 
 ## How it works
