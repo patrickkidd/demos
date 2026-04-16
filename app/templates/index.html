@@ -21,17 +21,28 @@
   .demos .story-title { font-size: 15px; font-weight: 600; }
   .demos .story-meta { display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
 
-  .demos .mini-timeline { display: flex; align-items: center; gap: 0; padding: 4px 0; }
-  .demos .mini-dot {
-    width: 10px; height: 10px; border-radius: 50%; background: var(--border);
-    cursor: pointer; flex-shrink: 0; border: 2px solid transparent;
-    transition: background 0.15s;
+  .demos .sample-list { list-style: none; position: relative; padding-left: 20px; }
+  .demos .sample-list::before {
+    content: ''; position: absolute; left: 5px; top: 6px; bottom: 6px;
+    width: 2px; background: var(--border);
   }
-  .demos .mini-dot:hover { background: var(--accent); }
-  .demos .mini-dot.analyzed { background: var(--green); }
-  .demos .mini-dot.extracted { background: var(--yellow); }
-  .demos .mini-line { width: 12px; height: 2px; background: var(--border); flex-shrink: 0; }
-  .demos .mini-label { font-size: 10px; color: var(--muted); margin-left: 8px; }
+  .demos .sample-item {
+    position: relative; padding: 8px 0 8px 16px; cursor: pointer;
+    border-radius: 4px; min-height: 44px; display: flex; flex-direction: column; justify-content: center;
+    text-decoration: none; color: inherit;
+  }
+  .demos .sample-item:hover { background: var(--hover); text-decoration: none; }
+  .demos .sample-item::before {
+    content: ''; position: absolute; left: -16px; top: 14px;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--border); border: 2px solid var(--bg);
+  }
+  .demos .sample-item.analyzed::before { background: var(--green); }
+  .demos .sample-item.extracted::before { background: var(--yellow); }
+  .demos .sample-date { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .demos .sample-headline { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .demos .sample-no-headline { font-size: 12px; color: var(--muted); font-style: italic; }
+  .demos .sample-list.collapsed .sample-item:nth-child(n+4) { display: none; }
+  .demos .sample-toggle { font-size: 12px; color: var(--accent); cursor: pointer; margin-top: 6px; padding-left: 20px; min-height: 44px; display: flex; align-items: center; }
 
   .demos .no-samples { font-size: 12px; color: var(--muted); padding: 4px 0; }
   @media (max-width: 700px) { .demos .nav-cards { grid-template-columns: 1fr; } }
@@ -117,21 +128,26 @@
       </div>
 
       {% if s.samples %}
-      <div class="mini-timeline">
-        {% for sid in s.samples %}
-          {% if not loop.first %}<div class="mini-line"></div>{% endif %}
-          <div class="mini-dot {% if sid in s.analyzed_samples %}analyzed{% else %}extracted{% endif %}"
-               title="{{ sid[:4] }}-{{ sid[4:6] }}-{{ sid[6:8] }}"
-               onclick="window.location.href='/story/{{ s.id }}/samples/{{ sid }}'">
-          </div>
-        {% endfor %}
-        <span class="mini-label">
-          {{ s.samples[0][4:6] }}/{{ s.samples[0][6:8] }}
-          {% if s.samples|length > 1 %}
-          — {{ s.samples[-1][4:6] }}/{{ s.samples[-1][6:8] }}
+      <ul class="sample-list{% if s.samples|length > 3 %} collapsed{% endif %}" id="sl-{{ s.id }}">
+        {% for sid in s.samples|reverse %}
+        <a class="sample-item {% if sid in s.analyzed_samples %}analyzed{% else %}extracted{% endif %}"
+           href="/story/{{ s.id }}/samples/{{ sid }}">
+          <div class="sample-date">{{ sid[:4] }}-{{ sid[4:6] }}-{{ sid[6:8] }}</div>
+          {% if s.headlines.get(sid) %}
+          <div class="sample-headline">{{ s.headlines[sid] }}</div>
+          {% else %}
+          <div class="sample-no-headline">Analysis pending</div>
           {% endif %}
-        </span>
-      </div>
+        </a>
+        {% endfor %}
+      </ul>
+      {% if s.samples|length > 3 %}
+      <div class="sample-toggle" onclick="
+        var list = document.getElementById('sl-{{ s.id }}');
+        var collapsed = list.classList.toggle('collapsed');
+        this.textContent = collapsed ? 'Show {{ s.samples|length - 3 }} older samples' : 'Show less';
+      ">Show {{ s.samples|length - 3 }} older samples</div>
+      {% endif %}
       {% else %}
       <div class="no-samples">No samples yet</div>
       {% endif %}

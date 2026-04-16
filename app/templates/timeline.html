@@ -1,135 +1,44 @@
-{% macro render(meta, samples, analyzed_samples, active_sample_id, running_sample_id=None) %}
-<div style="display:flex;align-items:flex-start;gap:8px;padding-top:10px;">
-  <button class="tl-arrow tl-arrow-left" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:24px;flex-shrink:0;opacity:0;transition:opacity 0.2s;" onclick="this.parentElement.querySelector('.timeline-scroll').scrollBy({left:-200,behavior:'smooth'})">&lsaquo;</button>
-<div class="timeline-scroll" style="position:relative;flex:1;">
-  <div class="timeline" id="timeline-{{ meta.id }}">
-    <div class="timeline-scale"></div>
-    <div class="timeline-track"></div>
+{% macro render(meta, samples, analyzed_samples, headlines, active_sample_id, running_sample_id=None) %}
+<div class="tl-wrap" id="tl-wrap-{{ meta.id }}">
+  <button class="tl-arrow tl-arrow-left" aria-label="Scroll left">&lsaquo;</button>
+  <div class="tl-cards" id="tl-{{ meta.id }}">
     {% for s in samples %}
-    <div class="timeline-item" data-ts="{{ s }}" style="position:absolute;">
-      <div class="timeline-dot {% if active_sample_id == s %}active{% endif %} {% if s in analyzed_samples %}has-analysis{% elif running_sample_id == s %}in-progress{% endif %}"
-           data-story="{{ meta.id }}" data-sample="{{ s }}"
-           title="{{ s[:4] }}-{{ s[4:6] }}-{{ s[6:8] }} {{ s[9:11] }}:{{ s[11:13] }} UTC">
-      </div>
-    </div>
+    <a class="tl-card{% if active_sample_id == s %} active{% endif %}{% if s in analyzed_samples %} analyzed{% elif running_sample_id == s %} in-progress{% endif %}"
+       href="/story/{{ meta.id }}/samples/{{ s }}">
+      <div class="tl-card-date">{{ s[:4] }}-{{ s[4:6] }}-{{ s[6:8] }}</div>
+      {% if headlines.get(s) %}
+      <div class="tl-card-head">{{ headlines[s] }}</div>
+      {% else %}
+      <div class="tl-card-none">Analysis pending</div>
+      {% endif %}
+    </a>
     {% endfor %}
   </div>
-</div>
-  <button class="tl-arrow tl-arrow-right" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:24px;flex-shrink:0;transition:opacity 0.2s;" onclick="this.parentElement.querySelector('.timeline-scroll').scrollBy({left:200,behavior:'smooth'})">&rsaquo;</button>
+  <button class="tl-arrow tl-arrow-right" aria-label="Scroll right">&rsaquo;</button>
 </div>
 <script>
 (function() {
-  const tl = document.getElementById('timeline-{{ meta.id }}');
-  if (!tl) return;
-  const items = tl.querySelectorAll('.timeline-item');
-  if (items.length < 1) return;
-
-  function tsToEpoch(ts) {
-    return new Date(
-      ts.slice(0,4) + '-' + ts.slice(4,6) + '-' + ts.slice(6,8) +
-      'T' + ts.slice(9,11) + ':' + ts.slice(11,13) + ':' + ts.slice(13,15) + 'Z'
-    ).getTime();
-  }
-
-  const epochs = Array.from(items).map(el => tsToEpoch(el.dataset.ts));
-  const minT = Math.min(...epochs);
-  const maxT = Math.max(...epochs);
-  const span = maxT - minT;
-
-  // Always fill at least the container width
-  const containerWidth = tl.parentElement.offsetWidth;
-  const contentWidth = Math.max(containerWidth, items.length * 80);
-  const totalWidth = span > 0 ? Math.max(contentWidth, containerWidth) : containerWidth;
-  const pad = 30; // padding on each side for dots
-
-  tl.style.width = totalWidth + 'px';
-  tl.style.position = 'relative';
-  tl.style.height = '56px';
-
-  // Position dots
-  const usable = totalWidth - pad * 2;
-  items.forEach((el, i) => {
-    const offset = span > 0 ? (epochs[i] - minT) / span : 0.5;
-    el.style.left = (pad + offset * usable) + 'px';
-  });
-
-  // Style the track line
-  const track = tl.querySelector('.timeline-track');
-  track.style.cssText = 'position:absolute;top:6px;left:' + pad + 'px;right:' + pad + 'px;height:2px;background:var(--border);';
-
-  // Build date scale
-  const scaleEl = tl.querySelector('.timeline-scale');
-  scaleEl.style.cssText = 'position:absolute;top:24px;left:0;right:0;height:20px;';
-
-  if (span > 0) {
-    // Determine tick interval based on span
-    const HOUR = 3600000, DAY = 86400000;
-    let interval, fmt;
-    if (span < DAY) {
-      interval = HOUR;
-      fmt = d => d.getUTCHours() + ':' + String(d.getUTCMinutes()).padStart(2, '0');
-    } else if (span < DAY * 14) {
-      interval = DAY;
-      fmt = d => (d.getUTCMonth() + 1) + '/' + d.getUTCDate();
-    } else if (span < DAY * 90) {
-      interval = DAY * 7;
-      fmt = d => (d.getUTCMonth() + 1) + '/' + d.getUTCDate();
-    } else {
-      interval = DAY * 30;
-      fmt = d => (d.getUTCMonth() + 1) + '/' + d.getUTCDate();
-    }
-
-    // Round start down to interval boundary
-    const start = Math.floor(minT / interval) * interval;
-    for (let t = start; t <= maxT + interval; t += interval) {
-      const offset = (t - minT) / span;
-      if (offset < -0.05 || offset > 1.05) continue;
-      const x = pad + offset * usable;
-      const tick = document.createElement('div');
-      tick.style.cssText = 'position:absolute;left:' + x + 'px;top:0;transform:translateX(-50%);font-size:9px;color:#8b8fa8;white-space:nowrap;';
-      tick.textContent = fmt(new Date(t));
-      scaleEl.appendChild(tick);
-
-      // Tick mark on the track
-      const mark = document.createElement('div');
-      mark.style.cssText = 'position:absolute;left:' + x + 'px;top:4px;width:1px;height:6px;background:#2a2d3a;';
-      scaleEl.appendChild(mark);
-    }
-  } else {
-    // Single sample — show its date centered
-    const d = new Date(minT);
-    const label = document.createElement('div');
-    label.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);font-size:10px;color:#8b8fa8;';
-    label.textContent = (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + ' ' + d.getUTCHours() + ':' + String(d.getUTCMinutes()).padStart(2, '0') + ' UTC';
-    scaleEl.appendChild(label);
-  }
-
-  tl.querySelectorAll('.timeline-dot').forEach(dot => {
-    dot.addEventListener('click', () => {
-      window.location.href = '/story/' + dot.dataset.story + '/samples/' + dot.dataset.sample;
-    });
-  });
-
-  // Auto-scroll to active dot
-  const activeDot = tl.querySelector('.timeline-dot.active');
-  const scrollContainer = tl.parentElement;
-  if (activeDot && scrollContainer) {
-    const dotLeft = activeDot.closest('.timeline-item').offsetLeft;
-    scrollContainer.scrollLeft = Math.max(0, dotLeft - scrollContainer.offsetWidth / 2);
-  }
-
-  // Arrow button visibility
-  const wrapper = scrollContainer.parentElement;
-  const arrowLeft = wrapper.querySelector('.tl-arrow-left');
-  const arrowRight = wrapper.querySelector('.tl-arrow-right');
+  var wrap = document.getElementById('tl-wrap-{{ meta.id }}');
+  var el = document.getElementById('tl-{{ meta.id }}');
+  if (!el || !wrap) return;
+  var left = wrap.querySelector('.tl-arrow-left');
+  var right = wrap.querySelector('.tl-arrow-right');
+  left.addEventListener('click', function() { el.scrollBy({left: -200, behavior: 'smooth'}); });
+  right.addEventListener('click', function() { el.scrollBy({left: 200, behavior: 'smooth'}); });
   function updateArrows() {
-    const sl = scrollContainer.scrollLeft;
-    const maxScroll = scrollContainer.scrollWidth - scrollContainer.offsetWidth;
-    if (arrowRight) arrowRight.style.opacity = sl >= maxScroll - 2 ? '0.3' : '1';
-    if (arrowLeft) arrowLeft.style.opacity = sl <= 2 ? '0.3' : '1';
+    left.style.opacity = el.scrollLeft <= 2 ? '0.3' : '1';
+    right.style.opacity = el.scrollLeft >= el.scrollWidth - el.offsetWidth - 2 ? '0.3' : '1';
   }
-  scrollContainer.addEventListener('scroll', updateArrows);
-  updateArrows();
+  el.addEventListener('scroll', updateArrows);
+  var active = el.querySelector('.tl-card.active');
+  requestAnimationFrame(function() {
+    if (active) {
+      el.scrollLeft = active.offsetLeft - el.offsetWidth / 2 + active.offsetWidth / 2;
+    } else {
+      el.scrollLeft = el.scrollWidth;
+    }
+    updateArrows();
+  });
 })();
 </script>
 {% endmacro %}

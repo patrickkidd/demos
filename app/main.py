@@ -1,4 +1,4 @@
-import json, uuid, asyncio, subprocess, logging
+import json, uuid, asyncio, subprocess, logging, shutil
 from enum import Enum
 from pathlib import Path
 from datetime import date, datetime, timedelta, timezone
@@ -95,6 +95,18 @@ def _story_samples(story_id: str) -> list[str]:
     return sorted(d.name for d in samples_dir.iterdir() if d.is_dir())
 
 
+def _sample_headlines(story_id: str, sample_ids: list[str]) -> dict[str, str]:
+    result = {}
+    for sid in sample_ids:
+        p4 = DATA / "stories" / story_id / "samples" / sid / "phase4.json"
+        if p4.exists():
+            try:
+                result[sid] = json.loads(p4.read_text())["headline"]
+            except (json.JSONDecodeError, KeyError):
+                pass
+    return result
+
+
 def _load_sample(story_id: str, sample_id: str) -> dict:
     sample_dir = DATA / "stories" / story_id / "samples" / sample_id
     result = {"id": sample_id}
@@ -183,6 +195,17 @@ async def _sample_bg(story_id: str, sample_id: str, target_date: str = None):
         await asyncio.sleep(10)
     finally:
         _running.pop(story_id, None)
+        _cleanup_empty_sample(story_id, sample_id)
+
+
+def _cleanup_empty_sample(story_id: str, sample_id: str):
+    sample_dir = DATA / "stories" / story_id / "samples" / sample_id
+    if not sample_dir.exists():
+        return
+    if (sample_dir / "phase2.json").exists():
+        return
+    _logger.info(f"[{story_id}] Cleaning up incomplete sample {sample_id}")
+    shutil.rmtree(sample_dir)
 
 
 @app.get("/")
@@ -197,6 +220,7 @@ async def index(request: Request):
             if (DATA / "stories" / s["id"] / "samples" / sid / "phase4.json").exists() or (DATA / "stories" / s["id"] / "samples" / sid / "phase3.json").exists():
                 analyzed.add(sid)
         s["analyzed_samples"] = analyzed
+        s["headlines"] = _sample_headlines(s["id"], samples)
         if samples:
             latest = _load_sample(s["id"], samples[-1])
             s["article_count"] = latest.get("article_count", 0)
@@ -235,9 +259,10 @@ async def story(request: Request, story_id: str):
     samples = _story_samples(story_id)
     analyzed = {s for s in samples
                 if (DATA / "stories" / story_id / "samples" / s / "phase4.json").exists() or (DATA / "stories" / story_id / "samples" / s / "phase3.json").exists()}
+    headlines = _sample_headlines(story_id, samples)
     return templates.TemplateResponse(request, "story.html", {
         "meta": meta, "samples": samples, "analyzed_samples": analyzed,
-        "running": _running,
+        "headlines": headlines, "running": _running,
     })
 
 
@@ -250,9 +275,11 @@ async def sample_view(request: Request, story_id: str, sample_id: str):
     current = _load_sample(story_id, sample_id) if sample_id in samples else None
     outlets = json.loads((Path("/app/app/outlets.json")).read_text())
     bias_scores = {o["outlet"]: o["bias_score"] for o in outlets}
+    headlines = _sample_headlines(story_id, samples)
     return templates.TemplateResponse(request, "sample.html", {
         "meta": meta, "samples": samples, "analyzed_samples": analyzed,
-        "current": current, "running": _running, "bias_scores": bias_scores,
+        "headlines": headlines, "current": current, "running": _running,
+        "bias_scores": bias_scores,
     })
 
 

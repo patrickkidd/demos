@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline Headlines — Mockups</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e2e4ed;
+    --muted: #8b8fa8;
+    --accent: #5b8af0;
+    --green: #34c47c;
+    --yellow: #f5a623;
+    --red: #e85d5d;
+    --hover: rgba(255,255,255,0.02);
+  }
+  [data-theme="light"] {
+    --bg: #FFFAF5;
+    --surface: #f0ece6;
+    --border: #d5d0c9;
+    --text: #1a1a2e;
+    --muted: #6e7280;
+    --accent: #467CCC;
+    --green: #2a9d63;
+    --yellow: #b87d18;
+    --red: #c94444;
+    --hover: rgba(0,0,0,0.03);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; font-size: 14px; line-height: 1.6; -webkit-tap-highlight-color: transparent; }
+  .page { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .desc { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+  a { color: var(--accent); text-decoration: none; cursor: pointer; }
+  a:hover { text-decoration: underline; }
+  .story-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .story-meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+
+  /* ===== Mockup A: Vertical List ===== */
+  .ma-list { list-style: none; position: relative; padding-left: 20px; }
+  .ma-list::before {
+    content: ''; position: absolute; left: 5px; top: 6px; bottom: 6px;
+    width: 2px; background: var(--border);
+  }
+  .ma-item {
+    position: relative; padding: 8px 0 8px 16px; cursor: pointer;
+    border-radius: 4px; min-height: 44px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .ma-item:active { background: var(--hover); }
+  .ma-item::before {
+    content: ''; position: absolute; left: -16px; top: 14px;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--border); border: 2px solid var(--bg);
+  }
+  .ma-item.analyzed::before { background: var(--green); }
+  .ma-item.extracted::before { background: var(--yellow); }
+  .ma-date { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ma-headline { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .ma-no-headline { font-size: 12px; color: var(--muted); font-style: italic; }
+  .ma-collapsed .ma-item:nth-child(n+4) { display: none; }
+  .ma-toggle { font-size: 12px; color: var(--accent); cursor: pointer; margin-top: 6px; padding-left: 20px; min-height: 44px; display: flex; align-items: center; }
+
+  /* ===== Mockup B: Scrolling Cards ===== */
+  .mb-scroll {
+    display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 8px;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity;
+  }
+  .mb-card {
+    flex-shrink: 0; width: 180px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s;
+    scroll-snap-align: start; min-height: 44px;
+  }
+  .mb-card:active { border-color: var(--accent); }
+  .mb-card.analyzed { border-left: 3px solid var(--green); }
+  .mb-card.extracted { border-left: 3px solid var(--yellow); }
+  .mb-date { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .mb-head { font-size: 12px; color: var(--text); font-weight: 500; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .mb-none { font-size: 11px; color: var(--muted); font-style: italic; }
+  @media (max-width: 500px) {
+    .mb-card { width: 150px; }
+  }
+
+  /* ===== Mockup C: Click-to-Expand (dots) ===== */
+  .mc-timeline { display: flex; align-items: center; gap: 0; padding: 4px 0; }
+  .mc-dot {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--border);
+    cursor: pointer; border: 2px solid transparent; transition: all 0.2s; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mc-dot-inner {
+    width: 10px; height: 10px; border-radius: 50%; transition: background 0.15s;
+  }
+  .mc-dot.analyzed .mc-dot-inner { background: var(--green); }
+  .mc-dot.extracted .mc-dot-inner { background: var(--yellow); }
+  .mc-dot:not(.analyzed):not(.extracted) .mc-dot-inner { background: var(--muted); }
+  .mc-dot.selected { border-color: var(--accent); background: rgba(91,138,240,0.1); }
+  .mc-line { width: 6px; height: 2px; background: var(--border); flex-shrink: 0; }
+  .mc-label { font-size: 10px; color: var(--muted); margin-left: 8px; white-space: nowrap; }
+  .mc-expand {
+    overflow: hidden; transition: max-height 0.25s ease, opacity 0.2s, margin 0.25s;
+    max-height: 0; opacity: 0; margin-top: 0;
+  }
+  .mc-expand.open { max-height: 100px; opacity: 1; margin-top: 10px; }
+  .mc-expand-inner {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 14px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .mc-expand-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .mc-expand-date { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  .mc-expand-head { font-size: 13px; color: var(--text); font-weight: 500; line-height: 1.4; }
+  .mc-expand-link {
+    font-size: 12px; color: var(--accent); flex-shrink: 0;
+    min-height: 44px; display: flex; align-items: center;
+  }
+
+  /* Nav sidebar — hidden on mobile */
+  .mockup-nav { position: fixed; top: 24px; right: 24px; display: flex; flex-direction: column; gap: 4px; z-index: 100; }
+  .mockup-nav a {
+    font-size: 11px; color: var(--muted); padding: 3px 10px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 4px; text-decoration: none;
+  }
+  .mockup-nav a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+  @media (max-width: 700px) { .mockup-nav { display: none; } }
+
+  .separator { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* Tradeoffs table */
+  .tradeoffs { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  .tradeoffs th { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tradeoffs td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .tradeoffs tr:last-child td { border-bottom: none; }
+  .t-green { color: var(--green); }
+  .t-yellow { color: var(--yellow); }
+  .t-red { color: var(--red); }
+</style>
+</head>
+<body data-theme="dark">
+<div class="page">
+
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;">
+  <div>
+    <h1>Timeline Headlines — Mockups</h1>
+    <p class="desc" style="margin-top:4px;">Three touch-friendly approaches. All use real data, no hover dependencies.</p>
+  </div>
+  <button onclick="toggleTheme()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:3px 10px;font-size:12px;cursor:pointer;" id="theme-btn">Light</button>
+</div>
+
+<nav class="mockup-nav">
+  <a href="#mockup-a">A: Vertical List</a>
+  <a href="#mockup-b">B: Scrolling Cards</a>
+  <a href="#mockup-c">C: Tap-to-Expand</a>
+</nav>
+
+<script>
+const SAMPLES = [
+  { id: "20260228T000000", status: "analyzed", headline: "U.S.\u2013Iran Talks Yield No Breakthrough Amid Military Buildup and Ultimatums" },
+  { id: "20260307T000000", status: "analyzed", headline: "U.S.\u2013Israeli Strikes Kill Khamenei as War Enters Third Week" },
+  { id: "20260314T000000", status: "analyzed", headline: "U.S.\u2013Iran War Enters Third Week Amid Contradictory Signals on Talks and Endgame" },
+  { id: "20260321T000000", status: "analyzed", headline: "U.S.\u2013Iran War Enters Fourth Week With No Ceasefire and Rising Costs" },
+  { id: "20260328T000000", status: "analyzed", headline: "US\u2013Iran War Enters Second Month With No Ceasefire in Sight" },
+  { id: "20260408T214502", status: "extracted", headline: null },
+  { id: "20260409T170054", status: "analyzed", headline: "US\u2013Iran Ceasefire Holds Amid Violations, Lebanon Escalation, and Unresolved Nuclear Dispute" },
+  { id: "20260412T040450", status: "analyzed", headline: "Islamabad Talks End Without Deal as Ceasefire Strains Mount" },
+  { id: "20260413T194131", status: "analyzed", headline: "Islamabad Talks Collapse as U.S. Imposes Naval Blockade on Iran" },
+  { id: "20260414T204055", status: "analyzed", headline: "Islamabad Talks Collapse as U.S. Blockade Takes Effect; Ceasefire Nears Expiration" },
+  { id: "20260415T160854", status: "analyzed", headline: "Islamabad Talks Collapse as U.S. Blockade Tests Ceasefire\u2019s Final Days" },
+  { id: "20260416T060448", status: "analyzed", headline: "U.S.\u2013Iran Talks Collapse as Blockade Takes Effect and Ceasefire Nears Expiration" },
+  { id: "20260416T121657", status: "extracted", headline: null },
+  { id: "20260416T122954", status: "extracted", headline: null },
+  { id: "20260416T123630", status: "extracted", headline: null },
+  { id: "20260416T125405", status: "extracted", headline: null },
+  { id: "20260416T130141", status: "extracted", headline: null },
+];
+
+function fmtDate(id) {
+  return id.slice(0,4) + '-' + id.slice(4,6) + '-' + id.slice(6,8);
+}
+function shortDate(id) {
+  return id.slice(4,6) + '/' + id.slice(6,8);
+}
+</script>
+
+<!-- ========== MOCKUP A: Vertical List ========== -->
+<div id="mockup-a">
+  <h2>A: Vertical List</h2>
+  <p class="desc">Replaces the dot timeline with a vertical list. Every headline is always visible. Collapsed by default showing the 3 most recent; tap to expand. Each row is a 44px+ tap target. Most readable on narrow screens.</p>
+  <div class="card">
+    <div class="story-title"><a href="#">US-Iran Relations</a></div>
+    <div class="story-meta">17 samples &middot; 30 articles (latest) &middot; Last: 2026-04-16</div>
+    <ul class="ma-list ma-collapsed" id="ma-list"></ul>
+    <div class="ma-toggle" id="ma-toggle"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const el = document.getElementById('ma-list');
+  const tog = document.getElementById('ma-toggle');
+  let expanded = false;
+  const reversed = [...SAMPLES].reverse();
+  reversed.forEach(s => {
+    const li = document.createElement('li');
+    li.className = 'ma-item ' + s.status;
+    li.innerHTML = `<div class="ma-date">${fmtDate(s.id)}</div>` +
+      (s.headline ? `<div class="ma-headline">${s.headline}</div>` : `<div class="ma-no-headline">Analysis pending</div>`);
+    el.appendChild(li);
+  });
+  const hiddenCount = SAMPLES.length - 3;
+  tog.textContent = `Show ${hiddenCount} older samples`;
+  tog.addEventListener('click', () => {
+    expanded = !expanded;
+    el.classList.toggle('ma-collapsed', !expanded);
+    tog.textContent = expanded ? 'Show less' : `Show ${hiddenCount} older samples`;
+  });
+})();
+</script>
+
+<hr class="separator">
+
+<!-- ========== MOCKUP B: Scrolling Cards ========== -->
+<div id="mockup-b">
+  <h2>B: Scrolling Cards</h2>
+  <p class="desc">Horizontal swipe strip. Each sample is a card with date + headline. Native mobile scroll with snap points. Replaces dots entirely. Most headlines visible without interaction, scroll for the rest.</p>
+  <div class="card">
+    <div class="story-title"><a href="#">US-Iran Relations</a></div>
+    <div class="story-meta">17 samples &middot; 30 articles (latest) &middot; Last: 2026-04-16</div>
+    <div class="mb-scroll" id="mb-scroll"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const el = document.getElementById('mb-scroll');
+  SAMPLES.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'mb-card ' + s.status;
+    card.innerHTML = `<div class="mb-date">${fmtDate(s.id)}</div>` +
+      (s.headline ? `<div class="mb-head">${s.headline}</div>` : `<div class="mb-none">Analysis pending</div>`);
+    el.appendChild(card);
+  });
+  // Scroll to end (most recent) on load
+  requestAnimationFrame(() => { el.scrollLeft = el.scrollWidth; });
+})();
+</script>
+
+<hr class="separator">
+
+<!-- ========== MOCKUP C: Tap-to-Expand (dots) ========== -->
+<div id="mockup-c">
+  <h2>C: Tap-to-Expand</h2>
+  <p class="desc">Keeps the compact dot layout with 28px tap targets (vs 10px originals). Tapping a dot reveals the headline in a panel below. Tapping another dot switches; same dot closes. Compact by default, progressive disclosure. Dots still show status color and date range.</p>
+  <div class="card">
+    <div class="story-title"><a href="#">US-Iran Relations</a></div>
+    <div class="story-meta">17 samples &middot; 30 articles (latest) &middot; Last: 2026-04-16</div>
+    <div class="mc-timeline" id="mc-timeline"></div>
+    <div class="mc-expand" id="mc-expand">
+      <div class="mc-expand-inner">
+        <div class="mc-expand-row">
+          <span class="mc-expand-date" id="mc-exp-date"></span>
+          <a class="mc-expand-link" id="mc-exp-link">View &rarr;</a>
+        </div>
+        <div class="mc-expand-head" id="mc-exp-head"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const el = document.getElementById('mc-timeline');
+  const expand = document.getElementById('mc-expand');
+  const expDate = document.getElementById('mc-exp-date');
+  const expHead = document.getElementById('mc-exp-head');
+  let selected = null;
+  const dots = [];
+
+  SAMPLES.forEach((s, i) => {
+    if (i > 0) {
+      const line = document.createElement('div');
+      line.className = 'mc-line';
+      el.appendChild(line);
+    }
+    const dot = document.createElement('div');
+    dot.className = 'mc-dot ' + s.status;
+    const inner = document.createElement('div');
+    inner.className = 'mc-dot-inner';
+    dot.appendChild(inner);
+    dots.push(dot);
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (selected === i) {
+        selected = null;
+        expand.classList.remove('open');
+        dot.classList.remove('selected');
+        return;
+      }
+      dots.forEach(d => d.classList.remove('selected'));
+      selected = i;
+      dot.classList.add('selected');
+      expDate.textContent = fmtDate(s.id);
+      if (s.headline) {
+        expHead.textContent = s.headline;
+        expHead.style.color = 'var(--text)';
+        expHead.style.fontStyle = 'normal';
+      } else {
+        expHead.textContent = 'Analysis pending';
+        expHead.style.color = 'var(--muted)';
+        expHead.style.fontStyle = 'italic';
+      }
+      expand.classList.add('open');
+    });
+    el.appendChild(dot);
+  });
+
+  const lbl = document.createElement('span');
+  lbl.className = 'mc-label';
+  lbl.textContent = shortDate(SAMPLES[0].id) + ' \u2014 ' + shortDate(SAMPLES[SAMPLES.length-1].id);
+  el.appendChild(lbl);
+})();
+</script>
+
+<hr class="separator">
+
+<!-- ========== Tradeoffs ========== -->
+<div class="card">
+  <h3>Tradeoffs</h3>
+  <table class="tradeoffs">
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Space</th>
+        <th>Discoverability</th>
+        <th>50+ samples</th>
+        <th>Mobile feel</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>A: Vertical List</td>
+        <td class="t-yellow">~44px/visible row</td>
+        <td class="t-green">High (always visible)</td>
+        <td class="t-yellow">With collapse</td>
+        <td class="t-green">Natural scroll</td>
+      </tr>
+      <tr>
+        <td>B: Scrolling Cards</td>
+        <td class="t-yellow">~80px fixed</td>
+        <td class="t-green">High (swipe to scan)</td>
+        <td class="t-green">Yes (horizontal scroll)</td>
+        <td class="t-green">Native swipe</td>
+      </tr>
+      <tr>
+        <td>C: Tap-to-Expand</td>
+        <td class="t-green">~28px (until tap)</td>
+        <td class="t-yellow">Medium (requires tap)</td>
+        <td class="t-yellow">Dots get small</td>
+        <td class="t-yellow">Tight tap targets at scale</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<script>
+function toggleTheme() {
+  const body = document.body;
+  const btn = document.getElementById('theme-btn');
+  const next = body.dataset.theme === 'dark' ? 'light' : 'dark';
+  body.dataset.theme = next;
+  btn.textContent = next === 'dark' ? 'Light' : 'Dark';
+}
+</script>
+</body>
+</html>

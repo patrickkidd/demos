@@ -1,4 +1,4 @@
-import sys, json, time, asyncio, logging
+import sys, json, time, asyncio, logging, shutil
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
@@ -48,6 +48,18 @@ async def run_full_sample(story: dict):
         await cluster_sample(story, sample_id)
         log.info(f"  Phase 4: synthesizing")
         await synthesize_story(story, sample_id)
+    if sample_id:
+        _cleanup_empty_sample(story["id"], sample_id)
+
+
+def _cleanup_empty_sample(story_id: str, sample_id: str):
+    sample_dir = DATA / "stories" / story_id / "samples" / sample_id
+    if not sample_dir.exists():
+        return
+    if (sample_dir / "phase2.json").exists():
+        return
+    log.info(f"Cleaning up incomplete sample {sample_id}")
+    shutil.rmtree(sample_dir)
 
 
 async def tick():
@@ -68,18 +80,39 @@ async def tick():
 
     for story in due:
         log.info(f"Scheduled sample: {story['topic']}")
+        sample_id_before = story.get("last_sample")
         try:
             await run_full_sample(story)
-            ran_today.setdefault(today, set()).add(story["id"])
         except Exception as e:
             log.error(f"  Failed {story['topic']}: {e}")
-            # Still mark as ran to prevent retry loops
-            ran_today.setdefault(today, set()).add(story["id"])
+            sample_id_after = story.get("last_sample")
+            if sample_id_after and sample_id_after != sample_id_before:
+                _cleanup_empty_sample(story["id"], sample_id_after)
+        ran_today.setdefault(today, set()).add(story["id"])
     stories_path.write_text(json.dumps(stories, indent=2))
+
+
+def cleanup_orphans():
+    stories_dir = DATA / "stories"
+    if not stories_dir.exists():
+        return
+    count = 0
+    for story_dir in stories_dir.iterdir():
+        samples_dir = story_dir / "samples"
+        if not samples_dir.is_dir():
+            continue
+        for sample_dir in samples_dir.iterdir():
+            if sample_dir.is_dir() and not (sample_dir / "phase2.json").exists():
+                log.info(f"Startup cleanup: removing orphan {story_dir.name}/{sample_dir.name}")
+                shutil.rmtree(sample_dir)
+                count += 1
+    if count:
+        log.info(f"Cleaned up {count} orphan sample(s)")
 
 
 def main():
     log.info("Watchdog started")
+    cleanup_orphans()
     while True:
         t0 = time.monotonic()
         time.sleep(INTERVAL)
