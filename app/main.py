@@ -566,6 +566,18 @@ async def publish_dashboard(request: Request):
     })
 
 
+@app.post("/publish/all")
+def publish_all_route():
+    from scripts.publish import publish_story, publish_index, publish_methodology, publish_why
+    stories = json.loads((DATA / "stories.json").read_text())
+    for s in stories:
+        publish_story(s["id"])
+    publish_index()
+    publish_methodology()
+    publish_why()
+    return RedirectResponse("/publish", status_code=303)
+
+
 @app.post("/publish/story/{story_id}")
 def publish_story_route(story_id: str):
     from scripts.publish import publish_story
