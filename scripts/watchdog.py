@@ -101,8 +101,13 @@ def cleanup_orphans():
         samples_dir = story_dir / "samples"
         if not samples_dir.is_dir():
             continue
+        bf_path = story_dir / "backfill.json"
+        queued = set()
+        if bf_path.exists():
+            bf = json.load(bf_path.open())
+            queued = {e["sample_id"] for e in bf.get("samples", [])}
         for sample_dir in samples_dir.iterdir():
-            if sample_dir.is_dir() and not (sample_dir / "phase2.json").exists():
+            if sample_dir.is_dir() and sample_dir.name not in queued and not (sample_dir / "phase2.json").exists():
                 log.info(f"Startup cleanup: removing orphan {story_dir.name}/{sample_dir.name}")
                 shutil.rmtree(sample_dir)
                 count += 1

@@ -253,33 +253,72 @@ async def api_log(story_id: str, after: int = 0):
     return JSONResponse({"lines": lines[after:], "total": len(lines)})
 
 
+def _queued_samples(story_id: str) -> list[str]:
+    bf_path = DATA / "stories" / story_id / "backfill.json"
+    if not bf_path.exists():
+        return []
+    bf = json.loads(bf_path.read_text())
+    existing = set(_story_samples(story_id))
+    return [e["sample_id"] for e in bf["samples"] if e["sample_id"] not in existing]
+
+
+def _all_samples(story_id: str) -> list[str]:
+    return sorted(set(_story_samples(story_id)) | set(_queued_samples(story_id)))
+
+
+def _stopped_samples(story_id: str) -> dict[str, str]:
+    samples_dir = DATA / "stories" / story_id / "samples"
+    if not samples_dir.exists():
+        return {}
+    running_sid = _running.get(story_id, {}).get("sample")
+    result = {}
+    for d in samples_dir.iterdir():
+        if not d.is_dir() or d.name == running_sid:
+            continue
+        if (d / "phase2.json").exists() or (d / "phase3.json").exists() or (d / "phase4.json").exists():
+            continue
+        if not (d / "manifest.json").exists() and not (d / "phase1").exists():
+            continue
+        ref = d / "manifest.json" if (d / "manifest.json").exists() else d
+        ts = datetime.fromtimestamp(ref.stat().st_mtime, tz=timezone.utc)
+        result[d.name] = ts.strftime("%-d %b %H:%M UTC")
+    return result
+
+
 @app.get("/story/{story_id}")
 async def story(request: Request, story_id: str):
     meta = json.loads((DATA / "stories" / story_id / "meta.json").read_text())
-    samples = _story_samples(story_id)
+    samples = _all_samples(story_id)
     analyzed = {s for s in samples
                 if (DATA / "stories" / story_id / "samples" / s / "phase4.json").exists() or (DATA / "stories" / story_id / "samples" / s / "phase3.json").exists()}
     headlines = _sample_headlines(story_id, samples)
+    queued = set(_queued_samples(story_id))
+    stopped = _stopped_samples(story_id)
     return templates.TemplateResponse(request, "story.html", {
         "meta": meta, "samples": samples, "analyzed_samples": analyzed,
-        "headlines": headlines, "running": _running,
+        "headlines": headlines, "running": _running, "queued_samples": queued,
+        "stopped_samples": stopped,
     })
 
 
 @app.get("/story/{story_id}/samples/{sample_id}")
 async def sample_view(request: Request, story_id: str, sample_id: str):
     meta = json.loads((DATA / "stories" / story_id / "meta.json").read_text())
-    samples = _story_samples(story_id)
+    existing = _story_samples(story_id)
+    samples = _all_samples(story_id)
     analyzed = {s for s in samples
                 if (DATA / "stories" / story_id / "samples" / s / "phase4.json").exists() or (DATA / "stories" / story_id / "samples" / s / "phase3.json").exists()}
-    current = _load_sample(story_id, sample_id) if sample_id in samples else None
+    current = _load_sample(story_id, sample_id) if sample_id in existing else None
     outlets = json.loads((Path("/app/app/outlets.json")).read_text())
     bias_scores = {o["outlet"]: o["bias_score"] for o in outlets}
     headlines = _sample_headlines(story_id, samples)
+    queued = set(_queued_samples(story_id))
+    stopped = _stopped_samples(story_id)
     return templates.TemplateResponse(request, "sample.html", {
         "meta": meta, "samples": samples, "analyzed_samples": analyzed,
         "headlines": headlines, "current": current, "running": _running,
-        "bias_scores": bias_scores,
+        "bias_scores": bias_scores, "queued_samples": queued,
+        "stopped_samples": stopped,
     })
 
 
@@ -372,7 +411,8 @@ async def sample_story(story_id: str):
 @app.post("/stories/{story_id}/samples/{sample_id}/resume")
 async def resume_sample(story_id: str, sample_id: str):
     if story_id not in _running:
-        asyncio.create_task(_sample_bg(story_id, sample_id))
+        target_date = f"{sample_id[:4]}-{sample_id[4:6]}-{sample_id[6:8]}" if sample_id.endswith("T000000") else None
+        asyncio.create_task(_sample_bg(story_id, sample_id, target_date))
     return RedirectResponse(f"/story/{story_id}/samples/{sample_id}", status_code=303)
 
 
@@ -470,33 +510,39 @@ def _sample_complete(story_id: str, sample_id: str) -> bool:
 
 async def _backfill_bg(story_id: str):
     bf_path = DATA / "stories" / story_id / "backfill.json"
-    bf = json.loads(bf_path.read_text())
-    total = len(bf["samples"])
     _logs[story_id] = []
     try:
         _log_path(story_id).unlink(missing_ok=True)
     except OSError:
         pass
+    sid = None
     try:
-        for i, entry in enumerate(bf["samples"]):
+        while bf_path.exists():
+            bf = json.loads(bf_path.read_text())
+            samples = bf["samples"]
+            for e in samples:
+                (DATA / "stories" / story_id / "samples" / e["sample_id"]).mkdir(parents=True, exist_ok=True)
+            pending = [e for e in samples if not _sample_complete(story_id, e["sample_id"])]
+            if not pending:
+                bf_path.unlink(missing_ok=True)
+                break
+            entry = pending[0]
             sid = entry["sample_id"]
             td = entry["target_date"]
-            if _sample_complete(story_id, sid):
-                _log(story_id, f"[backfill {i+1}/{total}] {td} — complete, skipping")
-                continue
-            _log(story_id, f"[backfill {i+1}/{total}] {td} — starting")
+            total = len(samples)
+            current = next(i + 1 for i, e in enumerate(samples) if e["sample_id"] == sid)
+            _log(story_id, f"[backfill {current}/{total}] {td} — starting")
             _running[story_id] = {
                 "phase": Phase.Extracting, "sample": sid,
                 "done": 0, "total": 0,
-                "backfill": True, "bf_current": i + 1, "bf_total": total,
+                "backfill": True, "bf_current": current, "bf_total": total,
             }
             await _run_sample_phases(story_id, sid, target_date=td)
         _log(story_id, "Backfill complete")
-        bf_path.unlink(missing_ok=True)
     except Exception as e:
         _log(story_id, f"Backfill stopped: {e}")
-        _running[story_id] = {"phase": Phase.Failed, "sample": sid,
-                              "backfill": True, "bf_current": i + 1, "bf_total": total}
+        if sid:
+            _running[story_id] = {"phase": Phase.Failed, "sample": sid, "backfill": True}
         await asyncio.sleep(10)
     finally:
         _running.pop(story_id, None)
@@ -527,6 +573,20 @@ async def backfill_story(story_id: str,
     bf_path = DATA / "stories" / story_id / "backfill.json"
     bf_path.write_text(json.dumps(bf, indent=2))
     asyncio.create_task(_backfill_bg(story_id))
+    return RedirectResponse(f"/story/{story_id}", status_code=303)
+
+
+@app.post("/stories/{story_id}/queue")
+async def queue_date(story_id: str, target_date: str = Form(...)):
+    sid = datetime.strptime(target_date, "%Y-%m-%d").strftime("%Y%m%dT000000")
+    (DATA / "stories" / story_id / "samples" / sid).mkdir(parents=True, exist_ok=True)
+    bf_path = DATA / "stories" / story_id / "backfill.json"
+    bf = json.loads(bf_path.read_text()) if bf_path.exists() else {"samples": []}
+    if not any(e["sample_id"] == sid for e in bf["samples"]):
+        bf["samples"].append({"sample_id": sid, "target_date": target_date})
+        bf_path.write_text(json.dumps(bf, indent=2))
+    if story_id not in _running:
+        asyncio.create_task(_backfill_bg(story_id))
     return RedirectResponse(f"/story/{story_id}", status_code=303)
 
 

@@ -42,6 +42,8 @@
   }
   .demos .sample-item.analyzed::before { background: var(--green); }
   .demos .sample-item.extracted::before { background: var(--yellow); }
+  .demos .sample-item.extracting::before { background: var(--yellow); animation: tl-pulse 1s ease-in-out infinite; }
+  @keyframes tl-pulse { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
   .demos .sample-date { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .demos .sample-headline { font-size: 13px; color: var(--text); line-height: 1.4; }
   .demos .sample-no-headline { font-size: 12px; color: var(--muted); font-style: italic; }
@@ -129,13 +131,19 @@
       </div>
 
       {% if s.samples %}
+      {% set active_status = running.get(s.id) %}
+      {% set active_sid = active_status.sample if active_status else None %}
       <ul class="sample-list">
         {% for sid in s.samples|reverse %}
-        <a class="sample-item {% if sid in s.analyzed_samples %}analyzed{% else %}extracted{% endif %}"
-           href="/story/{{ s.id }}/samples/{{ sid }}">
+        {% set is_extracting = active_sid == sid %}
+        <a class="sample-item {% if sid in s.analyzed_samples %}analyzed{% elif is_extracting %}extracting{% else %}extracted{% endif %}"
+           href="/story/{{ s.id }}/samples/{{ sid }}"
+           data-story="{{ s.id }}" data-sample="{{ sid }}">
           <div class="sample-date">{{ sid[:4] }}-{{ sid[4:6] }}-{{ sid[6:8] }}</div>
           {% if s.headlines.get(sid) %}
           <div class="sample-headline">{{ s.headlines[sid] }}</div>
+          {% elif is_extracting %}
+          <div class="sample-no-headline">{{ active_status.phase.value }}…</div>
           {% else %}
           <div class="sample-no-headline">Analysis pending</div>
           {% endif %}
@@ -163,6 +171,21 @@
   const badges = document.querySelectorAll('[data-story-status]');
   if (!badges.length) return;
 
+  function updateSamples(storyId, activeSample, phase) {
+    document.querySelectorAll('[data-story="' + storyId + '"]').forEach(el => {
+      if (el.classList.contains('analyzed')) return;
+      const sid = el.dataset.sample;
+      if (sid === activeSample) {
+        el.classList.add('extracting');
+        el.classList.remove('extracted');
+        const t = el.querySelector('.sample-no-headline');
+        if (t) t.textContent = phase + '…';
+      } else {
+        el.classList.remove('extracting');
+      }
+    });
+  }
+
   const poll = setInterval(async () => {
     try {
       const resp = await fetch('/api/status');
@@ -175,6 +198,7 @@
           b.textContent = info.phase + '…';
           b.classList.remove('badge-green', 'badge-red');
           b.classList.add(info.phase === 'failed' ? 'badge-red' : 'badge-yellow');
+          updateSamples(id, info.sample, info.phase);
           anyRunning = true;
         } else {
           b.textContent = 'done';

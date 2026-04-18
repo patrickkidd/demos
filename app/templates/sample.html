@@ -223,7 +223,7 @@
 {% if samples %}
 <div class="section">
   {% set rs = running.get(meta.id) %}
-  {{ tl.render(meta, samples, analyzed_samples, headlines, current.id if current else None, rs.sample if rs else None) }}
+  {{ tl.render(meta, samples, analyzed_samples, headlines, current.id if current else None, rs.sample if rs else None, queued_samples, stopped_samples) }}
 </div>
 {% endif %}
 

@@ -1,17 +1,35 @@
-{% macro render(meta, samples, analyzed_samples, headlines, active_sample_id, running_sample_id=None) %}
+{% macro render(meta, samples, analyzed_samples, headlines, active_sample_id, running_sample_id=None, queued_samples=none, stopped_samples=none) %}
 <div class="tl-wrap" id="tl-wrap-{{ meta.id }}">
   <button class="tl-arrow tl-arrow-left" aria-label="Scroll left">&lsaquo;</button>
   <div class="tl-cards" id="tl-{{ meta.id }}">
     {% for s in samples %}
-    <a class="tl-card{% if active_sample_id == s %} active{% endif %}{% if s in analyzed_samples %} analyzed{% elif running_sample_id == s %} in-progress{% endif %}"
+    {% set is_queued = queued_samples and s in queued_samples %}
+    {% set stopped_at = stopped_samples[s] if stopped_samples and s in stopped_samples else none %}
+    {% if stopped_at %}
+    <div class="tl-card stopped{% if active_sample_id == s %} active{% endif %}">
+      <a href="/story/{{ meta.id }}/samples/{{ s }}" style="text-decoration:none;color:inherit;display:block;">
+        <div class="tl-card-date">{{ s[:4] }}-{{ s[4:6] }}-{{ s[6:8] }}</div>
+        <div class="tl-card-none">Stopped {{ stopped_at }}</div>
+      </a>
+      <form method="post" action="/stories/{{ meta.id }}/samples/{{ s }}/resume" style="margin-top:6px;">
+        <button class="tl-resume-btn">Resume</button>
+      </form>
+    </div>
+    {% else %}
+    <a class="tl-card{% if active_sample_id == s %} active{% endif %}{% if s in analyzed_samples %} analyzed{% elif running_sample_id == s %} in-progress{% elif is_queued %} queued{% endif %}"
        href="/story/{{ meta.id }}/samples/{{ s }}">
       <div class="tl-card-date">{{ s[:4] }}-{{ s[4:6] }}-{{ s[6:8] }}</div>
       {% if headlines.get(s) %}
       <div class="tl-card-head">{{ headlines[s] }}</div>
+      {% elif running_sample_id == s %}
+      <div class="tl-card-none">Extracting…</div>
+      {% elif is_queued %}
+      <div class="tl-card-none">Queued</div>
       {% else %}
       <div class="tl-card-none">Analysis pending</div>
       {% endif %}
     </a>
+    {% endif %}
     {% endfor %}
   </div>
   <button class="tl-arrow tl-arrow-right" aria-label="Scroll right">&rsaquo;</button>
