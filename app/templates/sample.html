@@ -69,12 +69,17 @@
   .demos .aha-label { font-size: 13px; color: var(--muted); font-weight: 500; margin-bottom: 28px; line-height: 1.5; }
   .demos .aha-versus { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 28px; }
   .demos .aha-pole { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 12px; min-width: 0; }
-  .demos .aha-num { font-size: clamp(28px, 7vw, 56px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; word-break: break-word; text-align: center; }
-  .demos .aha-desc { font-size: 12px; color: var(--muted); line-height: 1.4; text-align: center; max-width: 160px; }
-  .demos .aha-src { font-size: 10px; color: var(--muted); margin-top: 8px; opacity: 0.7; }
+  .demos .aha-num { font-size: clamp(28px, 7vw, 56px); font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-bottom: 6px; word-break: normal; overflow-wrap: normal; text-align: center; }
+  .demos .aha-desc { font-size: 11px; color: var(--muted); line-height: 1.4; text-align: center; max-width: 160px; margin-bottom: 8px; }
   .demos .aha-outlets { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 6px; }
+  .demos .coverage-split { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; }
+  .demos .split-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .demos .split-bar { flex: 1; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; display: flex; }
+  .demos .split-bar-a { height: 100%; background: var(--red); }
+  .demos .split-bar-b { height: 100%; background: var(--green); }
+  .demos .split-num { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
   .demos .aha-outlet { font-size: 10px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; white-space: nowrap; }
-  .demos .aha-divider { width: 1px; height: 80px; background: var(--border); flex-shrink: 0; position: relative; }
+  .demos .aha-divider { width: 1px; height: 80px; background: var(--border); flex-shrink: 0; position: relative; margin: 0 16px; }
   .demos .aha-divider::after { content: 'vs'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 10px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 6px 0; letter-spacing: 0.08em; text-transform: uppercase; }
   .demos .aha-verdict { font-size: 15px; line-height: 1.6; max-width: 440px; margin: 0 auto; }
   .demos .aha-verdict strong { color: var(--yellow); }
@@ -200,6 +205,7 @@
     .demos .axis-poles { flex-direction: column; }
     .demos .flow-nav-item { padding: 8px 10px; font-size: 11px; }
     .demos .confidence { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+    .demos .coverage-split { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
     .demos .method-box { padding: 12px 14px; }
     .demos .phase { margin-top: 40px; }
   }
@@ -281,7 +287,6 @@
   <h1 class="hook-headline">{{ syn.headline }}</h1>
   <div class="hook-meta">{{ current.article_count }} sources &middot; <span id="factCount">0</span> factual claims &middot; <span id="axisCount">0</span> opinion axes</div>
   <div id="ahaCard"></div>
-  <div id="reliabilityBar"></div>
   <div class="scroll-cue" onclick="smoothScroll('personal')">See what your source is missing &darr;</div>
 </div>
 
@@ -448,12 +453,6 @@ function smoothScroll(id) {
       if (avgSq < 0.35 && op.outlets.some(o => (o.intensity||0) >= 3)) opinionAsFact++;
     });
   });
-  // Reliability bar
-  const pct = Math.round(verified / facts.length * 100);
-  document.getElementById('reliabilityBar').innerHTML =
-    '<div class="confidence"><div class="conf-label">Story reliability</div>' +
-    '<div class="conf-bar"><div class="conf-fill" style="width:' + pct + '%;"></div></div>' +
-    '<div class="conf-num">' + opinionAsFact + ' opinions framed as fact</div></div>';
 
   // === HOOK AHA — pick axis with widest sourcing quality gap ===
   let bestAxis = null, bestGap = -1;
@@ -471,58 +470,65 @@ function smoothScroll(id) {
     const c = centroids[bestAxis.id];
     const pA = bestAxis.opinions.find(o => o.pole === 'A');
     const pB = bestAxis.opinions.find(o => o.pole === 'B');
-    const sqA = (pA.outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / pA.outlets.length).toFixed(2);
-    const sqB = (pB.outlets.reduce((s,o) => s + (o.sourcing_quality||0), 0) / pB.outlets.length).toFixed(2);
-    // Extract short punchy number for display
-    // Look for numbers/percentages/timeframes in quote or stance
+
     function extractShortLabel(text) {
-      // Try percentage
       const pctMatch = text.match(/(\d+[\.\d]*\s*%)/);
       if (pctMatch) return pctMatch[1];
-      // Try timeframe like "3-6 months", "three to six months"
       const timeMatch = text.match(/(\d+[-–]\d+\s*(?:mo(?:nths?)?|years?|days?|weeks?))/i);
       if (timeMatch) return timeMatch[1].replace('months','mo').replace('month','mo');
-      // Try word-number timeframes
       const wordTime = text.match(/(three to six months|one to two years)/i);
       if (wordTime) return wordTime[1].replace(/three to six months/i,'3-6 mo').replace(/one to two years/i,'1-2 yr');
-      // Try "completely", "total" → 100%
       if (/completely|totally|100%|obliterat/i.test(text)) return '100%';
-      // Try standalone big number
       const numMatch = text.match(/(\d{1,3}(?:,\d{3})+|\d+\+?)\s/);
       if (numMatch) return numMatch[1];
       return null;
     }
 
-    // Prefer LLM-generated labels from phase4, fall back to regex extraction
-    const numA = (c && c.pole_a_label) || extractShortLabel(pA.stance + ' ' + (pA.quote_excerpt||'')) || pA.outlets.length + '';
-    const numB = (c && c.pole_b_label) || extractShortLabel(pB.stance + ' ' + (pB.quote_excerpt||'')) || pB.outlets.length + '';
+    // Numbers from source text first; short label as fallback display value
+    const extractedA = extractShortLabel(pA.stance + ' ' + (pA.quote_excerpt||''));
+    const extractedB = extractShortLabel(pB.stance + ' ' + (pB.quote_excerpt||''));
+    const numA = extractedA || (c && c.pole_a_label) || pA.outlets.length + '';
+    const numB = extractedB || (c && c.pole_b_label) || pB.outlets.length + '';
+    // When number shown: label annotates it. When label shown: stance contextualizes it.
+    function truncate(s, n) { return s && s.length > n ? s.slice(0, n - 1) + '\u2026' : s || ''; }
+    const descA = extractedA ? (c && c.pole_a_label || '') : truncate(pA.stance, 100);
+    const descB = extractedB ? (c && c.pole_b_label || '') : truncate(pB.stance, 100);
+
+    const aCount = pA.outlets.length, bCount = pB.outlets.length, total = aCount + bCount;
+    const aPct = Math.round(aCount / total * 100), bPct = 100 - aPct;
+
+    const aNames = new Set(pA.outlets.map(o => o.name));
+    const bNames = new Set(pB.outlets.map(o => o.name));
+    const both = [...aNames].filter(n => bNames.has(n));
+    const verdictText = both.length === 0
+      ? '<strong>No outlet showed readers both claims.</strong> ' + aCount + ' reported one side, ' + bCount + ' reported the other.'
+      : '<strong>Only ' + both.length + ' of ' + (aNames.size + bNames.size - both.length) + ' outlets covered both sides.</strong> The rest reported one claim without acknowledging the other.';
 
     document.getElementById('ahaCard').innerHTML =
       '<div class="aha">' +
       '<div class="aha-label">The biggest gap between what you\'re being told and what the evidence says</div>' +
       '<div class="aha-versus">' +
-      '<div class="aha-pole"><div class="aha-num" style="color:var(--red);">' + numA + '</div>' +
-      '<div class="aha-src">' + pA.outlets.length + ' source' + (pA.outlets.length>1?'s':'') + '</div>' +
-      '<div class="aha-outlets">' + pA.outlets.map(o => '<span class="aha-outlet">' + o.name + '</span>').join('') + '</div></div>' +
-      '<div class="aha-divider"></div>' +
-      '<div class="aha-pole"><div class="aha-num" style="color:var(--green);">' + numB + '</div>' +
-      '<div class="aha-src">' + pB.outlets.length + ' source' + (pB.outlets.length>1?'s':'') + '</div>' +
-      '<div class="aha-outlets">' + pB.outlets.map(o => '<span class="aha-outlet">' + o.name + '</span>').join('') + '</div></div>' +
+      '<div class="aha-pole">' +
+        '<div class="aha-num" style="color:var(--red);">' + numA + '</div>' +
+        (descA ? '<div class="aha-desc">' + descA + '</div>' : '') +
+        '<div class="aha-outlets">' + pA.outlets.map(o => '<span class="aha-outlet">' + o.name + '</span>').join('') + '</div>' +
       '</div>' +
-      (function() {
-        const aNames = new Set(pA.outlets.map(o => o.name));
-        const bNames = new Set(pB.outlets.map(o => o.name));
-        const both = [...aNames].filter(n => bNames.has(n));
-        let verdict = '';
-        if (both.length === 0) {
-          verdict = '<strong>No outlet presented both claims.</strong> ' +
-            pA.outlets.length + ' reported one side, ' + pB.outlets.length + ' reported the other, and none showed you the contradiction.';
-        } else {
-          verdict = '<strong>Only ' + both.length + ' of ' + (aNames.size + bNames.size - both.length) + ' outlets covered both sides.</strong> ' +
-            'The rest reported one claim without acknowledging the other.';
-        }
-        return '<div class="aha-verdict">' + verdict + '</div>';
-      })() +
+      '<div class="aha-divider"></div>' +
+      '<div class="aha-pole">' +
+        '<div class="aha-num" style="color:var(--green);">' + numB + '</div>' +
+        (descB ? '<div class="aha-desc">' + descB + '</div>' : '') +
+        '<div class="aha-outlets">' + pB.outlets.map(o => '<span class="aha-outlet">' + o.name + '</span>').join('') + '</div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="aha-verdict">' + verdictText + '</div>' +
+      '</div>' +
+      '<div class="coverage-split">' +
+        '<div class="split-label">Coverage split</div>' +
+        '<div class="split-bar">' +
+          '<div class="split-bar-a" style="width:' + aPct + '%;"></div>' +
+          '<div class="split-bar-b" style="width:' + bPct + '%;"></div>' +
+        '</div>' +
+        '<div class="split-num">' + aCount + '\u202f:\u202f' + bCount + '</div>' +
       '</div>';
   }
 

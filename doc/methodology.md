@@ -175,6 +175,14 @@ in the sample.
 - The LLM performing extraction is itself a biased instrument. Its training
   data and RLHF tuning embed assumptions about what constitutes fact vs.
   opinion. Blind extraction mitigates but does not eliminate this.
+- **LLM-generated prose in the UI reintroduces the bias the pipeline is
+  designed to remove.** Centroids, pole summaries, and synthesized labels are
+  model outputs that embed framing choices invisible to the reader. Displaying
+  them as primary content would undermine the tool's depolarization goal. The
+  UI is therefore constrained to show only structural and mechanical data as
+  primary content — outlet names, claim counts, and numbers drawn directly from
+  source reporting. LLM synthesis is available in secondary or collapsible
+  contexts for readers who seek it.
 - Fact deduplication requires semantic judgment. Two outlets may report the
   "same" fact with meaningfully different framing that gets lost in
   deduplication.

@@ -7,6 +7,17 @@
 - Never change architectural strategy (auth method, deployment model, etc.)
   without asking first.
 
+## Political Neutrality Rule
+The entire purpose of this tool is to depolarize by presenting facts and letting readers draw their own conclusions. LLM-generated prose — centroids, pole summaries, pole labels, synthesized verdicts — carries inherent political bias risk because the model's training data and RLHF tuning embed framing choices that are invisible to the reader.
+
+**LLM-generated prose must never appear as primary UI content.** Primary content must be structural and mechanical only:
+- Outlet names (as badges)
+- Claim and axis counts
+- Numbers drawn directly from what outlets stated (percentages, timeframes, dollar amounts)
+- Coverage structure facts ("X outlets reported one side, Y reported the other")
+
+LLM-generated text may only appear in secondary or collapsible contexts where the reader has explicitly chosen to see synthesis — never as the default view. When in doubt, ask: could this text have been written by the LLM with a political lean? If yes, it does not belong in the primary UI.
+
 ## Architecture
 - Containerized FastAPI app with Claude Agent SDK
 - Docker container runs as non-root user `app` (uid 1000), required for
@@ -15,6 +26,7 @@
   waiting for the user to complete the browser-based flow. No localhost
   callback server, no stdin code entry. The CLI auto-detects completion.
   Auth credentials are stored in the bind-mounted `./instance/.claude/`.
+- "The Gap Hook": The first section of content on a story sample page that shows the biggest gap in the news coverage.
 
 ## Container Safety Rule
 - Before rebuilding or restarting the Docker container, always check whether
