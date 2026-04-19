@@ -12,8 +12,6 @@
   .demos .nav-card:hover { border-color: var(--accent); text-decoration: none; }
   .demos .nav-card h3 { font-size: 14px; margin-bottom: 4px; color: var(--text); }
   .demos .nav-card p { font-size: 12px; color: var(--muted); margin: 0; }
-  .demos .admin-links { display: flex; gap: 16px; margin-top: 8px; }
-  .demos .admin-links a { font-size: 12px; color: var(--muted); }
 
   .demos .story-row { padding: 20px; border-bottom: 1px solid var(--border); }
   .demos .story-row:last-child { border-bottom: none; }
@@ -80,11 +78,15 @@
 <div class="section" id="stories">
   <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
     <h2>Stories</h2>
-    {% if stories %}
-    <form method="post" action="/sample-all">
-      <button type="submit" class="btn-sm">Sample all</button>
-    </form>
-    {% endif %}
+    <div style="display:flex;gap:8px;align-items:center;">
+      <a href="/publish" class="btn-sm">Publish</a>
+      <a href="/auth" class="btn-sm">Auth</a>
+      {% if stories %}
+      <form method="post" action="/sample-all" style="margin:0;">
+        <button type="submit" class="btn-sm">Sample all</button>
+      </form>
+      {% endif %}
+    </div>
   </div>
 
   <div class="card" style="margin-bottom:24px;">
@@ -160,10 +162,6 @@
   <p class="muted">No stories yet. Add one above.</p>
   {% endif %}
 
-  <div class="admin-links">
-    <a href="/publish">Publish</a>
-    <a href="/auth">Auth</a>
-  </div>
 </div>
 
 <script>

@@ -79,7 +79,7 @@
   .demos .split-bar-b { height: 100%; background: var(--green); }
   .demos .split-num { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
   .demos .aha-outlet { font-size: 10px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; white-space: nowrap; }
-  .demos .aha-divider { width: 1px; height: 80px; background: var(--border); flex-shrink: 0; position: relative; margin: 0 16px; }
+  .demos .aha-divider { width: 1px; height: 80px; background: var(--border); flex-shrink: 0; position: relative; margin: 0 28px; }
   .demos .aha-divider::after { content: 'vs'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 10px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 6px 0; letter-spacing: 0.08em; text-transform: uppercase; }
   .demos .aha-verdict { font-size: 15px; line-height: 1.6; max-width: 440px; margin: 0 auto; }
   .demos .aha-verdict strong { color: var(--yellow); }
@@ -213,7 +213,7 @@
   @media (max-width: 430px) {
     .demos .aha-versus { flex-direction: column; gap: 0; }
     .demos .aha-pole { padding: 8px 0; }
-    .demos .aha-divider { width: 60%; height: 1px; margin: 0 auto; }
+    .demos .aha-divider { width: 60%; height: 1px; margin: 20px auto; }
     .demos .aha-divider::after { padding: 0 8px; }
     .demos .aha-desc { max-width: none; }
   }
@@ -490,9 +490,8 @@ function smoothScroll(id) {
     const numA = extractedA || (c && c.pole_a_label) || pA.outlets.length + '';
     const numB = extractedB || (c && c.pole_b_label) || pB.outlets.length + '';
     // When number shown: label annotates it. When label shown: stance contextualizes it.
-    function truncate(s, n) { return s && s.length > n ? s.slice(0, n - 1) + '\u2026' : s || ''; }
-    const descA = extractedA ? (c && c.pole_a_label || '') : truncate(pA.stance, 100);
-    const descB = extractedB ? (c && c.pole_b_label || '') : truncate(pB.stance, 100);
+    const descA = extractedA ? (c && c.pole_a_label || '') : (pA.stance || '');
+    const descB = extractedB ? (c && c.pole_b_label || '') : (pB.stance || '');
 
     const aCount = pA.outlets.length, bCount = pB.outlets.length, total = aCount + bCount;
     const aPct = Math.round(aCount / total * 100), bPct = 100 - aPct;
